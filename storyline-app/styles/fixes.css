@@ -1,0 +1,96 @@
+/* ===== 잘림 막기 · 보관 칸 다듬기 ===== */
+/* 인물 시트: 이름 칸의 기본 폭이나 긴 소개 글이 시트 폭을 밀어내지 않게 — 긴 글은 옆으로 넘치지 않고 아래로 줄바꿈 */
+.shead{grid-template-columns:minmax(0,1fr)}
+.shead>*,.snrow>*{min-width:0}
+#sheet input,#sheet textarea,#sheet select{max-width:100%}
+.shead input,.shead textarea,#sheet .fval,#sheet .flabel{width:100%;min-width:0}
+#sheet .sgrp,#sheet .goalsec{min-width:0;overflow-wrap:anywhere}
+/* 보드 머리: 좁아지면 글자를 말줄임으로 */
+.bhead>*{min-width:0;flex:0 1 auto}
+.bhead b,.bhead>.muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bhead b{flex:0 2 auto}
+.bhead>.muted{flex:0 1 auto}
+/* 목록 · 타임라인 카드: 말풍선이 카드 가장자리에 붙지 않게 글 여백을 조금 더 (거울 층도 같이) */
+.hl-bubble .kcard:is(.pool,.tl) .ktext,.hl-bubble .kcard:is(.pool,.tl) .kmir{padding-left:15px;padding-right:15px}
+/* 보관 칸 */
+.addcol.shadd{flex:none;padding:12px 16px}
+.shhead .shcnt{color:var(--sub);font-size:var(--t-small,.86em);white-space:nowrap}
+.shhead .shfold{padding:0 4px;color:var(--sub);min-width:0}
+.shhead .shfold .ic svg{width:15px;height:15px}
+.shhead .shsend{padding:2px 10px;font-size:.86em;white-space:nowrap}
+.shhead .shsel{padding:2px 10px;font-size:.86em;white-space:nowrap}
+.shelf.folded{padding-bottom:6px}
+.shelf.folded .shbody{display:none}
+.shhint{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--sub);font-size:.88em;text-align:center;padding:16px 8px;line-height:1.6}
+.shhint .kbd{margin:0 2px}
+/* 화 머리 메뉴 */
+.tlhead .epmenu{opacity:0;transition:opacity .15s;padding:2px 6px;color:var(--sub)}
+.tlhead .epmenu .ic svg{width:16px;height:16px}
+.tlcol:hover .epmenu,.tlbox:hover .epmenu,.epmenu:focus-visible{opacity:.85}
+.tlhead .epmenu:hover{opacity:1;color:var(--acc)}
+.tlhead .epcnt{color:var(--sub);white-space:nowrap;font-size:var(--t-small,.86em)}
+/* 오른쪽 목록이 접혔을 때 생기는 아이콘(오른쪽 위)과 작품 노트 머리의 버튼이 겹치지 않게 */
+#app:has(#pool.cl) .wbhead{padding-right:46px}
+#app.m-story:has(#sheet.cl) .wbhead{padding-left:38px}      /* 접힌 시트 · 왼쪽 목록 아이콘 자리 비키기 (보드 머리와 같은 규칙) */
+#app.m-story:has(#left.cl):has(#sheet.cl) .wbhead{padding-left:80px}
+/* ===== 가독성: 보조 글자 대비 4.5 이상 · 너무 작은 글자 키우기 ===== */
+:root[data-theme=cotori]{--sub:#655a4b}
+:root[data-theme=paper]{--sub:#5b5a55}
+:root[data-theme=rose]{--sub:#6f5359}
+:root[data-theme=forest]{--sub:#aab5ac}
+:root[data-theme=ink]{--sub:#96948e}
+.ui2 .saved{font-size:var(--t-small);opacity:1}
+.phead b{opacity:.85}
+.sgh{opacity:.85}
+.fold{opacity:.9}
+.lbh b{font-size:.84em}
+.lbh small,.lsh small,.lchip small,.crow small,.fold small{font-size:.84em}
+.lbh .car,.lsh .car{font-size:.84em}
+.ltree .fhint,.fhint{font-size:.86em}
+.demotag{font-size:.84em}
+.lsh{font-size:.88em}
+.kchip,.placed,.klink{font-size:.8em}
+.uchip{font-size:.84em}
+.stag{font-size:.8em}
+.ep.empty .eno,.ep.empty .en{opacity:1;color:var(--sub)}      /* 빈 화: 흐리게 하는 대신 보조 색으로 (대비 유지) */
+.ep.empty .eno{font-weight:500}
+.ep small{font-size:.84em}
+/* ===== 왼쪽 목록: 아이콘 열 맞춤 ===== */
+/* 판 · 폴더 줄 모두 [이름 개수 ……… 새 노트 · 새 폴더 · 표 · ⋯] — 아이콘은 같은 크기 칸에 오른쪽 끝부터 */
+.lsh .fn{flex:0 1 auto}
+.lbh small,.lsh small{margin-left:1px;color:var(--sub);font-weight:500;font-variant-numeric:tabular-nums}
+.lbh .cbtn,.lsh .cbtn,.lbh .cslot{width:26px;height:24px;padding:0;min-width:0;min-height:0;display:inline-flex;align-items:center;justify-content:center;flex:none;margin:0}
+.lbh .sp,.lsh .sp{flex:1}
+.lbh,.lsh{gap:4px}
+.lbh .car,.lsh .car{flex:none}
+/* 아이콘은 그 줄에 마우스를 올렸을 때만 (판 전체에 올렸을 때 위아래 줄 아이콘이 한꺼번에 나와 어지럽지 않게) */
+.lboard:hover>.lbh .cbtn,.lsub:hover>.lsh .cbtn,.lboard:hover>.lbh .cbtn.mk,.lsub:hover>.lsh .cbtn.mk{opacity:0}
+.lbh:hover .cbtn,.lsh:hover .cbtn,.lbh .cbtn:focus-visible,.lsh .cbtn:focus-visible{opacity:.65}
+.lbh .cbtn:hover,.lsh .cbtn:hover,.lbh .cbtn[data-pop]:focus,.lsh .cbtn[data-pop]:focus{opacity:1}
+/* ===== 구상 보드 위쪽: 목표 줄이 있을 때 접힌 패널 아이콘을 보드 머리 줄(인물 이름 · 전체 화면 버튼)과 같은 높이로 ===== */
+#app.m-story:has(#mid>.goalstrip:not(.mini)) :is(#left,#sheet,#pool).cl>.ctab{top:42px!important}
+#app.m-story:has(#mid>.goalstrip:not(.mini)) .goalstrip:not(.mini){padding-left:16px!important;padding-right:16px!important}
+/* ===== 왼쪽 목록: 글자 모양 (이름 | 이름 | 이름) ===== */
+.ltext .lchips{gap:6px 0;padding:4px 2px 6px 3px}
+.ltext .lchip,.ltext .lchip:hover,.ltext .lchip.act{background:none;box-shadow:none;padding:0;border-radius:0;gap:0;color:var(--ink);line-height:1.5}
+.ltext .lchip.fill{flex:0 1 auto}
+.ltext .lchip .eic,.ltext .lchip small{display:none}
+.ltext .lchip::before{content:'';flex:none;width:1px;height:.8em;margin:0 7px;background:var(--ink);opacity:.25}      /* 이름 사이: 흐리지만 분명한 가는 세로줄 */
+.ltext .lchip.rs::before{display:none}
+.ltext .lchip .cn{position:relative;display:inline-block;padding:0 2px;font-weight:500;transform-origin:50% 70%;transition:transform .16s var(--ease,ease),color .16s}
+.ltext .lchip .cn::after{content:'';position:absolute;left:50%;bottom:-3px;width:0;height:2px;border-radius:2px;background:var(--acc);transform:translateX(-50%);transition:width .18s var(--ease,ease)}
+.ltext .lchip:hover .cn{transform:scale(1.08);color:var(--acc)}
+.ltext .lchip.act .cn{color:var(--acc);font-weight:650}
+.ltext .lchip.act .cn::after{width:14px}      /* 고른 인물: 이름 아래 짧은 밑줄 */
+.ltext .lchip.emp .cn{opacity:.55}
+.ltext .lsub{border-left-color:color-mix(in srgb,var(--line) 70%,transparent)}
+@media (prefers-reduced-motion:reduce){.ltext .lchip:hover .cn{transform:none}.ltext .lchip .cn,.ltext .lchip .cn::after{transition:none}}
+.ui2 .gcnt{font-size:.9em}
+.sgh .quiet{font-size:.9em!important}
+button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink))!important}
+/* 카드 글: 입력 칸이 글자처럼 줄 위에 얹히면(inline-block) 아래에 몇 px 여백이 생겨, 보이는 글자 층(.kmir)이 그만큼 커짐
+   → 길어서 스크롤될 때 두 층의 스크롤 끝이 어긋나 커서가 글자보다 위로 튀어 보였음. 블록으로 두어 높이를 똑같이 */
+.kwrap .ktext,.zwrap .zta{display:block}
+/* ＋ 인물: 글자가 큰 글꼴(명조 등)에서도 위아래가 잘리지 않게 여백 · 줄 높이 · 폭 여유 */
+.kadd{font-size:.78em;line-height:1.4;height:auto;min-height:0;padding:2px 6px 2px 8px;max-width:8em;box-sizing:border-box}
+.kfoot{align-items:center}
