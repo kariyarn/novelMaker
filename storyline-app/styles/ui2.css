@@ -1,0 +1,85 @@
+/* ============ 새 디자인 (설정 → 겉모습 → 화면 디자인) — body.ui2 일 때만 ============ */
+/* 위쪽 바: 작품 이름 · 밑줄 탭 · 자동 저장됨 */
+.ui2 #top{padding:0 14px 0 16px;height:48px;gap:6px;flex:none}
+.ui2 .brand{font-size:14px;font-weight:600;margin-right:2px;display:inline-flex;align-items:center;gap:4px}
+.ui2 .brand .ic{width:14px;height:14px;color:var(--sub)}
+.ui2 .demotag{background:transparent;color:var(--sub);border:.5px solid var(--line);border-radius:4px;font-weight:500;padding:0 5px;margin-left:2px;font-size:.74em}
+.ui2 .saved{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sub);opacity:.8;margin-right:6px;white-space:nowrap}
+.ui2 .saved .ic{width:13px;height:13px}
+.ui2 .saved[data-st=saving] .ic{opacity:.25}
+.ui2 .saved[data-st=fail]{color:var(--warn);opacity:1}
+/* 밑줄 탭 */
+.ui2 .seg.tabs{background:transparent;padding:0;gap:20px;border-radius:0;align-self:stretch;align-items:stretch}
+.ui2 .seg.tabs button{background:transparent!important;box-shadow:none!important;border-radius:0;padding:0 1px;color:var(--sub);font-weight:500;border-bottom:2px solid transparent;opacity:1;min-height:0}
+.ui2 .seg.tabs button:hover{color:var(--ink)}
+.ui2 .seg.tabs button.on{color:var(--ink);font-weight:600;border-bottom-color:currentColor}
+.ui2 .mbar .seg.tabs{gap:18px}
+.ui2 .mbar .seg.tabs button{padding:11px 1px 9px}
+.ui2 .mbar{padding-top:0;padding-bottom:0;min-height:44px;border-bottom:.5px solid var(--line)}
+.ui2 .stabs{border-bottom:.5px solid var(--line);margin:2px 0 12px}
+.ui2 .stabs .seg.tabs button{padding:6px 1px 8px}
+/* 두 개짜리 선택은 조용하게, 세 개 이상은 드롭다운 하나 */
+.ui2 .seg:not(.tabs){background:transparent;padding:0;gap:2px}
+.ui2 .seg:not(.tabs) button{color:var(--sub);padding:2px 8px;border-radius:6px}
+.ui2 .seg:not(.tabs) button.on{background:var(--fill2);box-shadow:none;color:var(--ink)}
+.ui2 select.seg2{-webkit-appearance:none;appearance:none;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center/13px;border:0;box-shadow:none;color:var(--ink);padding:4px 24px 4px 8px;border-radius:6px;font:inherit;cursor:pointer}
+.ui2 select.seg2:hover,.ui2 select.seg2:focus{background-color:var(--fill)}
+/* 파란색은 화면당 1~2개만: 고른 이름표 · 칩은 옅게 */
+.ui2 .lchip.act{background:var(--acc-soft);color:var(--acc)}
+.ui2 .chip.on{background:var(--acc-soft);color:var(--acc)}
+.ui2 .dk-b.dk-on{background:var(--fill2);color:var(--ink)}
+/* 인물 시트 */
+.ui2 .snrow{display:flex;align-items:center;gap:8px}
+.ui2 .snrow .nm{flex:1;min-width:0}
+.ui2 .sdot{flex:none;width:12px;height:12px;min-height:0;padding:0;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px transparent;transition:box-shadow .15s}
+.ui2 .sdot:hover,.ui2 .sdot.on{background:var(--c);box-shadow:0 0 0 4px var(--fill2)}
+.ui2 .sprops{display:flex;flex-direction:column;gap:8px;padding:8px 10px;margin:6px 0 4px;border-radius:10px;background:var(--fill)}
+.ui2 #sheet .fl .muted{display:none}
+.ui2 .sfold2{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-weight:500}
+.ui2 .sfold2 small,.ui2 .gcnt{color:var(--sub);font-weight:400;font-size:.86em}
+.ui2 .sfold2 .ic,.ui2 .sgh .ic,.ui2 .sfold .ic{width:12px;height:12px;color:var(--sub);flex:none}
+.ui2 .sgh{display:flex;align-items:center;gap:8px}
+/* 설정 창: 접힌 한 줄 (제목 + 개수) */
+.ui2 .sfold{display:flex;width:100%;align-items:center;gap:8px;background:transparent;padding:11px 2px;margin-top:6px;border-top:.5px solid var(--line);border-radius:0;color:var(--ink);font-weight:500;text-align:left}
+.ui2 .sfold:hover{background:transparent;color:var(--acc)}
+.ui2 .sfold small{color:var(--sub);font-weight:400}
+/* 목록 카드: 분류 표시는 마우스를 올렸을 때만 (색 띠가 대신) */
+.ui2 .kcard:not(.board) .kpill,.ui2 .kcard:not(.board) .grip{opacity:0;transition:opacity .15s}
+.ui2 .kcard:not(.board):hover .kpill,.ui2 .kcard:not(.board):focus-within .kpill,.ui2 .kcard:not(.board):hover .grip{opacity:1}
+.ui2 .tlmemo:placeholder-shown:not(:focus):not(:hover)::placeholder{color:transparent}
+/* 오른쪽 목록 */
+.ui2 .pcnt{color:var(--sub);font-weight:400;margin-left:2px}
+.ui2 .pquick .seg.tabs{display:flex;gap:16px;margin-top:10px;border-bottom:.5px solid var(--line);width:100%;height:auto}
+.ui2 .pquick .seg.tabs button{padding:4px 1px 7px;font-size:.9em}
+.ui2 .popsl{padding:4px 12px 8px}
+.ui2 .popsl label{display:flex;align-items:center}
+/* 관계망 */
+.ui2 .gbar-n{gap:8px}
+.ui2 .gbar-n .gsearch{width:180px;border-radius:7px}
+.ui2 .gobw{position:relative}
+.ui2 .gob{display:inline-flex;align-items:center;gap:5px;background:transparent;color:var(--ink);padding:4px 8px;border-radius:6px}
+.ui2 .gob:hover,.ui2 .gob.on{background:var(--fill)}
+.ui2 .gob small{color:var(--sub)}
+.ui2 .gob .ic{width:15px;height:15px}
+.ui2 .gopts{position:absolute;top:calc(100% + 6px);left:0;z-index:20;width:290px;background:var(--panel);border-radius:10px;box-shadow:0 0 0 .5px var(--line),var(--shadow);padding:6px 0}
+.ui2 .gopts[hidden]{display:none}
+.ui2 .ghd{font-size:.74em;color:var(--sub);font-weight:600;padding:8px 14px 2px;letter-spacing:.03em}
+.ui2 .gpr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 14px}
+.ui2 .gpr>span:first-child{color:var(--sub)}
+.ui2 .gprs label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;color:var(--sub)}
+.ui2 .gprs input[type=range]{flex:1}
+.ui2 .gzoom-n{position:absolute;right:14px;top:14px;z-index:3;flex-direction:column;background:var(--panel);box-shadow:0 0 0 .5px var(--line),var(--shadow);padding:2px;border-radius:9px}
+.ui2 .gzoom-n button{padding:4px 8px}
+.ui2 .gbar2-n{position:absolute;left:16px;right:16px;bottom:16px;z-index:3;border:0;border-radius:12px;background:var(--blur);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);box-shadow:0 0 0 .5px var(--line),var(--shadow);padding:6px 12px}
+.ui2 .gbar2-n input[type=range]{flex:1;width:auto!important}
+/* 글자 옆 선 아이콘 · 흐린 글자 버튼 */
+.ui2 .ic.em{display:inline-flex;width:1.05em;height:1.05em;margin-right:6px;vertical-align:-.17em;color:var(--sub)}
+.ui2 .ic.em svg{width:100%;height:100%}
+.ui2 button.quiet{color:var(--sub)}
+.ui2 button.quiet:hover{color:var(--ink)}
+.ui2 .gh.sfold2{color:var(--ink);padding:10px 0;font-size:1em}
+.ui2 .menubtn{background:transparent;color:var(--ink);padding:4px 8px;border-radius:6px}
+.ui2 .menubtn:hover{background:var(--fill)}
+.ui2 .menubtn.on{background:var(--acc-soft);color:var(--acc)}
+/* 처음 안내: 이모지 대신 비움 */
+.ui2 .tour .tic{display:none}

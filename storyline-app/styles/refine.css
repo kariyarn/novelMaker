@@ -1,0 +1,160 @@
+/* ---------- 디자인 기준값 (모서리 · 간격 · 아이콘) ---------- */
+:root{--r-s:7px;--r-m:10px;--r-l:14px;--r-xl:20px;--g1:4px;--g2:8px;--g3:12px;--g4:16px;--ic:16px}
+.ic{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.ic svg{width:var(--ic);height:var(--ic)}
+button.hasic{display:inline-flex;align-items:center;justify-content:center}
+.cbtn.hasic{padding:3px;min-width:26px;min-height:26px;border-radius:var(--r-s)}
+.x.hasic .ic svg{width:13px;height:13px}
+.pinx.hasic .ic svg{width:14px;height:14px}
+.pinx.isp{color:var(--warn)}
+.ico.hasic{padding:5px 6px}
+.mtools .cbtn.hasic{min-width:30px;min-height:30px}
+.mtools .ic svg{width:17px;height:17px}
+input,select,textarea{border-radius:var(--r-m)}
+button{border-radius:var(--r-s)}
+.rmblock,.tgen button{border-radius:var(--r-l)}
+/* 키보드 사용: 포커스가 어디 있는지 분명하게 (마우스 클릭에는 안 보임) */
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:var(--r-s)}
+.kcard:focus-visible,.ep:focus-visible,.epg:focus-visible,.fold:focus-visible,.chip:focus-visible,.ent:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none}
+/* 움직임 줄이기를 켠 경우: 애니메이션 최소화 */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* ---------- 3단계: 평소엔 조용하게 ---------- */
+/* 패널 위 버튼은 패널에 마우스를 올렸을 때만 */
+.panel>.phead .cbtn,.panel>.phead .quiet{opacity:0;transition:opacity .18s}
+.panel:hover>.phead .cbtn,.panel:hover>.phead .quiet,.panel>.phead .cbtn:focus-visible,.panel>.phead .pfbtn.fon,.peekbox>.phead .cbtn,.peekbox>.phead .quiet{opacity:1}
+/* 인물 시트: 칸 이름 옆 설명은 숨김 (빈 칸에는 칸 안의 흐린 안내가 보여요) */
+#sheet .fl .muted{display:none}
+/* 오른쪽 목록 필터 버튼 */
+.pfbtn{position:relative}
+.pfbtn.fon{color:var(--acc)}
+.pfbtn .fdot{position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.psum{display:flex;align-items:center;gap:6px;font-size:.84em;color:var(--acc);padding:0 2px}
+.psum .quiet{padding:0 6px;font-size:.95em;margin-left:auto}
+.psearch,.psel{width:calc(100% - 12px);margin:3px 6px;padding:5px 9px}
+/* 카드: 분류 칸 · 별(0개) · 핀 · ✕ · 끌기 손잡이 · “+ 인물”은 마우스를 올렸을 때만 */
+.kcard:is(.pool,.tl) .khead>*,.kcard .kfoot .kadd{transition:opacity .15s}
+.kcard:is(.pool,.tl):not(:hover):not(.editing):not(.selc) .khead :is(.grip,.pinx:not(.isp),.x),.kcard:is(.pool,.tl)[data-stars="0"]:not(:hover):not(.selc) .khead .stars{opacity:0}
+.kcard:is(.pool,.tl):not(:hover):not(.editing):not(.selc) .khead .kpill{background:transparent}
+.kcard:is(.pool,.tl):not(:hover):not(.editing):not(.selc) .khead .kpill select{color:var(--sub);font-weight:500}
+.kcard:not(:hover):not(.editing):not(.selc) .kfoot .kadd{opacity:0}
+/* 집중 모드 */
+body.focus #top,body.focus #banner,body.focus #left,body.focus #sheet,body.focus #sp1,body.focus #sp2,body.focus #pool{display:none!important}
+body.focus #app{grid-template-columns:minmax(0,1fr)!important}
+#focusx{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:70;font-size:.8em;color:var(--sub);background:var(--blur);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:99px;padding:3px 12px;box-shadow:0 0 0 .5px var(--line);opacity:.35;transition:opacity .2s}
+#focusx:hover{opacity:1}
+
+/* ---------- 4단계: 마무리 다듬기 ---------- */
+/* 타임라인은 집중 모드에서도 오른쪽 목록이 필요 (카드를 끌어다 놓아야 하니까) */
+body.focus #app.m-tl2 #pool,body.focus #app.m-tl2 #sp2{display:flex!important}
+body.focus #app.m-tl2 #sp2{display:block!important}
+body.focus #app.m-tl2{grid-template-columns:minmax(0,1fr) 1px var(--rw,330px)!important}
+/* 움직임: 패널이 열고 닫힐 때 · 팝업이 뜰 때 부드럽게 (너비를 끌 때는 바로 따라오게) */
+#app{transition:grid-template-columns .32s cubic-bezier(.32,.72,.2,1)}
+body.resizing #app{transition:none}
+#modal.on{animation:mfade .18s ease-out}
+#modal.on .box{animation:mrise .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+@keyframes mrise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.bdock{animation:dockin .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes dockin{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translateX(-50%)}}
+.ctab{transition:background .15s,color .15s}
+/* 접힌 패널: 글자 칸 대신 작은 아이콘 하나 (자리를 차지하지 않음) */
+.panel.cl{overflow:visible;position:relative;z-index:9;min-width:0;width:0;padding:0;border:0}
+.panel.cl .ctab{writing-mode:horizontal-tb;position:absolute;top:12px;margin:0;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:var(--blur);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow),0 0 0 .5px var(--line);color:var(--sub)}
+.panel.cl .ctab:hover{color:var(--acc);background:var(--panel)}
+.panel.cl .ctab .ic svg{width:17px;height:17px}
+.ctab-l,.ctab-s{left:10px}
+.ctab-s.low{top:54px!important}
+.ctab-r{right:10px}
+/* 열려 있는 패널의 접기 아이콘: 헤더 안에서 접힌 아이콘과 같은 자리에 */
+.phead{position:sticky}
+.ptog{position:absolute;top:12px;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:transparent;color:var(--sub);z-index:3}
+.ptog:hover{background:var(--fill2);color:var(--acc)}
+.ptog .ic svg{width:17px;height:17px}
+#left .ptog,#sheet .ptog{left:10px}
+#pool .ptog{right:10px}
+#left>.phead,#sheet>.phead{padding-left:54px}
+#pool>.phead{padding-right:54px}
+#app:has(#left.cl) #sheet .ptog{left:52px}
+#app:has(#left.cl) #sheet>.phead{padding-left:96px}
+#app:has(#left.cl) .ctab-s,#app:has(#left.cl) .peekic.pl.low,#app:has(#left.cl) #sheet .peekic{left:52px;top:12px}
+.ctab-s.low,.peekic.low{top:12px!important}
+.peekbox .ptog{display:none}
+.peekbox>.phead{padding-left:54px}
+.peekbox.pr>.phead{padding-left:14px;padding-right:54px}
+.panel.cl.peek{z-index:30}
+.panel.peeking .ptog{background:var(--acc-soft);color:var(--acc)}
+.panel.peeking .ptog::after{content:'';position:absolute;inset:-3px;border-radius:12px;border:1.5px dashed var(--acc);opacity:.55}
+.peekbox{position:absolute;top:0;bottom:0;overflow:auto;background:var(--side);box-shadow:0 18px 50px rgba(0,0,0,.22),0 0 0 .5px var(--line);display:flex;flex-direction:column;animation:peekin .2s cubic-bezier(.2,.8,.2,1)}
+#sheet .peekbox{background:var(--panel)}
+.peekbox.pl .peekbox.pr /* 살짝 열린 패널의 아이콘: 접힌 아이콘과 같은 자리에서 그대로 눌러 고정 */
+.peekic{position:absolute;top:12px;z-index:3;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:var(--acc-soft);color:var(--acc);writing-mode:horizontal-tb;margin:0}
+.peekic.pl{left:10px}.peekic.pr{right:10px}.peekic.low{top:54px}
+.peekic .ic svg{width:17px;height:17px}
+.panel .peekic{z-index:6;background:var(--acc-soft);color:var(--acc);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.panel .peekic:hover{background:var(--acc);color:var(--onacc,#fff)}
+.peekbox.pl>.phead{padding-left:56px}
+.peekbox.pr>.phead{padding-right:56px}
+#sheet .peekbox>.phead{padding-left:56px}
+#app:has(#left.cl) #sheet .peekbox>.phead{padding-left:96px}
+.peekbox.pl{left:0;border-radius:0 14px 14px 0}
+.peekbox.pr{right:0;border-radius:14px 0 0 14px}
+@keyframes peekin{from{opacity:0;transform:translateX(var(--px,-10px))}to{opacity:1;transform:none}}
+.peekbox.pr{--px:10px}
+.peekbox.out{animation:peekout .17s ease-in forwards;pointer-events:none}
+@keyframes peekout{to{opacity:0;transform:translateX(var(--px,-10px))}}
+.panel.fadeout>*{opacity:0;transition:opacity .13s ease-out}
+.fadein{animation:cfade .3s ease-out}
+@keyframes cfade{from{opacity:0}to{opacity:1}}
+body.slide .panel{overflow:hidden}
+/* 접힌 패널 아이콘과 옆 화면의 글자가 겹치지 않게 비켜 줌 */
+#app:has(#sheet.cl) .bhead,#app.m-tl:has(#left.cl) .bhead{left:58px}
+#app.m-story:has(#left.cl):has(#sheet.cl) .bhead{left:100px}
+#app.m-story:has(#left.cl):has(#sheet.cl) .goalstrip:not(.mini){padding-left:100px}
+#app.m-story:has(#sheet.cl) .goalstrip:not(.mini){padding-left:58px}
+#app.m-story:has(#sheet.cl) #mid>.tlhint{padding-left:58px}
+#app:has(#pool.cl) .goalstrip:not(.mini){padding-right:58px}
+#app:has(#left.cl):not(.m-story) #mid .mbar,#app.m-story:has(#sheet.cl) #mid .mbar{padding-left:58px}
+#app:has(#pool.cl) .bfull{right:56px}
+#app:has(#pool.cl) #mid .mbar{padding-right:58px}
+/* 글자 크기는 세 가지만: 제목 · 본문 · 작은 글 */
+:root{--t-small:.84em;--t-title:1.06em}
+.muted,.fl,.sgh,.glab,.robadge,.chip,.kchip,.placed,.ptitle,.tlab,.psum,.bhead .muted,.srow .sl .muted,.phead .muted{font-size:var(--t-small)}
+.phead b,.ssec{font-size:var(--t-small);letter-spacing:.02em}
+.bhead b,.mbar>b,.sl,.tlhead b,.rmname{font-size:var(--t-title)}
+/* 테두리 대신 여백과 옅은 그림자 */
+.kcard.pool,.kcard.tl{border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px -8px rgba(0,0,0,.12)}
+.kcard.pool:hover,.kcard.tl:hover{box-shadow:0 1px 2px rgba(0,0,0,.06),0 10px 24px -8px rgba(0,0,0,.18)}
+.mbar{border-bottom-color:transparent;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+.tlcol{border-color:transparent}
+.srow{border-bottom-color:var(--fill2)}
+#top{border-bottom-color:var(--fill2)}
+
+/* ---------- 가독성 다듬기: 보조 글자 대비 · 크기 · 여백 ---------- */
+:root:not([data-theme]),:root[data-theme=light]{--sub:#5e5e63;--line:rgba(0,0,0,.11)}
+:root[data-theme=dark]{--sub:#aeaeb3;--line:rgba(255,255,255,.13)}
+@media (prefers-color-scheme:dark){:root:not([data-theme]){--sub:#aeaeb3;--line:rgba(255,255,255,.13)}}
+body{line-height:1.55}
+.muted{font-size:.9em}
+.phead b{font-size:.84em;color:var(--ink);opacity:.72;font-weight:650}
+.sgh{font-size:.84em;color:var(--ink);opacity:.7;letter-spacing:.02em;padding:14px 0 6px}
+.sgh:hover{opacity:1}
+.fl{font-size:.88em}
+.fold{font-size:.9em;color:var(--ink);opacity:.78}
+.cbtn{min-width:24px;min-height:24px;border-radius:7px}
+.phead b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.phead .cbtn{padding:0 4px;flex:none}
+.phead{gap:2px}
+.cbtn:hover{background:var(--fill);color:var(--ink)}
+.chip{font-size:.88em;padding:2px 12px}
+.mbar{gap:10px;padding:10px 16px}
+.seg button{padding:3px 13px}
+.ktext{line-height:1.6}
+.kcard.pool .khead,.kcard.tl .khead{padding:8px 10px 0}
+.empty,.bempty{line-height:1.7}
+input::placeholder,textarea::placeholder{color:var(--sub);opacity:.8}
+.ftab td{padding:3px 4px}
+.tlhead b{font-size:1.02em}
