@@ -26,7 +26,8 @@
       "styles/**",
       "src/**",
       "note/**",
-      "sync/**"
+      "sync/**",
+      "build/icon.png"
     ],
     "directories": {
       "buildResources": "build",

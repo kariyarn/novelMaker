@@ -24,7 +24,9 @@ button:hover{background:var(--line);color:var(--ink)}
 button.on{color:var(--ink);background:var(--line)}
 button:disabled{opacity:.3;cursor:default;background:none}
 .pos{font-size:12px;color:var(--muted);min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
-.kind{font-size:12px}
+.kind{font-size:12px;white-space:nowrap;flex:none}      /* 좁아도 분류 이름이 세로로 쪼개지지 않게 */
+.bar>*{flex-shrink:0}
+@media (max-width:360px){.opw{display:none}}      /* 좁으면 투명도 슬라이드를 치움 */
 .sp{flex:1}
 textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:15px;line-height:1.65;padding:4px 14px 8px}
 textarea::placeholder{color:var(--muted)}
