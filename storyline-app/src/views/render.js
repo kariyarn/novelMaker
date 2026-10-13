@@ -28,6 +28,11 @@ function flipPlay(rec){
 function renderAll(){
   const _fl=flipRecord();FLIPON=true;try{renderAll0()}finally{FLIPON=false}flipPlay(_fl);
 }
+/* 상태가 바뀌면 다시 그림 · 저장 상태를 위쪽 표시에 반영 (history.js 가 알려 줌) */
+onStateChange(()=>renderAll());
+/* 새 디자인의 위쪽 “자동 저장됨” 표시 (기존 디자인에서는 자리가 없어서 아무 일도 안 함) */
+function savedMark(st){const e=$('savedInd');if(!e)return;e.dataset.st=st;e.lastChild.textContent=st==='saving'?'저장 중…':st==='fail'?'저장 실패':'자동 저장됨'}
+onSaveStatus(st=>{if(st==='fail')toast('저장 실패! 백업을 내려받아 주세요');savedMark(st)});
 function renderAll0(){
   idxClear();msPrune();
   applySettings();renderTop();renderBanner();
@@ -85,7 +90,7 @@ function renderBanner(){
     h('button',{class:'quiet',onclick:async()=>{if(await askConfirm('이 작품을 빈 상태로 시작할까요?\n(읽지 못한 기존 파일이 있다면 그 파일은 새 내용으로 바뀌어요)')){UI.noSave=false;saveNow();saveUIP();renderAll()}}},'빈 작품으로 시작'));
   else if(false)b.append(h('span',{},'예시 데이터로 보고 있어요. 마음껏 만져 보세요.'),h('button',{class:'quiet',onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지우고 빈 프로젝트로 시작할까요?'))clearDemo()}},'예시 지우고 시작'));
 }
-function clearDemo(){snap();const keep=S.settings,kinds=S.kinds;S=migrate({characters:[],cards:[],episodes:[],kinds,settings:keep,demo:false});UI.sel='none';save();renderAll()}
+function clearDemo(){snap();const keep=S.settings,kinds=S.kinds;S=migrate({characters:[],cards:[],episodes:[],kinds,settings:keep,demo:false});UI.sel='none';commit()}
 
 /* 패널 너비 / 접기 */
 const lineMode=()=>UI.mode==='tl'&&(UIP.tlMode||'kanban')==='line';

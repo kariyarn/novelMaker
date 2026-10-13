@@ -95,6 +95,7 @@ function savePrefs(sync){      // 평소엔 비동기, 창을 닫거나 작품�
 let uipT=0;
 const saveUIPNow=()=>{clearTimeout(uipT);uipT=0;if(UI.noSave)return;const t=JSON.stringify(UIP);if(NS&&NS.saveAsync)NS.saveAsync(UKEY,t).catch(()=>{});else wr(UKEY,t);savePrefs()};
 const saveUIP=()=>{if(UI.noSave)return;clearTimeout(uipT);uipT=setTimeout(saveUIPNow,300)};      // 보기 상태는 잠깐 모아서 저장
+function replaceWork(data,extra){const keep=S.settings;S=migrate(data);S.settings=Object.assign({},S.settings,keep);Object.assign(S,extra)}      // 불러오기 · 복구 · 예시: 화면 취향은 그대로 두고 작품 내용만 바꿈
 function firstEntity(){const c=S.characters.find(x=>x.kind!=='setting')||S.characters[0];return c?c.id:'none'}
 initWork();refreshLib();
 UI.sel=firstEntity();

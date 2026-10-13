@@ -72,7 +72,7 @@ function importJson(e){
   const f=e.target.files[0];if(!f)return;
   f.text().then(async t=>{
     try{const d=JSON.parse(t);if(!d.characters||!d.cards)throw 0;
-      if(await askConfirm('현재 데이터를 불러온 파일로 바꿀까요? (↶로 되돌릴 수 있어요)')){snap();const keep=S.settings;S=migrate(d);S.settings=Object.assign({},S.settings,keep);S.demo=false;UI.noSave=false;autoLinkAll();fixSel();save();renderAll()}}
+      if(await askConfirm('현재 데이터를 불러온 파일로 바꿀까요? (↶로 되돌릴 수 있어요)')){snap();replaceWork(d,{demo:false});UI.noSave=false;autoLinkAll();fixSel();commit()}}
     catch(x){notice('올바른 백업 파일이 아니에요')}
     e.target.value='';
   });

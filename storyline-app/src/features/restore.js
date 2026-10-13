@@ -16,6 +16,6 @@ async function restoreBackup(b){
   const text=NS.readBackup(b.name);let d;
   try{d=JSON.parse(text);if(!d.characters||!d.cards)throw 0}catch(e){return notice('백업 파일을 읽을 수 없어요')}
   try{NS.forceBackup(JSON.stringify(S))}catch(e){}
-  snap();const keep=S.settings;S=migrate(d);S.settings=Object.assign({},S.settings,keep);S.demo=false;autoLinkAll();fixSel();
+  snap();replaceWork(d,{demo:false});autoLinkAll();fixSel();
   UI.noSave=false;saveNow();closeModal();renderAll();toast('백업으로 복구했어요');
 }

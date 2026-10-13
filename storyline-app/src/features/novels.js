@@ -4,9 +4,9 @@ const workName=()=>curNovel().name;
 const fileBase=()=>(workName().replace(/[\\/:*?"<>|]/g,'_').trim()||'storyline');
 const shortDate=t=>{const d=new Date(t||Date.now());return `${d.getMonth()+1}/${d.getDate()}`};
 function afterWorkChange(){refreshLib();document.title=`${workName()} — 캐릭터 스토리라인`}
-function flushWork(){clearTimeout(saveT);saveT=null;if(UI.noSave)return;saveNow();saveUIPNow()}      // 작품을 바꾸기 전: 동기로 바로 저장
+function flushWork(){cancelPendingSave();if(UI.noSave)return;saveNow();saveUIPNow()}      // 작품을 바꾸기 전: 동기로 바로 저장
 function enterWork(opts){
-  initWork(opts);resetUI();undoS=[];redoS=[];lastEdit=0;
+  initWork(opts);resetUI();resetHistory();
   afterWorkChange();renderAll();
 }
 function brandEl(){

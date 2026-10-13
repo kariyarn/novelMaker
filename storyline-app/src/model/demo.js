@@ -28,6 +28,6 @@ const GENRES=[['romance','💞','현대 로맨스','배달 라이더와 상속�
 const workIsEmpty=()=>!S.cards.length&&!S.characters.length;
 async function loadExample(g){
   if(!S.demo&&!workIsEmpty()&&!await askConfirm('지금 작품의 내용을 예시로 바꿀까요?\n(⌘Z로 되돌릴 수 있어요. 새 작품을 만든 뒤 고르는 걸 추천해요)',{ok:'바꾸기',danger:true}))return false;
-  snap();const keep=S.settings;S=migrate(g==='romance'?seed():genreSeed(g));S.settings=Object.assign({},S.settings,keep);S.demo=true;
-  UI.mode='story';UI.folderView=null;UI.sel=firstEntity();autoLinkAll();save();renderAll();return true;
+  snap();replaceWork(g==='romance'?seed():genreSeed(g),{demo:true});
+  UI.mode='story';UI.folderView=null;UI.sel=firstEntity();autoLinkAll();commit();return true;
 }
