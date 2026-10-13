@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>새 디자인 시안</title>
+<style>
+:root{--bg:#f5f5f7;--panel:#fff;--side:#f2f2f5;--ink:#1d1d1f;--sub:#6e6e73;--faint:#a1a1a6;--line:rgba(0,0,0,.08);--fill:rgba(0,0,0,.045);--acc:#0071e3;--board:#efede8;--dot:rgba(0,0,0,.13);--y:#fff1a6;--g:#b9ecd2}
+*{box-sizing:border-box}
+body{margin:0;background:#e4e4e8;color:var(--ink);font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Pretendard",sans-serif;letter-spacing:-.01em;padding:28px 16px 60px;min-width:1312px}
+.cap{max-width:1280px;margin:0 auto 10px;display:flex;align-items:baseline;gap:12px}
+.cap h2{font-size:16px;margin:0}
+.cap p{margin:0;color:var(--sub)}
+.frame{max-width:1280px;height:760px;margin:0 auto 48px;background:var(--bg);border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06),0 20px 50px rgba(0,0,0,.12);display:flex;flex-direction:column}
+.ic{display:inline-flex;width:16px;height:16px;flex:none}
+.ic svg{width:100%;height:100%}
+/* 위쪽 바 */
+.top{height:48px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid var(--line);flex:none}
+.work{display:flex;align-items:center;gap:4px;font-weight:600;font-size:14px;padding:4px 6px;border-radius:6px}
+.work .ic{width:14px;height:14px;color:var(--sub)}
+.tag{font-size:11px;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:4px}
+.sp{flex:1}
+.tabs{display:flex;gap:22px;height:100%}
+.tabs span{display:flex;align-items:center;color:var(--sub);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:default}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--ink)}
+.saved{color:var(--faint);font-size:12px;display:flex;align-items:center;gap:4px;margin-right:6px}
+.saved .ic{width:13px;height:13px}
+.ib{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;color:var(--sub)}
+.ib.hover{background:var(--fill)}
+.qb{color:var(--sub);padding:4px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.qb .ic{width:15px;height:15px}
+.pb{background:var(--acc);color:#fff;padding:6px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.pb .ic{width:15px;height:15px}
+.dd{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;color:var(--ink)}
+.dd .ic{width:13px;height:13px;color:var(--sub)}
+.dd.box{border:1px solid var(--line);background:var(--panel)}
+.muted{color:var(--sub)}
+.faint{color:var(--faint)}
+.body{flex:1;display:flex;min-height:0}
+/* 왼쪽 목록 */
+.left{width:220px;background:var(--side);border-right:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:2px;flex:none}
+.find{display:flex;align-items:center;gap:6px;background:var(--fill);border-radius:7px;padding:5px 8px;color:var(--faint);margin-bottom:8px}
+.find .ic{width:14px;height:14px}
+.row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px}
+.row .ic{color:var(--sub);width:15px;height:15px}
+.row .n{margin-left:auto;color:var(--faint);font-size:12px}
+.row.on{background:rgba(0,113,227,.1);color:var(--acc);font-weight:600}
+.row.on .n{color:var(--acc)}
+.grp{display:flex;align-items:center;gap:6px;padding:10px 8px 4px;color:var(--sub);font-size:12px;font-weight:600}
+.grp .ic{width:11px;height:11px}
+.grp .n{margin-left:auto;font-weight:400;color:var(--faint)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+/* 인물 시트 */
+.sheet{width:300px;background:var(--panel);border-right:1px solid var(--line);padding:20px 20px;overflow:hidden;flex:none}
+.sheet h1{font-size:22px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+.sheet .role{color:var(--sub);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.lab{font-size:12px;color:var(--sub);margin:14px 0 4px}
+.val{padding:2px 0 6px;border-bottom:1px solid var(--line)}
+.fold{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.fold .ic{width:12px;height:12px;color:var(--sub)}
+.fold .n{color:var(--faint);font-size:12px}
+.fold .add{margin-left:auto;color:var(--faint)}
+/* 보드 */
+.board{flex:1;position:relative;background-color:var(--board);background-image:radial-gradient(var(--dot) 1px,transparent 1.3px);background-size:18px 18px;min-width:0}
+.bhead{position:absolute;left:16px;top:12px;display:flex;align-items:baseline;gap:8px}
+.bhead b{font-size:14px}
+.bhead small{color:var(--sub)}
+.note{position:absolute;width:196px;padding:20px 14px 12px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 6px 14px rgba(0,0,0,.07);font-size:13px;line-height:1.6}
+.note .st{position:absolute;right:10px;top:6px;font-size:10px;color:#b07a00;letter-spacing:1px}
+.chips{display:flex;gap:6px;margin-top:8px;font-size:11px;color:var(--sub)}
+.chips span{display:flex;align-items:center;gap:4px}
+.dock{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+.dock .sep{width:1px;height:18px;background:var(--line);margin:0 4px}
+.zoom{color:var(--sub);font-size:12px;padding:0 4px;min-width:38px;text-align:center}
+/* 오른쪽 목록 */
+.pool{width:300px;background:var(--panel);border-left:1px solid var(--line);padding:14px 14px;flex:none;display:flex;flex-direction:column;gap:10px}
+.ph{display:flex;align-items:center;gap:6px}
+.ph b{font-size:13px}
+.input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--faint)}
+.utabs{display:flex;gap:16px;border-bottom:1px solid var(--line);font-size:12px}
+.utabs span{padding:4px 0 7px;color:var(--sub);border-bottom:2px solid transparent;margin-bottom:-1px}
+.utabs span.on{color:var(--ink);font-weight:600;border-color:var(--ink)}
+.item{border-radius:8px;padding:10px 12px 10px 14px;background:var(--panel);border:1px solid var(--line);position:relative;font-size:13px;line-height:1.55}
+.item::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:#e9c84a}
+.item.m::before{background:#6fcf9f}
+.item .chips{margin-top:6px}
+/* 타임라인 */
+.tlbar{height:44px;display:flex;align-items:center;gap:6px;padding:0 16px;border-bottom:1px solid var(--line);flex:none}
+.tlbar .tabs{gap:18px}
+.cols{flex:1;display:flex;gap:14px;padding:16px;overflow:hidden;align-items:flex-start}
+.col{width:250px;flex:none;background:var(--panel);border-radius:10px;border:1px solid var(--line);padding:12px}
+.col h4{margin:0 0 2px;font-size:13px;display:flex;align-items:baseline;gap:8px}
+.col h4 i{font-style:normal;color:var(--sub);font-weight:500;font-size:12px}
+.col .memo{color:var(--sub);font-size:12px;margin-bottom:10px}
+.col .item{margin-bottom:8px}
+.col .ghost{color:var(--faint);font-size:12px;padding:6px 2px}
+.eps .row{padding:4px 8px}
+.eps .row b{width:26px;font-weight:600}
+.eps .row.dim{color:var(--faint)}
+/* 관계망 */
+.gbar{height:44px;display:flex;align-items:center;gap:6px;padding:0 16px;border-bottom:1px solid var(--line);flex:none}
+.canvas{flex:1;position:relative;background:var(--bg)}
+.pop{position:absolute;top:6px;left:250px;width:280px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:6px 0;z-index:2}
+.pop .pr{display:flex;align-items:center;justify-content:space-between;padding:7px 14px}
+.pop .pr span:first-child{color:var(--sub)}
+.pop hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.pop .hd{font-size:11px;color:var(--faint);padding:6px 14px 2px;font-weight:600}
+.timebar{position:absolute;left:16px;right:16px;bottom:16px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:12px;padding:6px 10px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.track{flex:1;height:3px;background:var(--line);border-radius:2px;position:relative}
+.track::before{content:"";position:absolute;inset:0 0 0 0;background:var(--ink);border-radius:2px;width:100%}
+.track::after{content:"";position:absolute;right:-6px;top:-5px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.2)}
+.zc{position:absolute;right:16px;top:14px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.zc .ib{border-radius:0}
+.notes{max-width:1280px;margin:-30px auto 46px;color:var(--sub);font-size:12.5px;line-height:1.7;padding:0 4px}
+.notes b{color:var(--ink);font-weight:600}
+
+</style>
+</head>
+<body>
+
+<!-- 1. 구상 -->
+<div class="cap"><h2>1 · 구상</h2><p>인물 목록 → 인물 시트 → 코르크보드 → 쓰고 싶은 장면</p></div>
+<div class="frame">
+  <div class="top">
+    <span class="work">은빛 배달부 <i data-i="chevD"></i></span><span class="tag">예시</span>
+    <span class="sp"></span>
+    <nav class="tabs"><span>전체</span><span class="on">구상</span><span>타임라인</span><span>관계망</span></nav>
+    <span class="sp"></span>
+    <span class="saved"><i data-i="check"></i>자동 저장됨</span>
+    <span class="ib"><i data-i="search"></i></span><span class="ib"><i data-i="more"></i></span>
+  </div>
+  <div class="body">
+    <aside class="left">
+      <div class="find"><i data-i="search"></i>이름으로 찾기</div>
+      <div class="row"><i data-i="book"></i>작품 노트<span class="n">12화</span></div>
+      <div class="grp"><i data-i="chevD"></i>인물<span class="n">2</span></div>
+      <div class="row on"><span class="dot" style="background:#3aa3e0"></span>이도윤<span class="n">3</span></div>
+      <div class="row"><span class="dot" style="background:#b05ad8"></span>서하린<span class="n">2</span></div>
+      <div class="grp"><i data-i="chevR"></i>설정<span class="n">0</span></div>
+      <div class="grp"><i data-i="chevR"></i>미분류<span class="n">1</span></div>
+    </aside>
+    <section class="sheet">
+      <h1><span class="dot" style="background:#3aa3e0;width:10px;height:10px"></span>이도윤</h1>
+      <div class="role">주인공</div>
+      <div class="lab">별칭</div><div class="val">도윤</div>
+      <div class="lab">소개</div><div class="val">반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.</div>
+      <div style="height:14px"></div>
+      <div class="fold"><i data-i="chevR"></i>목표<span class="n">0</span><span class="add"><i data-i="plus"></i></span></div>
+      <div class="fold"><i data-i="chevR"></i>아비투스 · 세 자본<span class="n">3</span></div>
+      <div class="fold"><i data-i="chevR"></i>아비투스 · 여섯 질문<span class="n">6</span></div>
+      <div class="fold"><i data-i="chevR"></i>히스토리<span class="n">2</span></div>
+      <div class="fold"><i data-i="chevR"></i>결함 · 트라우마<span class="n">1</span></div>
+    </section>
+    <section class="board">
+      <div class="bhead"><b>이도윤</b><small>3장 · 4장 숨김</small></div>
+      <div class="note" style="left:24px;top:60px;background:var(--y)"><span class="st">★★★</span>도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.<div class="chips"><span><span class="dot" style="background:#3aa3e0;width:6px;height:6px"></span>이도윤</span><span><span class="dot" style="background:#b05ad8;width:6px;height:6px"></span>서하린</span></div></div>
+      <div class="note" style="left:236px;top:90px;background:var(--y)"><span class="st">★★</span>"배고픈 사람한테 코스요리는 고문이에요." — 도윤<div class="chips"><span><span class="dot" style="background:#3aa3e0;width:6px;height:6px"></span>이도윤</span></div></div>
+      <div class="note" style="left:110px;top:270px;background:var(--g)"><span class="st">★</span>도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.<div class="chips"><span><span class="dot" style="background:#3aa3e0;width:6px;height:6px"></span>이도윤</span></div></div>
+      <div class="dock">
+        <span class="pb"><i data-i="plus"></i>새 포스트잇</span>
+        <span class="sep"></span>
+        <span class="qb"><i data-i="eye"></i>미사용</span>
+        <span class="qb"><i data-i="grid"></i>배치</span>
+        <span class="qb"><i data-i="zen"></i>집중</span>
+        <span class="sep"></span>
+        <span class="ib"><i data-i="minus"></i></span><span class="zoom">100%</span><span class="ib"><i data-i="plus"></i></span><span class="ib"><i data-i="origin"></i></span>
+      </div>
+    </section>
+    <aside class="pool">
+      <div class="ph"><b>쓰고 싶은 장면</b><span class="faint">10</span><span class="sp"></span><span class="ib" style="width:26px;height:26px"><i data-i="filter"></i></span></div>
+      <div class="input">한 줄 쓰고 Enter</div>
+      <div class="utabs"><span class="on">미사용 6</span><span>전체 10</span></div>
+      <div class="item">도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.<div class="chips"><span>이도윤</span><span>서하린</span><span class="sp"></span><span style="color:#b07a00">★★★</span></div></div>
+      <div class="item m">하린은 사람들이 돈이 아닌 자신을 봐 주길 바라지만 정작 먼저 돈 얘기를 한다.<div class="chips"><span>서하린</span></div></div>
+    </aside>
+  </div>
+</div>
+<div class="notes"><b>바뀐 점</b> — 앱 이름 자리에 작품 이름(눌러서 작품 바꾸기) · 전체/구상/타임라인/관계망을 한 줄 밑줄 탭으로 · 인물 시트는 이름·역할·별칭·소개만 펼치고 목표·칸 묶음은 “제목 + 개수” 한 줄로 접음 · 색 고르기 · 폴더 · 아이콘은 이름 옆 색 점을 누르면 나오는 작은 창으로 · “목표 적기” 버튼은 시트의 목표 줄로 합침 · 진한 파란 버튼은 “새 포스트잇” 하나 · 떠 있는 바는 보드 아래 하나.</div>
+
+<!-- 2. 타임라인 -->
+<div class="cap"><h2>2 · 타임라인</h2><p>칸반 보기</p></div>
+<div class="frame">
+  <div class="top">
+    <span class="work">은빛 배달부 <i data-i="chevD"></i></span><span class="tag">예시</span>
+    <span class="sp"></span>
+    <nav class="tabs"><span>전체</span><span>구상</span><span class="on">타임라인</span><span>관계망</span></nav>
+    <span class="sp"></span>
+    <span class="saved"><i data-i="check"></i>자동 저장됨</span>
+    <span class="ib"><i data-i="search"></i></span><span class="ib"><i data-i="more"></i></span>
+  </div>
+  <div class="body">
+    <aside class="left eps" style="width:200px">
+      <div class="grp" style="padding-top:2px">화 목록<span class="n">12화</span></div>
+      <div class="row on">전체<span class="n">5</span></div>
+      <div class="grp"><i data-i="chevD"></i>1–10화<span class="n">5</span></div>
+      <div class="row"><b>1화</b>새벽의 접촉사고<span class="n">3</span></div>
+      <div class="row"><b>2화</b>반지하<span class="n">1</span></div>
+      <div class="row"><b>3화</b>봉투<span class="n">1</span></div>
+      <div class="row dim"><b>4화</b></div>
+      <div class="row dim"><b>5화</b></div>
+      <div class="row dim"><b>6화</b></div>
+      <div class="grp"><i data-i="chevR"></i>11–12화<span class="n">0</span></div>
+    </aside>
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+      <div class="tlbar">
+        <nav class="tabs" style="height:100%"><span class="on">칸반</span><span>한 줄</span><span>등장표</span><span>보관</span></nav>
+        <span class="sp"></span>
+        <span class="dd">분류: 전체<i data-i="chevD"></i></span>
+        <span class="dd">인물: 전체<i data-i="chevD"></i></span>
+        <span class="ib" title="열 너비"><i data-i="xcol"></i></span>
+        <span class="qb"><i data-i="plus"></i>화</span>
+      </div>
+      <div class="cols">
+        <div class="col"><h4>1화 <span>새벽의 접촉사고</span></h4><div class="memo">둘의 아비투스가 처음 충돌</div>
+          <div class="item">새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.<div class="chips"><span>이도윤</span><span>서하린</span><span class="sp"></span><span style="color:#b07a00">★★★</span></div></div>
+          <div class="item">"저는 사과를 드릴 수 있고, 돈은 없습니다." — 도윤<div class="chips"><span>이도윤</span></div></div>
+          <div class="item">"왜 죄송하다고 안 하죠? 다들 그러던데." — 하린<div class="chips"><span>서하린</span></div></div>
+        </div>
+        <div class="col"><h4>2화 <span>반지하</span></h4><div class="memo faint">&nbsp;</div>
+          <div class="item">서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.<div class="chips"><span>이도윤</span><span>서하린</span></div></div>
+        </div>
+        <div class="col"><h4>3화 <span>봉투</span></h4><div class="memo faint">&nbsp;</div>
+          <div class="item">하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 확인한다.<div class="chips"><span>이도윤</span></div></div>
+        </div>
+        <div class="col" style="background:transparent;border-style:dashed"><h4 class="muted">4화</h4><div class="ghost">장면을 끌어다 놓으세요</div></div>
+      </div>
+    </div>
+    <aside class="pool" style="width:280px">
+      <div class="ph"><b>쓰고 싶은 장면</b><span class="faint">10</span><span class="sp"></span><span class="ib" style="width:26px;height:26px"><i data-i="filter"></i></span></div>
+      <div class="input">한 줄 쓰고 Enter</div>
+      <div class="utabs"><span class="on">미배치 4</span><span>전체 10</span></div>
+      <div class="item">도윤이 처음으로 하린 앞에서 웃는다.<div class="chips"><span>이도윤</span><span>서하린</span></div></div>
+    </aside>
+  </div>
+</div>
+<div class="notes"><b>바뀐 점</b> — 칸반/한 줄/등장표/보관을 알약 버튼에서 밑줄 탭으로 · 위쪽의 “전체 / 1–10화 / 11–12화” 칩은 왼쪽 화 목록과 겹쳐서 빼고 왼쪽 묶음을 누르면 범위가 바뀜 (왼쪽을 접으면 같은 자리에 “범위 ▾” 드롭다운) · 열 너비 슬라이더는 아이콘을 누르면 나오는 작은 창으로 · “+ 화”는 흐린 글자 버튼 · 카드마다 있던 “장면 · 대사 ▾” 표시는 왼쪽 색 띠로 대신하고 마우스를 올리면 나옴 · 빈 “한 줄 메모” 칸은 마우스를 올렸을 때만.</div>
+
+<!-- 3. 관계망 -->
+<div class="cap"><h2>3 · 관계망</h2><p>“보기 옵션”을 연 상태</p></div>
+<div class="frame">
+  <div class="top">
+    <span class="work">은빛 배달부 <i data-i="chevD"></i></span><span class="tag">예시</span>
+    <span class="sp"></span>
+    <nav class="tabs"><span>전체</span><span>구상</span><span>타임라인</span><span class="on">관계망</span></nav>
+    <span class="sp"></span>
+    <span class="saved"><i data-i="check"></i>자동 저장됨</span>
+    <span class="ib"><i data-i="search"></i></span><span class="ib"><i data-i="more"></i></span>
+  </div>
+  <div class="gbar">
+    <span class="dd box" style="width:180px;color:var(--faint)"><i data-i="search"></i>노드 찾기</span>
+    <span class="dd">인물 + 설정<i data-i="chevD"></i></span>
+    <span class="dd" style="background:var(--fill)"><i data-i="filter"></i>보기 옵션 <span class="faint">2</span></span>
+  </div>
+  <div class="canvas">
+    <div class="pop">
+      <div class="hd">보기</div>
+      <div class="pr"><span>범위</span><span class="dd">전체<i data-i="chevD"></i></span></div>
+      <div class="pr"><span>배치</span><span class="dd">노드<i data-i="chevD"></i></span></div>
+      <div class="pr"><span>연결</span><span class="dd">핵심만<i data-i="chevD"></i></span></div>
+      <hr>
+      <div class="hd">걸러 내기</div>
+      <div class="pr"><span>함께 나온 횟수</span><span>1회 이상</span></div>
+      <div class="pr" style="padding-top:0"><div class="track" style="margin:6px 6px 4px 0"></div></div>
+    </div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true">
+      <line x1="58%" y1="40%" x2="50%" y2="58%" stroke="#9a9aa0" stroke-width="2"/>
+      <circle cx="58%" cy="40%" r="11" fill="#3aa3e0"/><text x="58%" y="40%" dy="26" text-anchor="middle" font-size="12" fill="#1d1d1f">이도윤</text>
+      <circle cx="50%" cy="58%" r="11" fill="#b05ad8"/><text x="50%" y="58%" dy="26" text-anchor="middle" font-size="12" fill="#1d1d1f">서하린</text>
+    </svg>
+    <div class="zc"><span class="ib"><i data-i="plus"></i></span><span class="ib"><i data-i="origin"></i></span><span class="ib"><i data-i="minus"></i></span></div>
+    <div class="timebar">
+      <span class="ib" title="재생"><i data-i="play"></i></span>
+      <span class="muted" style="font-size:12px">시점</span>
+      <div class="track"></div>
+      <span style="font-size:12px;min-width:36px;text-align:right">전체</span>
+      <span class="dd" style="font-size:12px">×1<i data-i="chevD"></i></span>
+    </div>
+  </div>
+</div>
+<div class="notes"><b>바뀐 점</b> — 버튼 묶음 6개(전체/로컬 · 노드/원형 · 전체/인물/설정 · 핵심/전체 연결 · 배속 4개) → 자주 쓰는 “대상” 드롭다운 하나 + “보기 옵션” 한 곳으로 · 바뀐 옵션 개수만 작게 표시 · 시점 슬라이더 · 재생 · 배속은 아래쪽 바 하나로 (떠 있는 요소는 이것 하나) · “1화부터 어디까지 쌓였는지…” 회색 설명은 “시점”의 툴팁으로 · 확대/축소는 오른쪽 위 작은 세로 묶음.</div>
+
+<script>
+const ICONS={search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',more:'<circle cx="5.5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18.5" cy="12" r="1.3" fill="currentColor"/>',eye:'<path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',zen:'<rect x="5" y="4.5" width="14" height="15" rx="2.5"/><path d="M8.5 9.5h7M8.5 13h5"/><path d="M2.5 8v8M21.5 8v8" opacity=".55"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',origin:'<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',xcol:'<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M9.5 5v14"/>',chevR:'<path d="M9 6l6 6-6 6"/>',
+chevD:'<path d="M6 9l6 6 6-6"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',book:'<path d="M4.5 5.5A1.5 1.5 0 0 1 6 4h5.5v15.5H6a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M19.5 5.5A1.5 1.5 0 0 0 18 4h-5.5v15.5H18a1.5 1.5 0 0 1 1.5 1.5z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>'};
+document.querySelectorAll('i[data-i]').forEach(i=>{const s=document.createElement('span');s.className='ic';s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[i.dataset.i]||'')+'</svg>';i.replaceWith(s)});
+</script>
+</body>
+</html>

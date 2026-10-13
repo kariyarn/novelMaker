@@ -1,0 +1,22 @@
+const {contextBridge,ipcRenderer}=require('electron');
+contextBridge.exposeInMainWorld('nativeStore',{
+  load:k=>ipcRenderer.sendSync('store:load',k),
+  save:(k,t)=>ipcRenderer.sendSync('store:save',k,t),
+  saveAsync:(k,t)=>ipcRenderer.invoke('store:saveAsync',k,t),      // 평소 저장: 화면을 멈추지 않음 (순서는 그대로 지켜짐)
+  info:()=>ipcRenderer.sendSync('store:info'),
+  backups:()=>ipcRenderer.sendSync('store:backups'),
+  readBackup:n=>ipcRenderer.sendSync('store:readBackup',n),
+  forceBackup:t=>ipcRenderer.sendSync('store:forceBackup',t),
+  openDir:w=>ipcRenderer.sendSync('store:openDir',w),
+  library:()=>ipcRenderer.sendSync('store:library'),
+  createNovel:n=>ipcRenderer.sendSync('store:createNovel',n),
+  openNovel:id=>ipcRenderer.sendSync('store:openNovel',id),
+  renameNovel:(id,n)=>ipcRenderer.sendSync('store:renameNovel',id,n),
+  duplicateNovel:(id,n)=>ipcRenderer.sendSync('store:duplicateNovel',id,n),
+  archiveNovel:id=>ipcRenderer.sendSync('store:archiveNovel',id),
+  restoreNovel:id=>ipcRenderer.sendSync('store:restoreNovel',id),
+  deleteNovel:id=>ipcRenderer.sendSync('store:deleteNovel',id),
+  loadPrefs:()=>ipcRenderer.sendSync('store:loadPrefs'),
+  savePrefs:t=>ipcRenderer.sendSync('store:savePrefs',t),
+  savePrefsAsync:t=>ipcRenderer.invoke('store:savePrefsAsync',t)
+});

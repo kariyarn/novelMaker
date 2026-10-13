@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>목록 · 아이콘 시안</title>
+<style>
+:root{--bg:#f5efe4;--panel:#fdf9f1;--side:#ece3d3;--ink:#443a2f;--sub:#655a4b;--line:rgba(90,70,40,.16);--fill:rgba(100,75,40,.065);--fill2:rgba(100,75,40,.12);--acc:#946239;--acc-soft:rgba(148,98,57,.15);--board:#eadfca;--ok:#2f7d4f;--bad:#b3452f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1916;--panel:#2b231f;--side:#251e1a;--ink:#f1e7dd;--sub:#bba897;--line:rgba(240,210,180,.13);--fill:rgba(240,210,180,.07);--fill2:rgba(240,210,180,.12);--acc:#e0a96d;--acc-soft:rgba(224,169,109,.2);--board:#19140f;--ok:#7fcf9c;--bad:#ff9d8a}}
+:root[data-theme="dark"]{--bg:#1f1916;--panel:#2b231f;--side:#251e1a;--ink:#f1e7dd;--sub:#bba897;--line:rgba(240,210,180,.13);--fill:rgba(240,210,180,.07);--fill2:rgba(240,210,180,.12);--acc:#e0a96d;--acc-soft:rgba(224,169,109,.2);--board:#19140f;--ok:#7fcf9c;--bad:#ff9d8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;letter-spacing:-.01em}
+main{max-width:1180px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:1.7em;margin:0 0 6px;letter-spacing:-.03em}
+.lead{color:var(--sub);margin:0 0 36px}
+h2{font-size:1.2em;margin:44px 0 4px;letter-spacing:-.02em}
+h2 small{font-weight:500;color:var(--sub);font-size:.72em;margin-left:8px}
+.desc{color:var(--sub);margin:0 0 16px;max-width:760px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:18px}
+.card{background:var(--panel);border:.5px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:.8em;font-weight:650;border-radius:99px;padding:2px 10px;margin-bottom:12px}
+.tag.before{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
+.tag.after{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.tag.opt{background:var(--acc-soft);color:var(--acc)}
+.note{font-size:.86em;color:var(--sub);margin:12px 2px 0}
+.note b{color:var(--ink)}
+svg.i{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+/* ---------- 보드 위쪽 줄 ---------- */
+.topwrap{position:relative;height:150px;border-radius:12px;overflow:hidden;background:var(--board);background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:18px 18px;border:.5px solid var(--line)}
+.gstrip{position:absolute;left:0;right:0;top:0;height:32px;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--panel);border-bottom:.5px solid var(--line);font-size:.86em;white-space:nowrap;overflow:hidden}
+.gstrip .gt{color:var(--acc);font-weight:650}
+.gstrip .sg{background:var(--fill);border:.5px solid var(--line);border-radius:99px;padding:0 9px}
+.gstrip .lg{overflow:hidden;text-overflow:ellipsis}
+.ib{position:absolute;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--panel) 80%,transparent);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 .5px var(--line);color:var(--ink)}
+.ib svg{width:17px;height:17px}
+.bh{position:absolute;display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.bh b{font-size:1.02em}
+.bh span{color:var(--sub);font-size:.84em}
+.guide{position:absolute;left:0;right:0;height:0;border-top:1.5px dashed var(--acc);opacity:.6}
+/* ---------- 왼쪽 목록 ---------- */
+.side{background:var(--side);border-radius:12px;padding:10px 10px 14px;max-width:360px;font-size:14px;border:.5px solid var(--line)}
+.lbh,.lsh{display:flex;align-items:center;gap:4px;min-height:28px;cursor:default;border-radius:7px}
+.lbh{padding:2px 2px}
+.lbh b{font-size:.84em;font-weight:700;color:var(--sub);letter-spacing:.03em}
+.lsh{font-size:.88em;font-weight:600;padding:1px 2px}
+.car{width:12px;color:var(--sub);font-size:.8em;flex:none}
+.fic{width:1.4em;display:inline-flex;justify-content:center;flex:none}
+.cnt{color:var(--sub);font-size:.84em;font-weight:500;font-variant-numeric:tabular-nums}
+.sp{flex:1}
+.act{width:26px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:7px;color:var(--sub)}
+.act:hover{background:var(--fill2);color:var(--acc)}
+.lboard{border-bottom:.5px solid var(--line);padding:6px 0 8px}
+.lboard:last-child{border-bottom:0}
+.lsub{margin:3px 0 0 4px;padding:1px 0 4px 10px;border-left:1.5px solid var(--line)}
+.before-icons .lsh .fn{flex:1}
+.before-icons .lbh .acts{margin-left:auto}
+.show .act{opacity:.7}
+/* 이름표 */
+.chips{display:flex;flex-wrap:wrap;gap:4px;padding:3px 0 2px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 8px;border-radius:99px;background:var(--fill);font-size:.86em;cursor:pointer}
+.chip:hover{background:var(--fill2)}
+.chip i{width:8px;height:8px;border-radius:50%;flex:none}
+.chip i.sq{border-radius:2.5px}
+.chip.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
+/* 글자 */
+.names{display:flex;flex-wrap:wrap;align-items:center;padding:4px 2px 6px 3px;row-gap:6px}
+.nm{display:inline-flex;align-items:center;font-size:.9em;cursor:pointer;line-height:1.5}
+.nm::before{content:'';width:1px;height:.8em;margin:0 7px;background:var(--ink);opacity:.25}
+.nm.rs::before{display:none}
+.nm span{position:relative;display:inline-block;padding:0 2px;font-weight:500;transform-origin:50% 70%;transition:transform .16s cubic-bezier(.2,.7,.2,1),color .16s}
+.nm span::after{content:'';position:absolute;left:50%;bottom:-3px;width:0;height:2px;border-radius:2px;background:var(--acc);transform:translateX(-50%);transition:width .18s}
+.nm:hover span{transform:scale(1.08);color:var(--acc)}
+.nm.on span{color:var(--acc);font-weight:650}
+.nm.on span::after{width:14px}
+@media (prefers-reduced-motion:reduce){.nm:hover span{transform:none}}
+.toggle{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px;margin:6px 0 0}
+.toggle span{padding:2px 10px;border-radius:7px;font-size:.84em}
+.toggle span.on{background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.hint{font-size:.8em;color:var(--sub);margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>목록 · 아이콘 시안</h1>
+<p class="lead">진운비 작품 데이터로 그렸습니다. 위쪽은 아이콘 정렬 전과 후, 아래쪽은 이름 목록 모양 두 가지입니다. 이름 위에 마우스를 올려 보세요.</p>
+
+<h2>1. 아이콘 정렬 <small>보드 위쪽 줄</small></h2>
+<p class="desc">목표 줄이 있으면, 접힌 패널 아이콘이 목표 줄 경계에 걸쳐 떠 있었습니다. 그래서 인물 이름이나 전체 화면 버튼과 세 가지 높이로 어긋나 보였습니다. 이제 아이콘을 보드 머리 줄로 내려서 한 줄로 맞춥니다.</p>
+<div class="pair">
+  <div class="card"><span class="tag before">지금</span>
+    <div class="topwrap">
+      <div class="gstrip" style="padding-left:58px;padding-right:58px"><span class="gt">◎ 장기</span><span class="lg">자신을 노리는 놈들을 처리하고 원래 살던 마을로 복귀한다.</span><span style="color:var(--sub)">단기</span><span class="sg">조균을 처리한다</span></div>
+      <div class="ib" style="left:10px;top:12px"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3 2.8-5 5.5-5s4.9 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.4.1 4.3 1.8 4.9 4.8"/></svg></div>
+      <div class="bh" style="left:58px;top:46px"><b>진운비</b><span>1장 · 30장 숨김</span></div>
+      <div class="ib" style="right:56px;top:42px"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg></div>
+      <div class="ib" style="right:10px;top:12px"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="4" width="12" height="13" rx="2.5"/><path d="M5 8v10.5A2 2 0 0 0 7 20.5h9"/></svg></div>
+      <div class="guide" style="top:29px"></div><div class="guide" style="top:59px"></div>
+    </div>
+    <p class="note">위아래 어긋난 높이가 두 단(점선)으로 보입니다.</p>
+  </div>
+  <div class="card"><span class="tag after">바꾼 뒤</span>
+    <div class="topwrap">
+      <div class="gstrip"><span class="gt">◎ 장기</span><span class="lg">자신을 노리는 놈들을 처리하고 원래 살던 마을로 복귀한다.</span><span style="color:var(--sub)">단기</span><span class="sg">조균을 처리한다</span></div>
+      <div class="ib" style="left:10px;top:42px"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3 2.8-5 5.5-5s4.9 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.4.1 4.3 1.8 4.9 4.8"/></svg></div>
+      <div class="bh" style="left:58px;top:47px"><b>진운비</b><span>1장 · 30장 숨김</span></div>
+      <div class="ib" style="right:56px;top:42px"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg></div>
+      <div class="ib" style="right:10px;top:42px"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="4" width="12" height="13" rx="2.5"/><path d="M5 8v10.5A2 2 0 0 0 7 20.5h9"/></svg></div>
+      <div class="guide" style="top:59px"></div>
+    </div>
+    <p class="note">목표 줄은 위 한 줄을 다 쓰고, <b>아이콘 · 이름 · 버튼은 그 아래 한 줄</b>에 나란히 놓입니다.</p>
+  </div>
+</div>
+
+<h2>1. 아이콘 정렬 <small>왼쪽 목록</small></h2>
+<p class="desc">"인물" 줄과 폴더 줄은 아이콘 개수가 다르고 개수 표시 위치도 달라서, 아이콘이 서로 다른 열에 놓였습니다. 그리고 판 어디에 마우스를 올려도 위아래 두 줄의 아이콘이 한꺼번에 나타났습니다. 이제 아이콘은 늘 같은 열에 놓이고, 마우스를 올린 줄에만 나타납니다.</p>
+<div class="pair">
+  <div class="card"><span class="tag before">지금 (마우스를 무림맹 줄에)</span>
+    <div class="side before-icons show">
+      <div class="lboard">
+        <div class="lbh"><span class="car">▾</span><b>인물</b><span class="cnt">7</span><span class="sp"></span>
+          <span class="act" style="margin-right:6px"><svg class="i" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5M12 11v6M9 14h6"/></svg></span><span class="act" style="margin-right:6px"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg></span><span class="act">•••</span></div>
+        <div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">📁</span><span class="fn">주역</span><span class="cnt" style="margin-right:84px">1</span></div><div class="chips"><span class="chip on"><i style="background:#ff6b6b"></i>진운비</span></div></div>
+        <div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">📁</span><span class="fn">무림맹</span><span class="cnt">3</span><span class="act"><svg class="i" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5M12 11v6M9 14h6"/></svg></span><span class="act"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg></span><span class="act"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M9.5 10v9.5"/></svg></span><span class="act">•••</span></div>
+          <div class="chips"><span class="chip"><i style="background:#ff9f43"></i>남궁수</span><span class="chip"><i style="background:#ff6b6b"></i>제갈연</span><span class="chip"><i style="background:#ff9f43"></i>모용준</span></div></div>
+        <div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">📁</span><span class="fn">단역</span><span class="cnt" style="margin-right:84px">2</span></div><div class="chips"><span class="chip"><i style="background:#5e5ce6"></i>조균</span><span class="chip"><i style="background:#af52de"></i>송하</span></div></div>
+      </div>
+    </div>
+    <p class="note">인물 줄의 아이콘 열과 무림맹 줄의 아이콘 열이 서로 어긋나 있습니다.</p>
+  </div>
+  <div class="card"><span class="tag after">바꾼 뒤 (마우스를 무림맹 줄에)</span>
+    <div class="side show">
+      <div class="lboard">
+        <div class="lbh"><span class="car">▾</span><b>인물</b><span class="cnt">7</span><span class="sp"></span></div>
+        <div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">📁</span><span class="fn">주역</span><span class="cnt">1</span><span class="sp"></span></div><div class="chips"><span class="chip on"><i style="background:#ff6b6b"></i>진운비</span></div></div>
+        <div class="lsub"><div class="lsh" style="background:var(--fill)"><span class="car">▾</span><span class="fic">📁</span><span class="fn">무림맹</span><span class="cnt">3</span><span class="sp"></span><span class="act"><svg class="i" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5M12 11v6M9 14h6"/></svg></span><span class="act"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg></span><span class="act"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M9.5 10v9.5"/></svg></span><span class="act">•••</span></div>
+          <div class="chips"><span class="chip"><i style="background:#ff9f43"></i>남궁수</span><span class="chip"><i style="background:#ff6b6b"></i>제갈연</span><span class="chip"><i style="background:#ff9f43"></i>모용준</span></div></div>
+        <div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">📁</span><span class="fn">단역</span><span class="cnt">2</span><span class="sp"></span></div><div class="chips"><span class="chip"><i style="background:#5e5ce6"></i>조균</span><span class="chip"><i style="background:#af52de"></i>송하</span></div></div>
+      </div>
+    </div>
+    <p class="note">개수는 늘 <b>이름 바로 옆</b>에 붙습니다. 아이콘은 <b>[새 노트 · 새 폴더 · 표 · ⋯]</b> 순서로 오른쪽 끝부터 같은 열에 놓입니다. "인물" 줄도 표 아이콘 자리를 비워 둬서 열이 맞습니다.</p>
+  </div>
+</div>
+
+<h2>2. 이름 목록 모양 <small>⋯ 메뉴에서 고르기 · 기존 모양도 그대로 남음</small></h2>
+<p class="desc">왼쪽 목록 위 ⋯ 메뉴에 "이름 목록 모양: 이름표 / 글자"를 추가합니다. 폴더 구조와 접기, 끌어다 놓기는 두 모양 모두 똑같이 동작합니다.</p>
+<div class="pair">
+  <div class="card"><span class="tag opt">A · 이름표 (지금 모양)</span>
+    <div class="side" id="sideA"></div>
+  </div>
+  <div class="card"><span class="tag opt">B · 글자 (새 모양)</span>
+    <div class="side" id="sideB"></div>
+    <p class="note">점과 아이콘은 빼고 <b>이름만</b> 보입니다. 이름 사이는 흐린 세로줄로 확실히 나눕니다. 마우스를 올리면 이름이 <b>살짝 커지고</b> 강조색으로 바뀝니다. 고른 인물은 강조색과 굵은 글씨에 <b>짧은 밑줄</b>이 붙습니다. 줄이 바뀌는 곳 맨 앞에는 세로줄을 붙이지 않습니다.</p>
+  </div>
+</div>
+<p class="hint">이 페이지는 시안입니다. 실제 앱 코드에도 같은 모양으로 넣어 두었고, 브라우저에서 확인했습니다. 마음에 드시면 앱을 다시 만들어 설치해 드리겠습니다.</p>
+</main>
+<script>
+const DATA=[
+  {t:'인물',n:7,folders:[
+    {f:'주역',ic:'📁',items:[['진운비','#ff6b6b',1]]},
+    {f:'무림맹',ic:'📁',items:[['남궁수','#ff9f43'],['제갈연','#ff6b6b'],['모용준','#ff9f43']]},
+    {f:'단역',ic:'📁',items:[['조균','#5e5ce6'],['송하','#af52de']]},
+    {f:'기타',ic:'📁',items:[['진천휘','#34c759']]}]},
+  {t:'설정',n:5,folders:[
+    {f:'단체',ic:'🏯',items:[['무림맹','#8a8f98',0,'☯️'],['마교','#8a8f98',0,'🧧'],['벽운진가','#8a8f98',0,null,1],['뇌선촌','#8a8f98',0,null,1]]},
+    {f:'무공',ic:'⚔️',items:[['뇌공검법','#8a8f98',0,null,1]]}]}];
+function build(el,mode){
+  el.innerHTML=DATA.map(b=>`<div class="lboard"><div class="lbh"><span class="car">▾</span><b>${b.t}</b><span class="cnt">${b.n}</span><span class="sp"></span></div>`+
+    b.folders.map(f=>`<div class="lsub"><div class="lsh"><span class="car">▾</span><span class="fic">${f.ic}</span><span class="fn">${f.f}</span><span class="cnt">${f.items.length}</span><span class="sp"></span></div>`+
+      (mode==='chip'
+        ?`<div class="chips">${f.items.map(([n,c,on,ic,sq])=>`<span class="chip${on?' on':''}">${ic?`<span>${ic}</span>`:`<i class="${sq?'sq':''}" style="background:${c}"></i>`}${n}</span>`).join('')}</div>`
+        :`<div class="names">${f.items.map(([n,c,on])=>`<span class="nm${on?' on':''}"><span>${n}</span></span>`).join('')}</div>`)+`</div>`).join('')+`</div>`).join('')+
+    `<div class="lboard"><div class="lbh"><span class="car"></span><b style="color:var(--ink)">미분류</b><span class="cnt">0장</span></div></div>`;
+}
+build(document.getElementById('sideA'),'chip');build(document.getElementById('sideB'),'text');
+function rowStarts(){document.querySelectorAll('.names').forEach(box=>{let top=null;[...box.children].forEach(c=>{c.classList.remove('rs');if(top===null||Math.abs(c.offsetTop-top)>4){c.classList.add('rs');top=c.offsetTop}})})}
+rowStarts();addEventListener('resize',rowStarts);
+</script>
+</body>
+</html>
