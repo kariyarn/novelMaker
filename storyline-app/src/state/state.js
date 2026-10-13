@@ -43,7 +43,6 @@ function migrate(st){
   return st;
 }
 let S,UIP={};
-const NS=window.nativeStore;
 // 앱 전체 취향(작품을 바꿔도 그대로): 화면 · 글꼴 · 핀 · 줄 · 말 강조 · 패널 너비. 나머지는 작품마다 따로 저장
 const GLOBAL_SET=['theme','font','family','hlStyle','hlTouched','pinColor','stringStyle','stringW','stringColor','showStrings','boardPat','boardBg','noteWk','noteHk','noteShape','bubbleLv','bubbleShape','pinAlways','uiStyle'];
 
@@ -51,22 +50,20 @@ const GLOBAL_UI=['sw','rw','rwl','rwr','tlw','tll','cl','mm','ps','pc','toured',
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o&&o[k]!==undefined)r[k]=o[k]});return r};
 let LIB=null,PREFS_LAST='';
 const UI={goalOpen:false,mode:'story',sel:null,qkind:'scene',pkind:'',pchar:'',pused:'unused',pq:'',tlChar:'all',range:null,focusCard:null,noSave:false};
-const refreshLib=()=>{LIB=(NS&&NS.library)?NS.library():null};
+const refreshLib=()=>{LIB=Repo.novels?Repo.novels.list():null};
 const emptyState=()=>({characters:[],cards:[],episodes:[],kinds:defKinds(),noneBoard:{},trash:[],settings:{},demo:false,z:1});
-function readPrefs(){try{if(NS&&NS.loadPrefs){const t=NS.loadPrefs();if(t)return JSON.parse(t)}}catch(e){}return null}
+function readPrefs(){try{if(Repo.prefs){const t=Repo.prefs.load();if(t)return JSON.parse(t)}}catch(e){}return null}
 function initWork(opts){      // 현재 작품(저장소 기준)의 데이터를 읽어 상태를 만든다
   opts=opts||{};let st=null,noSave=false;
   try{
-    if(NS){
-      const r=NS.load(KEY);
-      if(r&&r.text)st=JSON.parse(r.text);
-      else if(!opts.blank&&!(r&&r.fresh))noSave=true;      // 이미 있던 작품인데 파일을 못 읽음 → 원본을 덮어쓰지 않도록 저장을 멈춤
-    }else st=JSON.parse(localStorage.getItem(KEY));
-  }catch(e){if(NS&&!opts.blank)noSave=true}
+    const r=Repo.read(KEY);
+    if(r.text)st=JSON.parse(r.text);
+    else if(Repo.native&&!opts.blank&&!r.fresh)noSave=true;      // 이미 있던 작품인데 파일을 못 읽음 → 원본을 덮어쓰지 않도록 저장을 멈춤
+  }catch(e){if(Repo.native&&!opts.blank)noSave=true}
   if(!st||!st.characters)st=(opts.blank||noSave)?emptyState():seed();
   S=migrate(st);
   let ui={};
-  try{const t=NS?(NS.load(UKEY)||{}).text:localStorage.getItem(UKEY);if(t)ui=JSON.parse(t)||{}}catch(e){}
+  try{const t=Repo.read(UKEY).text;if(t)ui=JSON.parse(t)||{}}catch(e){}
   UIP=ui;
   const P=readPrefs();
   if(P){Object.assign(S.settings,pick(P.settings,GLOBAL_SET));Object.assign(UIP,pick(P.ui,GLOBAL_UI))}
@@ -80,20 +77,17 @@ function resetUI(){      // 작품을 바꿀 때 보기 상태를 처음으로
 }
 const wr=(k,t)=>{
   if(UI.noSave)return true;      // 파일을 못 읽은 작품은 사용자가 정할 때까지 저장하지 않음
-  let ok=false;
-  try{if(NS)ok=NS.save(k,t).ok}catch(e){}
-  if(!NS){try{localStorage.setItem(k,t);ok=true}catch(e){}}      // 앱이 아닐 때만 브라우저 저장소를 씀 (작품이 섞이지 않게)
-  return ok;
+  return Repo.write(k,t);
 };
 function savePrefs(sync){      // 평소엔 비동기, 창을 닫거나 작품을 바꿀 때만 동기
-  if(!NS||!NS.savePrefs||UI.noSave)return;
+  if(!Repo.prefs||UI.noSave)return;
   const t=JSON.stringify({settings:pick(S.settings,GLOBAL_SET),ui:pick(UIP,GLOBAL_UI)});
   if(t===PREFS_LAST)return;
-  if(!sync&&NS.savePrefsAsync){PREFS_LAST=t;NS.savePrefsAsync(t).then(ok=>{if(!ok&&PREFS_LAST===t)PREFS_LAST=null}).catch(()=>{if(PREFS_LAST===t)PREFS_LAST=null});return}
-  try{if(NS.savePrefs(t))PREFS_LAST=t}catch(e){}
+  if(!sync&&Repo.prefs.saveAsync){PREFS_LAST=t;Repo.prefs.saveAsync(t).then(ok=>{if(!ok&&PREFS_LAST===t)PREFS_LAST=null}).catch(()=>{if(PREFS_LAST===t)PREFS_LAST=null});return}
+  try{if(Repo.prefs.save(t))PREFS_LAST=t}catch(e){}
 }
 let uipT=0;
-const saveUIPNow=()=>{clearTimeout(uipT);uipT=0;if(UI.noSave)return;const t=JSON.stringify(UIP);if(NS&&NS.saveAsync)NS.saveAsync(UKEY,t).catch(()=>{});else wr(UKEY,t);savePrefs()};
+const saveUIPNow=()=>{clearTimeout(uipT);uipT=0;if(UI.noSave)return;const t=JSON.stringify(UIP);if(Repo.writeAsync)Repo.writeAsync(UKEY,t).catch(()=>{});else wr(UKEY,t);savePrefs()};
 const saveUIP=()=>{if(UI.noSave)return;clearTimeout(uipT);uipT=setTimeout(saveUIPNow,300)};      // 보기 상태는 잠깐 모아서 저장
 function replaceWork(data,extra){const keep=S.settings;S=migrate(data);S.settings=Object.assign({},S.settings,keep);Object.assign(S,extra)}      // 불러오기 · 복구 · 예시: 화면 취향은 그대로 두고 작품 내용만 바꿈
 function firstEntity(){const c=S.characters.find(x=>x.kind!=='setting')||S.characters[0];return c?c.id:'none'}

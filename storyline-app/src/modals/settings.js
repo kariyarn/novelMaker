@@ -110,10 +110,10 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
         act(()=>S.kinds.push({id:uid(),name,color:KIND_PAL[S.kinds.length%KIND_PAL.length],icon:'●',key:free}));showSettings();
       }},'＋ 분류 추가'))))],
     data:[
-      row('백업',null,h('button',{onclick:exportJson},'백업 파일 만들기'),NS&&NS.backups?h('button',{onclick:showRestore},'자동 백업에서 복구'):null),
+      row('백업',null,h('button',{onclick:exportJson},'백업 파일 만들기'),Repo.backups?h('button',{onclick:showRestore},'자동 백업에서 복구'):null),
       row('내보내기',null,h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
       row('정리',null,h('button',{onclick:showTrash},`휴지통 (${S.trash.length})`),S.demo?h('button',{onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지울까요?')){closeModal();clearDemo()}}},'예시 지우고 시작'):null),
-      ...(NS&&NS.openDir?more('data',row('폴더',null,h('button',{onclick:()=>NS.openDir('data')},'저장 폴더 열기'),h('button',{onclick:()=>NS.openDir('backups')},'백업 폴더 열기'))):[])]};
+      ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'))):[])]};
   openModal(h('h3',{class:'mtitle'},'설정'),
     h('div',{class:'stabs'},tabs([['look','겉모습'],['write','글쓰기'],['data','데이터']],tab,k=>{UI.setTab=k;showSettings()})),
     ...T[tab],

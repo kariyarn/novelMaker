@@ -55,7 +55,7 @@ function goMode(k){
 function topMenuItems(){
   const items=[{label:'되돌리기',hint:'⌘Z',fn:undo},{label:'다시 하기',hint:'⌘⇧Z',fn:redo},
       'sep',{label:`휴지통${S.trash.length?' ('+S.trash.length+')':''}`,fn:showTrash},
-      'sep',{label:'백업 파일 만들기',fn:exportJson},...(NS&&NS.backups?[{label:'자동 백업에서 복구…',fn:showRestore}]:[]),{label:'불러오기 (.json)…',fn:()=>$('imp').click()},
+      'sep',{label:'백업 파일 만들기',fn:exportJson},...(Repo.backups?[{label:'자동 백업에서 복구…',fn:showRestore}]:[]),{label:'불러오기 (.json)…',fn:()=>$('imp').click()},
       {label:'내보내기…',fn:()=>{UI.setTab='data';showSettings()}},
       'sep',{label:'설정',hint:'⌘,',fn:showSettings},{label:'도움말',hint:'?',fn:showShortcuts}];
   if(!U2())return items;
