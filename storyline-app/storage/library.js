@@ -7,6 +7,21 @@ const {hasLegacy,migrateLegacy}=require('./legacy');
 const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const clean=n=>String(n||'').replace(/\s+/g,' ').trim().slice(0,80)||'새 작품';
 
+// 여러 목록을 하나로: 같은 작품은 더 최근에 고친 쪽, 영구 삭제한 작품(deleted)은 어느 쪽에서든 빠짐
+function mergeLibs(list){
+  const out={version:1,current:(list[0]&&list[0].current)||null,novels:[]},seen=new Map(),gone=new Set();
+  list.forEach(l=>(l.deleted||[]).forEach(id=>gone.add(id)));
+  list.forEach(l=>l.novels.forEach(n=>{
+    if(!n||!n.id||gone.has(n.id))return;const o=seen.get(n.id);
+    if(!o){const c={...n};seen.set(n.id,c);out.novels.push(c)}
+    else if((n.updated||0)>(o.updated||0))Object.assign(o,n);
+  }));
+  if(gone.size)out.deleted=[...gone];
+  return out;
+}
+// 동기화로 주고받는 목록: 기기마다 다른 '지금 연 작품(current)'은 빼고, 순서를 고정해서 같은 내용이면 같은 글이 되게
+const syncText=lib=>JSON.stringify({version:1,novels:[...lib.novels].sort((a,b)=>a.id<b.id?-1:1),...(lib.deleted&&lib.deleted.length?{deleted:[...lib.deleted].sort()}:{})},null,1);
+
 function createLibrary(dirs,now=Date.now){
   let lib=null;
   function save(){
@@ -18,15 +33,6 @@ function createLibrary(dirs,now=Date.now){
   function readLibs(){
     const cs=[...scan(dirs.main,/^library( \d+)?\.json$/),...scan(dirs.mirror,/^library\.json$/)].sort((a,b)=>b.m-a.m);
     return cs.map(c=>readJson(c.p,o=>Array.isArray(o.novels))).filter(Boolean);
-  }
-  function mergeLibs(list){
-    const out={version:1,current:(list[0]&&list[0].current)||null,novels:[]},seen=new Map();
-    list.forEach(l=>l.novels.forEach(n=>{
-      if(!n||!n.id)return;const o=seen.get(n.id);
-      if(!o){const c={...n};seen.set(n.id,c);out.novels.push(c)}
-      else if((n.updated||0)>(o.updated||0))Object.assign(o,n);
-    }));
-    return out;
   }
   const dataMtime=id=>Math.max(0,...scan(wdir(dirs.main,id),/^storyline( \d+)?\.json$/).map(x=>x.m),...scan(wdir(dirs.mirror,id),/^storyline\.json$/).map(x=>x.m));
   function reconcile(){      // 목록에 없지만 디스크에 있는 작품 폴더는 되살림
@@ -74,9 +80,18 @@ function createLibrary(dirs,now=Date.now){
   function restore(id){const n=nov(id);if(!n)return false;delete n.archived;delete n.archivedAt;n.updated=now();save();return true}
   function remove(id){      // 보관함에 있는 작품만 목록에서 뺌 (파일 지우기는 부르는 쪽)
     const n=nov(id);if(!n||!n.archived)return false;
-    lib.novels=lib.novels.filter(x=>x.id!==id);save();return true;
+    lib.novels=lib.novels.filter(x=>x.id!==id);lib.deleted=[...new Set([...(lib.deleted||[]),id])];save();return true;      // 다른 기기에서 되살아나지 않게 기록
   }
   const snapshot=()=>JSON.parse(JSON.stringify(lib));
-  return {nov,current,touch,add,create,open,rename,archive,restore,remove,snapshot};
+  /* 동기화 */
+  const exportSync=()=>syncText(lib);
+  function adopt(remote,{merge}={}){      // 받은 목록으로 바꾸거나(merge 없음) 합침. 지금 연 작품은 이 기기 것 그대로
+    const cur=lib.current,next=merge?mergeLibs([lib,remote]):mergeLibs([remote]);
+    if(next.novels.some(n=>!n.fresh))next.novels=next.novels.filter(n=>!n.fresh);      // 새 기기에서 저절로 생긴 빈 작품은 받은 작품이 있으면 뺌
+    next.current=cur;lib=next;
+    if(!lib.novels.some(n=>n.id===lib.current&&!n.archived)){const o=latestOpen();if(o)lib.current=o.id;else addFresh()}
+    save();
+  }
+  return {nov,current,touch,add,create,open,rename,archive,restore,remove,snapshot,exportSync,adopt};
 }
-module.exports={createLibrary,newId};
+module.exports={createLibrary,newId,mergeLibs,syncText};

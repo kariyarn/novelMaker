@@ -2,7 +2,7 @@
 function appDialog({msg,input,def,ok='확인',cancel='취소',danger=false}){return new Promise(res=>{
   const o=document.createElement('div');o.className='dlg';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
   const b=document.createElement('div');b.className='dlgbox';
-  const t=document.createElement('div');t.className='dlgmsg';t.textContent=msg;b.append(t);
+  const t=document.createElement('div');t.className='dlgmsg';t.textContent=keyText(msg);b.append(t);
   let i=null;if(input){i=document.createElement('input');i.className='dlgin';if(def)i.value=def;b.append(i)}
   const r=document.createElement('div');r.className='dlgrow';
   const prev=document.activeElement;
