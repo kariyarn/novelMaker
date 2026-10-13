@@ -33,10 +33,29 @@ onStateChange(()=>renderAll());
 /* 새 디자인의 위쪽 “자동 저장됨” 표시 (기존 디자인에서는 자리가 없어서 아무 일도 안 함) */
 function savedMark(st){const e=$('savedInd');if(!e)return;e.dataset.st=st;e.lastChild.textContent=st==='saving'?'저장 중…':st==='fail'?'저장 실패':'자동 저장됨'}
 onSaveStatus(st=>{if(st==='fail')toast('저장 실패! 백업을 내려받아 주세요');savedMark(st)});
+/* 가운데 화면 등록: 화면마다 언제 보일지(match) · 앱 테두리 class · 그리는 함수를 각자 파일에서 등록. 새 화면을 더해도 이 파일은 고치지 않아도 됨
+   order 가 작은 것부터 match 를 물어 처음 맞는 화면을 씀 */
+const MID_VIEWS=[];
+function registerMidView(v){MID_VIEWS.push(v);MID_VIEWS.sort((a,b)=>a.order-b.order)}
+const midView=()=>MID_VIEWS.find(v=>v.match());
+function renderMid(){
+  const m=$('mid');
+  const SC='.tlcols,.tlline,.tlmx,.ftabwrap,.shelfwrap',keep={},kb={};      // 다시 그려도 보던 스크롤 위치 그대로 (화 · 보관 칸 안의 스크롤 포함)
+  m.querySelectorAll(SC).forEach(el=>{keep[el.className.split(' ')[0]]=[el.scrollLeft,el.scrollTop]});
+  const bkey=el=>{const p=el.closest('[data-ep],[data-sh]');return p?(p.dataset.ep!==undefined?'e'+p.dataset.ep:'s'+p.dataset.sh):null};
+  m.querySelectorAll('.tlbody').forEach(el=>{const k=bkey(el);if(k&&el.scrollTop)kb[k]=el.scrollTop});
+  m.innerHTML='';
+  midView().render(m);
+  fitAll(m);syncBoard();hlLayoutAll(m);      // 다시 그린 뒤 글 높이를 다시 맞춤
+  m.querySelectorAll(SC).forEach(el=>{const k=keep[el.className.split(' ')[0]];if(k){el.scrollLeft=k[0];el.scrollTop=k[1]}});
+  m.querySelectorAll('.tlbody').forEach(el=>{const k=bkey(el);if(k&&kb[k])el.scrollTop=kb[k]});
+  if(UI.scrollEp!=null){const i=UI.scrollEp;UI.scrollEp=null;      // 새로 만든 화로 부드럽게 이동
+    const el=m.querySelector(`.tlcol[data-ep="${i}"],.tlseg[data-ep="${i}"]`);if(el){el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});flashEl(el);const t=el.querySelector('.tlhead input');if(t)setTimeout(()=>t.focus({preventScroll:true}),350)}}
+}
 function renderAll0(){
   idxClear();msPrune();
   applySettings();renderTop();renderBanner();
-  $('app').className=UI.mode==='graph'?'m-graph':(UI.mode==='story'?(UI.folderView?'m-table':'m-story'):(UI.mode==='tl'?'m-tl2':'m-tl'));
+  $('app').className=midView().appClass();
   applyLayout();
   renderLeft();renderSheet();renderMid();renderPool();
   fitAll();syncBoard();fitDock();hlLayoutAll();msRender();

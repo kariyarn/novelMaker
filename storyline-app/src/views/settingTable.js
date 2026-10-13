@@ -118,3 +118,5 @@ function renderWorkSheet(p,c){
     h('textarea',{class:'ghost box autofit',rows:1,style:'resize:none;overflow:hidden;width:100%;box-sizing:border-box;display:block',oninput:e=>{edit(()=>f.value=e.target.value);fitOne(e.target)}},f.value)));
   p.append(box);
 }
+
+registerMidView({id:'table',order:20,match:()=>UI.mode==='story'&&!!UI.folderView,appClass:()=>'m-table',render:renderFolderTable});      // 구상 · 폴더 표

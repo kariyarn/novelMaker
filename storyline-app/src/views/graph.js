@@ -245,3 +245,5 @@ function renderGraph(m){
   sel1=local?null:(UIP.gsel||null);
   requestAnimationFrame(()=>{resize();rebuild();if(!local&&sel1&&!byId[sel1])sel1=null})
 }
+
+registerMidView({id:'graph',order:10,match:()=>UI.mode==='graph',appClass:()=>'m-graph',render:renderGraph});      // 관계망

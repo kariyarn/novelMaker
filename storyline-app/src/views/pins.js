@@ -69,24 +69,3 @@ function bindPin(el,card,pinB,key){
     addEventListener('pointermove',mv);addEventListener('pointerup',up,{once:true});
   });
 }
-function renderMid(){
-  const m=$('mid');
-  const SC='.tlcols,.tlline,.tlmx,.ftabwrap,.shelfwrap',keep={},kb={};      // 다시 그려도 보던 스크롤 위치 그대로 (화 · 보관 칸 안의 스크롤 포함)
-  m.querySelectorAll(SC).forEach(el=>{keep[el.className.split(' ')[0]]=[el.scrollLeft,el.scrollTop]});
-  const bkey=el=>{const p=el.closest('[data-ep],[data-sh]');return p?(p.dataset.ep!==undefined?'e'+p.dataset.ep:'s'+p.dataset.sh):null};
-  m.querySelectorAll('.tlbody').forEach(el=>{const k=bkey(el);if(k&&el.scrollTop)kb[k]=el.scrollTop});
-  m.innerHTML='';
-  UI.mode==='graph'?renderGraph(m):((UI.mode==='story'&&UI.folderView)?renderFolderTable(m):(onBoard()?renderBoard(m):renderTimeline(m)));
-  fitAll(m);syncBoard();hlLayoutAll(m);      // 다시 그린 뒤 글 높이를 다시 맞춤
-  m.querySelectorAll(SC).forEach(el=>{const k=keep[el.className.split(' ')[0]];if(k){el.scrollLeft=k[0];el.scrollTop=k[1]}});
-  m.querySelectorAll('.tlbody').forEach(el=>{const k=bkey(el);if(k&&kb[k])el.scrollTop=kb[k]});
-  if(UI.scrollEp!=null){const i=UI.scrollEp;UI.scrollEp=null;      // 새로 만든 화로 부드럽게 이동
-    const el=m.querySelector(`.tlcol[data-ep="${i}"],.tlseg[data-ep="${i}"]`);if(el){el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});flashEl(el);const t=el.querySelector('.tlhead input');if(t)setTimeout(()=>t.focus({preventScroll:true}),350)}}
-}
-function addEpisode(){      // 화 추가: 보고 있던 자리를 지키고, 새 화가 보이게
-  const i=S.episodes.length,[lo,hi]=UI.mode==='tl'?tlRange():[0,i];
-  act(()=>{S.episodes.push(newEp());
-    if(UI.tlScope&&!(i>=lo&&i<hi+1&&UI.tlScope.g!==undefined))UI.tlScope=null;      // 한 화만 보고 있었다면 전체로
-    const g=tlGroups().findIndex(([a,b])=>i>=a&&i<b);if(g>=0&&UIP.tg)UIP.tg[g]=false;      // 접힌 묶음이면 펴기
-    UI.scrollEp=i});
-}

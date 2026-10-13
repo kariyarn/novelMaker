@@ -1,4 +1,12 @@
 /* ---------- 가운데: 타임라인 ---------- */
+function addEpisode(){      // 화 추가: 보고 있던 자리를 지키고, 새 화가 보이게
+  const i=S.episodes.length,[lo,hi]=UI.mode==='tl'?tlRange():[0,i];
+  act(()=>{S.episodes.push(newEp());
+    if(UI.tlScope&&!(i>=lo&&i<hi+1&&UI.tlScope.g!==undefined))UI.tlScope=null;      // 한 화만 보고 있었다면 전체로
+    const g=tlGroups().findIndex(([a,b])=>i>=a&&i<b);if(g>=0&&UIP.tg)UIP.tg[g]=false;      // 접힌 묶음이면 펴기
+    UI.scrollEp=i});
+}
+
 function placeCard(cardId,epId,beforeId){
   {const c0=cardById(cardId);if(c0)ensureKindVisible(c0.kind)}
   act(()=>{detach([cardId]);
@@ -222,3 +230,5 @@ function renderTimeline(m){
   bindPanScroll(cols);m.append(cols);
   tlCues(cols);
 }
+
+registerMidView({id:'timeline',order:90,match:()=>true,appClass:()=>UI.mode==='tl'?'m-tl2':'m-tl',render:renderTimeline});      // 나머지: 타임라인
