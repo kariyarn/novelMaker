@@ -87,6 +87,7 @@ function renderTop2(t){      // 새 디자인 위쪽 바: 작품 이름 · 밑�
     tabs([['all','전체'],['story','구상'],['tl','타임라인'],['graph','관계망']],UI.mode,goMode),
     h('span',{class:'sp'}),
     h('span',{id:'savedInd',class:'saved','data-st':'saved',title:'작품마다 자동으로 저장돼요'},icon('check'),h('span',{},'자동 저장됨')),
+    Shell&&Shell.note?h('button',{class:'cbtn topic',title:'포스트잇 모드 (⌘⌥N) — 작은 포스트잇 창만 띄우기',onclick:()=>Shell.note.show()},icon('sticky')):null,
     h('button',{class:'cbtn topic',title:'전체 검색 (⌘F)',onclick:openSearch},icon('search')),
     (()=>{const b=h('button',{class:'cbtn topic','data-pop':'1',title:'메뉴',onclick:()=>popMenu(b,topMenuItems())},icon('more'));return b})(),
     h('input',{id:'imp',type:'file',accept:'.json',style:'display:none',onchange:importJson})].filter(Boolean));
@@ -98,6 +99,7 @@ function renderTop(){
     seg([['all','전체 보기']],UI.mode,goMode),h('span',{class:'modegap'}),
     seg([['story','구상'],['tl','타임라인'],['graph','관계망']],UI.mode,goMode),
     h('span',{class:'sp'}),
+    Shell&&Shell.note?h('button',{class:'cbtn topic',title:'포스트잇 모드 (⌘⌥N) — 작은 포스트잇 창만 띄우기',onclick:()=>Shell.note.show()},icon('sticky')):null,
     h('button',{class:'cbtn topic',title:'전체 검색 (⌘F)',onclick:openSearch},icon('search')),
     (()=>{const b=h('button',{class:'cbtn topic','data-pop':'1',title:'메뉴',onclick:()=>popMenu(b,topMenuItems())},icon('more'));return b})(),
     h('input',{id:'imp',type:'file',accept:'.json',style:'display:none',onchange:importJson})].filter(Boolean));      // 빈 자리(null)는 빼고 붙임

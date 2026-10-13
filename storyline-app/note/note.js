@@ -1,6 +1,5 @@
 /* 포스트잇 창: 쓰는 대로 지금 작품에 카드로 저장 · 지난 포스트잇 넘겨보며 고치기 */
 const $=id=>document.getElementById(id);
-const OPS=[1,.85,.7,.55,.4,.25];
 let kinds=[],kind=null,list=[],i=-1,cur=null,dirty=false,saving=Promise.resolve(),t=0,opacity=1,onTop=true,isMac=false;
 // i=-1: 새 글 · i>=0: list[i] (최근 것부터)
 const ta=$('ta');
@@ -8,7 +7,6 @@ const ta=$('ta');
 function paint(){
   const k=kinds.find(x=>x.id===kind)||kinds[0];
   $('kind').textContent=k?k.name:'';
-  $('note').style.setProperty('--bg',(cur&&cur.color)||(k&&k.color)||'#fff1a6');
   $('pos').textContent=i<0?'새 글':`${i+1} / ${list.length}`;
   $('prev').disabled=i>=list.length-1;$('next').disabled=i<0;
   $('top').classList.toggle('on',onTop);
@@ -38,7 +36,8 @@ async function fresh(){await flush();i=-1;load();status('')}
 $('prev').onclick=()=>go(i+1);
 $('next').onclick=()=>go(i-1);
 $('kind').onclick=()=>{const j=kinds.findIndex(x=>x.id===kind);kind=kinds[(j+1)%kinds.length].id;if(cur)cur.color=null;dirty=dirty||!!cur;paint();if(cur)flush()};
-$('op').onclick=()=>{const j=OPS.findIndex(x=>Math.abs(x-opacity)<.01);opacity=OPS[(j+1)%OPS.length];noteApi.setOpacity(opacity);status(`투명도 ${Math.round(opacity*100)}%`)};
+$('op').addEventListener('input',e=>{opacity=+e.target.value/100;noteApi.setOpacity(opacity);status(`투명도 ${e.target.value}%`)});      // 끄는 동안 바로 반영
+$('op').addEventListener('change',()=>{setTimeout(()=>{if($('st').textContent.startsWith('투명도'))status('')},1200);ta.focus()});
 $('top').onclick=()=>{onTop=!onTop;noteApi.setOnTop(onTop);paint()};
 $('main').onclick=async()=>{await flush();noteApi.openMain()};
 $('hide').onclick=async()=>{await flush();noteApi.hide()};
@@ -53,7 +52,7 @@ document.addEventListener('keydown',e=>{
 
 async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창에서 고친 것 반영)
   const d=await noteApi.init();
-  kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;
+  kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;$('op').value=Math.round(opacity*100);
   if(!kind||!kinds.some(k=>k.id===kind))kind=d.defaultKind;
   const k=isMac?'⌘':'Ctrl+';
   $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;
