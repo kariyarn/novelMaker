@@ -86,7 +86,7 @@ document.addEventListener('keydown',e=>{
   if(!ZEN||document.querySelector('.dlg'))return;
   const k=e.code;
   if(k==='Escape'){e.preventDefault();e.stopPropagation();if(POP){closePop();return}zenClose();return}
-  if(e.metaKey&&!e.shiftKey&&!e.altKey){const m=/^(?:Digit|Key)(.)$/.exec(k),kind=m&&S.kinds.find(x=>x.key===m[1]);      // ⌘1 · ⌘2: 지금 카드의 분류 바꾸기
+  if(modKey(e)&&!e.shiftKey&&!e.altKey){const m=/^(?:Digit|Key)(.)$/.exec(k),kind=m&&S.kinds.find(x=>x.key===m[1]);      // ⌘1 · ⌘2: 지금 카드의 분류 바꾸기
     if(kind){e.preventDefault();e.stopPropagation();const c=cardById(ZEN.ids[ZEN.i]);if(c){edit(()=>{c.kind=kind.id;delete c.color;if(kind.colorMode==='random')c.color=randomCardColor()});const keep=ZEN.el.querySelector('.zta');const pos=keep?keep.selectionStart:0;zenDraw();setTimeout(()=>{const t=ZEN&&ZEN.el.querySelector('.zta');if(t)t.setSelectionRange(pos,pos)},40);toast(`분류: ${kind.name}`)}return}}
   if(e.altKey&&k==='KeyR'){e.preventDefault();e.stopPropagation();zenRandom();return}
   if(e.altKey&&k==='ArrowLeft'){e.preventDefault();e.stopPropagation();zenGo(ZEN.i-1);return}

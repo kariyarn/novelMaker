@@ -1,48 +1,157 @@
-const {app,BrowserWindow,shell,Menu,ipcMain,dialog}=require('electron');
-const path=require('path');
+const {app,BrowserWindow,shell,Menu,ipcMain,globalShortcut,safeStorage,screen,net}=require('electron');
+const path=require('path'),fs=require('fs');
 const {create}=require('./store');
-let store;
-const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w)w.webContents.executeJavaScript(js).catch(()=>{})};
+const {createSync}=require('./storage/sync');
+const {atomicWrite}=require('./storage/files');
+const isMac=process.platform==='darwin';
+const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
+let store,sync,win=null,noteWin=null,quitting=false;
+const userFile=n=>path.join(app.getPath('userData'),n);
+const readJson=(p,d)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch(e){return d}};
+const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){}};
+const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w&&w===win)w.webContents.executeJavaScript(js).catch(()=>{})};
+const callMain=js=>win&&!win.isDestroyed()?win.webContents.executeJavaScript(js):Promise.resolve(null);      // 큰 창의 화면 코드에 일을 맡김
+
 function createWindow(){
-  const w=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'preload.js')}});
-  w.loadFile(path.join(__dirname,'index.html'));
-  w.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
+  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',
+    autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
+  win.loadFile(path.join(__dirname,'index.html'));
+  win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
+  win.webContents.once('did-finish-load',()=>setTimeout(()=>runSync(),1500));
+  win.on('focus',()=>{if(Date.now()-sync.lastSync()>60*1000)runSync()});      // 다른 컴퓨터에서 쓰다 왔을 때
+  win.on('closed',()=>{win=null;app.quit()});      // 큰 창을 닫으면 끔 (숨은 포스트잇 창이 남아 있어도)
 }
+
+/* ---------- GitHub 동기화 ---------- */
+// 설정은 이 컴퓨터에만: 토큰은 OS 열쇠고리(맥 키체인 · Windows 자격 증명)로 암호화해서 보관
+const CFG=()=>userFile('sync-config.json');
+function syncConfig(){
+  const c=readJson(CFG(),null);if(!c||!c.repo)return null;
+  let token=null;try{token=c.enc?safeStorage.decryptString(Buffer.from(c.token,'base64')):c.token}catch(e){}
+  return {repo:c.repo,branch:c.branch||'main',token};
+}
+function setSyncConfig(c){
+  if(!c){try{fs.rmSync(CFG(),{force:true})}catch(e){}return {ok:true}}
+  const old=readJson(CFG(),{});let token=old.token,enc=old.enc;
+  if(c.token){enc=safeStorage.isEncryptionAvailable();token=enc?safeStorage.encryptString(c.token).toString('base64'):c.token}
+  if(!token)return {ok:false,error:'토큰을 넣어 주세요'};
+  writeJson(CFG(),{repo:c.repo,branch:c.branch||'main',token,enc});return {ok:true};
+}
+let syncTimer=0;
+async function runSync({notify=true}={}){
+  clearTimeout(syncTimer);syncTimer=0;
+  if(!syncConfig())return {ok:false,skipped:true,error:'동기화 설정이 없어요'};
+  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(()=>{});      // 쓰던 걸 먼저 파일로
+  const r=await sync.sync();
+  if(notify)callMain(`typeof onSyncResult==="function"&&onSyncResult(${JSON.stringify(r)})`).catch(()=>{});
+  if(noteWin&&noteWin.isVisible())noteWin.webContents.send('note:shown');
+  return r;
+}
+const syncSoon=()=>{if(!syncTimer&&syncConfig())syncTimer=setTimeout(()=>runSync(),30*1000)};      // 고친 뒤 30초쯤 모아서 올림
+
+/* ---------- 포스트잇 창 (몰래 쓰기): 테두리 · 작업 표시줄 아이콘 없이 작은 창 하나 ---------- */
+const NOTE=()=>userFile('note.json');
+let note=null;
+function createNote(){
+  note=readJson(NOTE(),{opacity:1,onTop:true,bounds:null});
+  const wa=screen.getPrimaryDisplay().workArea,w=340,h=280;
+  const b=note.bounds||{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
+  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:true,hasShadow:false,resizable:true,
+    skipTaskbar:true,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:false,
+    webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
+  noteWin.setOpacity(note.opacity||1);
+  if(isMac)noteWin.setVisibleOnAllWorkspaces(true,{visibleOnFullScreen:true});
+  noteWin.loadFile(path.join(__dirname,'note','note.html'));
+  let bt=0;const keep=()=>{clearTimeout(bt);bt=setTimeout(()=>{if(noteWin){note.bounds=noteWin.getBounds();writeJson(NOTE(),note)}},400)};
+  noteWin.on('moved',keep);noteWin.on('resized',keep);
+  noteWin.on('close',e=>{if(!quitting){e.preventDefault();hideNote()}});
+  noteWin.on('closed',()=>{noteWin=null});
+}
+function showNote(){
+  if(!noteWin)createNote();
+  if(win&&win.isVisible())win.hide();      // 큰 창은 치우고 포스트잇만
+  const show=()=>{noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown')};
+  if(noteWin.webContents.isLoading())noteWin.webContents.once('did-finish-load',show);else show();
+}
+function hideNote(){
+  if(!noteWin)return;noteWin.webContents.send('note:flush');noteWin.hide();
+  if(isMac&&!(win&&win.isVisible()))app.hide();      // 맥: 앞에 있던 다른 앱으로 바로 돌아감
+}
+function toggleNote(){
+  if(noteWin&&noteWin.isVisible()){if(noteWin.isFocused())hideNote();else noteWin.focus()}
+  else showNote();
+}
+function openMain(){
+  if(noteWin&&noteWin.isVisible()){noteWin.webContents.send('note:flush');noteWin.hide()}
+  if(!win)createWindow();win.show();win.focus();
+}
+
+if(!app.requestSingleInstanceLock())app.quit();      // 두 번 실행하면 이미 켜진 창을 보여 줌
+app.on('second-instance',()=>openMain());
 app.setName('캐릭터 스토리라인');
+if(!isMac)app.setAppUserModelId('local.character.storyline');
 app.whenReady().then(()=>{
   store=create(app.getPath('userData'));
+  sync=createSync({store,fetch:(u,o)=>net.fetch(u,o),getConfig:syncConfig,statePath:userFile('sync-state.json')});      // net.fetch: 회사 프록시 설정을 따름
+  const saved=r=>{if(r&&r.ok)syncSoon();return r};
   ipcMain.on('store:load',(e,k)=>{e.returnValue=store.load(k)});
-  ipcMain.on('store:save',(e,k,t)=>{e.returnValue=store.save(k,t)});
-  ipcMain.handle('store:saveAsync',(e,k,t)=>store.save(k,t));
+  ipcMain.on('store:save',(e,k,t)=>{e.returnValue=saved(store.save(k,t))});
+  ipcMain.handle('store:saveAsync',(e,k,t)=>saved(store.save(k,t)));
   ipcMain.on('store:info',e=>{e.returnValue=store.dirs});
   ipcMain.on('store:backups',e=>{e.returnValue=store.listBackups()});
   ipcMain.on('store:readBackup',(e,n)=>{e.returnValue=store.readBackup(n)});
   ipcMain.on('store:forceBackup',(e,t)=>{e.returnValue=store.forceBackup(t)});
   ipcMain.on('store:openDir',(e,w)=>{shell.openPath(w==='backups'?store.backupsDir():store.dirs.main);e.returnValue=true});
   ipcMain.on('store:library',e=>{e.returnValue=store.library()});
-  ipcMain.on('store:createNovel',(e,n)=>{e.returnValue=store.createNovel(n)});
+  ipcMain.on('store:createNovel',(e,n)=>{e.returnValue=store.createNovel(n);syncSoon()});
   ipcMain.on('store:openNovel',(e,id)=>{e.returnValue=store.openNovel(id)});
-  ipcMain.on('store:renameNovel',(e,id,n)=>{e.returnValue=store.renameNovel(id,n)});
-  ipcMain.on('store:duplicateNovel',(e,id,n)=>{e.returnValue=store.duplicateNovel(id,n)});
-  ipcMain.on('store:archiveNovel',(e,id)=>{e.returnValue=store.archiveNovel(id)});
-  ipcMain.on('store:restoreNovel',(e,id)=>{e.returnValue=store.restoreNovel(id)});
-  ipcMain.on('store:deleteNovel',(e,id)=>{e.returnValue=store.deleteNovel(id)});
+  ipcMain.on('store:renameNovel',(e,id,n)=>{e.returnValue=store.renameNovel(id,n);syncSoon()});
+  ipcMain.on('store:duplicateNovel',(e,id,n)=>{e.returnValue=store.duplicateNovel(id,n);syncSoon()});
+  ipcMain.on('store:archiveNovel',(e,id)=>{e.returnValue=store.archiveNovel(id);syncSoon()});
+  ipcMain.on('store:restoreNovel',(e,id)=>{e.returnValue=store.restoreNovel(id);syncSoon()});
+  ipcMain.on('store:deleteNovel',(e,id)=>{e.returnValue=store.deleteNovel(id);syncSoon()});
   ipcMain.on('store:loadPrefs',e=>{e.returnValue=store.loadPrefs()});
   ipcMain.on('store:savePrefs',(e,t)=>{e.returnValue=store.savePrefs(t)});
   ipcMain.handle('store:savePrefsAsync',(e,t)=>store.savePrefs(t));
+  /* 동기화 */
+  ipcMain.on('sync:getConfig',e=>{const c=syncConfig();e.returnValue=c?{repo:c.repo,branch:c.branch,hasToken:!!c.token,last:sync.lastSync(),secure:safeStorage.isEncryptionAvailable()}:null});
+  ipcMain.on('sync:setConfig',(e,c)=>{e.returnValue=setSyncConfig(c)});
+  ipcMain.handle('sync:now',()=>runSync({notify:false}));
+  setInterval(()=>runSync(),5*60*1000);
+  /* 포스트잇 창 */
+  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,isMac}));
+  ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
+  ipcMain.handle('note:add',(e,t,k)=>callMain(`noteBridge.add(${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
+  ipcMain.handle('note:update',(e,id,t,k)=>callMain(`noteBridge.update(${JSON.stringify(String(id))},${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
+  ipcMain.handle('note:opacity',(e,v)=>{v=Math.max(.15,Math.min(1,+v||1));note.opacity=v;noteWin&&noteWin.setOpacity(v);writeJson(NOTE(),note)});
+  ipcMain.handle('note:onTop',(e,v)=>{note.onTop=!!v;noteWin&&noteWin.setAlwaysOnTop(!!v);writeJson(NOTE(),note)});
+  ipcMain.handle('note:hide',()=>hideNote());
+  ipcMain.handle('note:openMain',()=>openMain());
+  ipcMain.on('shell:showNote',e=>{showNote();e.returnValue=true});
+  if(!globalShortcut.register(NOTE_KEY,toggleNote))console.warn('포스트잇 단축키를 등록하지 못했어요:',NOTE_KEY);
+
   const openData={label:'저장 폴더 열기',click:()=>shell.openPath(store.dirs.main)};
   const openBak={label:'백업 폴더 열기 (현재 작품)',click:()=>shell.openPath(store.backupsDir())};
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    {role:'appMenu'},
-    {label:'파일',submenu:[openData,openBak,{type:'separator'},{role:'close'}]},
+    ...(isMac?[{role:'appMenu'}]:[]),
+    {label:'파일',submenu:[openData,openBak,{type:'separator'},{label:'지금 동기화',click:()=>runSync()},{type:'separator'},isMac?{role:'close'}:{role:'quit',label:'끝내기'}]},
     {label:'편집',submenu:[
       {label:'되돌리기',accelerator:'CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('undo()')},     // 메뉴 기본 동작이 앱의 되돌리기를 가로채지 않게 직접 연결
       {label:'다시 하기',accelerator:'Shift+CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('redo()')},
       {type:'separator'},{role:'cut'},{role:'copy'},{role:'paste'},{role:'selectAll'}]},
-    {label:'보기',submenu:[{role:'reload'},{role:'toggleDevTools'},{type:'separator'},{role:'togglefullscreen'}]},
+    {label:'보기',submenu:[{label:'포스트잇 모드',accelerator:NOTE_KEY,registerAccelerator:false,click:showNote},{type:'separator'},{role:'reload'},{role:'toggleDevTools'},{type:'separator'},{role:'togglefullscreen'}]},
     {role:'windowMenu'},
     {label:'도움말',submenu:[{label:'단축키 도움말',accelerator:'CmdOrCtrl+/',registerAccelerator:false,click:()=>run('showShortcuts()')},{label:'전체 검색',accelerator:'CmdOrCtrl+F',registerAccelerator:false,click:()=>run('openSearch()')}]}]));
   createWindow();
-  app.on('activate',()=>{if(!BrowserWindow.getAllWindows().length)createWindow()});
+  app.on('activate',()=>{if(!win)createWindow();else if(!(noteWin&&noteWin.isVisible())){win.show()}});
 });
+// 끌 때: 마지막으로 한 번 올리고 끔 (최대 6초)
+let finalSynced=false;
+app.on('before-quit',e=>{
+  quitting=true;
+  if(finalSynced||!syncConfig()||!sync)return;
+  e.preventDefault();finalSynced=true;
+  Promise.race([runSync({notify:false}),new Promise(r=>setTimeout(r,6000))]).finally(()=>app.quit());
+});
+app.on('will-quit',()=>globalShortcut.unregisterAll());
 app.on('window-all-closed',()=>app.quit());

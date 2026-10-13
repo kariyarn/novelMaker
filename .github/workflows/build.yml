@@ -1,0 +1,50 @@
+# 테스트 + 앱 만들기: main 에 올리거나 PR 을 열면 자동으로, 또는 Actions 탭에서 직접 (Run workflow)
+# 다 만들어지면 Actions → 해당 실행 → Artifacts 에서 받기
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: storyline-app
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
+      - run: npm ci
+        env: {ELECTRON_SKIP_BINARY_DOWNLOAD: 1}
+      - run: npm test
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
+      - run: npm ci
+      - run: npx electron-builder --win --x64 --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-setup
+          path: storyline-app/dist/*.exe
+          if-no-files-found: error
+  mac:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
+      - run: npm ci
+      - run: npx electron-builder --mac --arm64 --publish never
+      - run: ditto -c -k --keepParent "dist/mac-arm64/캐릭터 스토리라인.app" dist/storyline-mac-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-app
+          path: storyline-app/dist/storyline-mac-arm64.zip
+          if-no-files-found: error

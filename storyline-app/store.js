@@ -6,7 +6,7 @@
 //   storage/works.js    작품 데이터 파일
 //   storage/backups.js  자동 백업
 //   storage/prefs.js    앱 전체 취향
-const {valid,okState,rm}=require('./storage/files');
+const {valid,okState,rm,stamp}=require('./storage/files');
 const {FILES,pickDir,wdir}=require('./storage/layout');
 const {createLibrary,newId}=require('./storage/library');
 const {createWorks}=require('./storage/works');
@@ -43,8 +43,36 @@ function create(userData){
     rm(wdir(dirs.main,id));rm(wdir(dirs.mirror,id));return library.remove(id);
   }
 
+  /* ---------- 동기화 (storage/sync.js 가 씀): 'library.json' · 'prefs.json' · 'works/<id>/storyline.json' 같은 상대 경로로 ---------- */
+  const SYNC_FILES={'storyline.json':'storyline_v1','storyline_ui.json':'storyline_ui_v1'};
+  const workPath=rel=>{const m=/^works\/([\w-]+)\/(storyline(?:_ui)?\.json)$/.exec(rel);return m?{id:m[1],key:SYNC_FILES[m[2]]}:null};
+  function syncPaths(){
+    const out=['library.json','prefs.json'];
+    for(const n of library.snapshot().novels)for(const f of Object.keys(SYNC_FILES))out.push(`works/${n.id}/${f}`);
+    return out;
+  }
+  function syncRead(rel){
+    if(rel==='library.json')return library.exportSync();
+    if(rel==='prefs.json')return prefs.load();
+    const w=workPath(rel);return w?works.loadOf(w.id,w.key).text:null;
+  }
+  function syncWrite(rel,text){
+    const o=valid(text);if(!o)return false;
+    if(rel==='library.json'){if(!Array.isArray(o.novels))return false;library.adopt(o,{merge:true});return true}
+    if(rel==='prefs.json')return prefs.save(text);
+    const w=workPath(rel);if(!w||(w.key==='storyline_v1'&&!okState(o)))return false;
+    if(w.key==='storyline_v1'){const cur=works.loadOf(w.id,w.key).text;if(cur)backups.force(w.id,cur)}      // 덮어쓰기 전 이 기기 것을 백업
+    return works.writeOf(w.id,w.key,text).ok;
+  }
+  function syncConflict(rel,text){      // 양쪽에서 고친 작품: 다른 기기 것을 사본 작품으로 (이 기기 것은 그대로)
+    const w=workPath(rel),o=valid(text);if(!w||!okState(o))return null;
+    const src=library.nov(w.id),nid=newId(),name=`${src?src.name:'작품'} (다른 기기 ${stamp(new Date()).slice(4,8)})`;
+    works.writeOf(nid,'storyline_v1',text);library.add(nid,name);return name;
+  }
+
   return {
     load,save,dirs,
+    syncPaths,syncRead,syncWrite,syncConflict,
     listBackups:()=>backups.list(cur()),
     readBackup:name=>backups.read(cur(),name),
     forceBackup:text=>backups.force(cur(),text),

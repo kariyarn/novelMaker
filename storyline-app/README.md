@@ -2,6 +2,31 @@
 
 캐릭터 중심 스토리라인 노트 앱 (Electron). 노트, 캐릭터, 설정, 타임라인을 작품별로 따로 저장합니다.
 
+## 회사 PC(Windows) · 집 맥에서 같이 쓰기
+
+### 1. 앱 받기
+- GitHub 저장소 → **Actions** → `build` → 맨 위 실행 → **Artifacts**
+  - `windows-setup`: Windows 설치 파일 (`storyline-setup-….exe`, 관리자 권한 없이 내 계정에만 설치)
+  - `mac-app`: 맥 앱 (zip)
+- main 에 올리면 자동으로 만들어지고, Actions 탭의 **Run workflow** 로 직접 돌려도 돼요.
+- 서명이 없는 앱이라 처음 열 때 Windows 는 "Windows의 PC 보호" → **추가 정보 → 실행**, 맥은 우클릭 → **열기**.
+
+### 2. GitHub 동기화
+1. GitHub 에서 **비공개(Private)** 저장소를 하나 만들어요 (README 포함).
+2. Settings → Developer settings → **Fine-grained tokens** → 새 토큰
+   - Repository access: **그 저장소만** · Permissions: **Contents → Read and write** 하나만
+3. 앱 → 설정 → 데이터 → **GitHub 동기화 → 연결하기** 에 저장소(`아이디/이름`) 와 토큰을 넣어요. 두 컴퓨터 모두.
+- 앱을 켤 때 · 창으로 돌아올 때 · 고친 뒤 30초쯤 · 5분마다 · 끌 때 자동으로 맞춰요. (파일 메뉴 → 지금 동기화)
+- 저장소의 `storyline/` 폴더에 작품 목록 · 앱 취향 · 작품 데이터가 올라가요. 자동 백업은 컴퓨터마다 따로.
+- 양쪽에서 같은 작품을 고쳤다면: 이 컴퓨터 것은 그대로 두고, 다른 컴퓨터 것은 **"작품 이름 (다른 기기 날짜)"** 사본 작품으로 남겨요. 지워지는 건 없어요.
+- 토큰은 그 컴퓨터 안에만 OS 열쇠고리(맥 키체인 · Windows 자격 증명)로 암호화해서 보관해요.
+
+### 3. 포스트잇 모드 (조용히 쓰기)
+- **⌘⌥N** (Windows **Ctrl+Alt+N**): 큰 창을 치우고 화면 구석에 작은 포스트잇 창만 띄워요. 다시 누르면 숨김. 앱이 뒤에 있어도 돼요.
+- 테두리 · 메뉴 · 작업 표시줄 아이콘 없음. ◐ 로 투명도(100 → 25%), 핀으로 항상 위에 두기.
+- 쓰는 대로 지금 작품에 카드로 저장돼요. **⌘/Ctrl+Enter** 새 포스트잇, **Alt+← →** 지난 포스트잇 넘기며 고치기, **Esc** 숨기기, ⤢ 큰 창 열기.
+- 메뉴(⋯) → 포스트잇 모드, 보기 메뉴 → 포스트잇 모드 로도 열 수 있어요.
+
 ## 앱 다시 만들기 (macOS, Apple Silicon)
 
 ```bash
@@ -22,7 +47,10 @@
 | `main.js` | Electron 메인 프로세스, 메뉴, 저장소 연결 |
 | `store.js` | 파일 저장소 창구: `storage/` 모듈을 묶어 main.js 에 내놓음 |
 | `storage/` | 저장소 모듈: `layout`(폴더 구조) · `files`(원자적 쓰기) · `library`(작품 목록) · `legacy`(예전 구조 옮기기) · `works`(작품 데이터) · `backups`(압축 백업) · `prefs`(앱 전체 취향) |
-| `test/` | 저장소 테스트 (`npm test`) |
+| `storage/sync.js` | GitHub 동기화 (GitHub API 로 주고받기 · 충돌 시 사본 작품) |
+| `note/` | 포스트잇 창 (작은 창 화면 · 다리) |
+| `build/icon.png` | Windows · 맥 앱 아이콘 (electron-builder) |
+| `test/` | 저장소 · 동기화 테스트 (`npm test`) |
 | `preload.js` | 화면 ↔ 저장소 연결 다리 |
 | `build.sh` | 앱 조립 스크립트 |
 

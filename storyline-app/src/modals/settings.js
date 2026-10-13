@@ -111,6 +111,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       }},'＋ 분류 추가'))))],
     data:[
       row('백업',null,h('button',{onclick:exportJson},'백업 파일 만들기'),Repo.backups?h('button',{onclick:showRestore},'자동 백업에서 복구'):null),
+      ...syncRows(row),
       row('내보내기',null,h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
       row('정리',null,h('button',{onclick:showTrash},`휴지통 (${S.trash.length})`),S.demo?h('button',{onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지울까요?')){closeModal();clearDemo()}}},'예시 지우고 시작'):null),
       ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'))):[])]};

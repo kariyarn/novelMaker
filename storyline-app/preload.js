@@ -20,3 +20,12 @@ contextBridge.exposeInMainWorld('nativeStore',{
   savePrefs:t=>ipcRenderer.sendSync('store:savePrefs',t),
   savePrefsAsync:t=>ipcRenderer.invoke('store:savePrefsAsync',t)
 });
+// 저장 말고 앱 쪽 기능: GitHub 동기화 · 포스트잇 창
+contextBridge.exposeInMainWorld('appShell',{
+  sync:{
+    getConfig:()=>ipcRenderer.sendSync('sync:getConfig'),      // {repo, branch, hasToken, last, secure} 또는 null
+    setConfig:c=>ipcRenderer.sendSync('sync:setConfig',c),     // null 이면 연결 끊기
+    now:()=>ipcRenderer.invoke('sync:now'),
+  },
+  note:{show:()=>ipcRenderer.sendSync('shell:showNote')},
+});

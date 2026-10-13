@@ -19,7 +19,7 @@ const msPrune=()=>{[...MSEL].forEach(id=>{if(!cardById(id))MSEL.delete(id)});(S.
 function msToggle(id){if(MSEL.has(id))MSEL.delete(id);else MSEL.add(id);document.querySelectorAll(`.kcard[data-id="${id}"]`).forEach(e=>e.classList.toggle('msel',MSEL.has(id)));msRender()}
 function msClear(){MSEL.clear();document.querySelectorAll('.kcard.msel').forEach(e=>e.classList.remove('msel'));msRender()}
 document.addEventListener('pointerdown',e=>{
-  if(!(e.metaKey||e.shiftKey)||e.button!==0)return;
+  if(!(modKey(e)||e.shiftKey)||e.button!==0)return;
   const c=e.target.closest&&e.target.closest('.kcard[data-id]');if(!c||c.classList.contains('editing'))return;
   if(e.target.closest('select,button,input,.stars,.rz,a'))return;
   e.preventDefault();e.stopPropagation();msToggle(c.dataset.id);
