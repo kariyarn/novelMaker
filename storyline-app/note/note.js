@@ -52,7 +52,7 @@ document.addEventListener('keydown',e=>{
 
 async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창에서 고친 것 반영)
   const d=await noteApi.init();
-  kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;$('op').value=Math.round(opacity*100);
+  kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;document.body.classList.toggle('flat',!d.glass);$('op').value=Math.round(opacity*100);
   if(!kind||!kinds.some(k=>k.id===kind))kind=d.defaultKind;
   const k=isMac?'⌘':'Ctrl+';
   $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;

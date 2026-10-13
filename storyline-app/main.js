@@ -1,9 +1,10 @@
-const {app,BrowserWindow,shell,Menu,ipcMain,globalShortcut,safeStorage,screen,net}=require('electron');
+const {app,BrowserWindow,shell,Menu,ipcMain,globalShortcut,safeStorage,screen,net,nativeTheme}=require('electron');
 const path=require('path'),fs=require('fs');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
 const isMac=process.platform==='darwin';
+const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
 let store,sync,win=null,noteWin=null,quitting=false;
 const userFile=n=>path.join(app.getPath('userData'),n);
@@ -55,8 +56,10 @@ let note=null;
 function createNote(){
   note=readJson(NOTE(),{opacity:1,onTop:true,bounds:null});
   const wa=screen.getPrimaryDisplay().workArea,w=340,h=280;
-  const b=note.bounds||{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
-  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:true,hasShadow:false,resizable:true,
+  const onScreen=r=>r&&screen.getAllDisplays().some(({workArea:a})=>r.x<a.x+a.width-60&&r.x+r.width>a.x+60&&r.y<a.y+a.height-30&&r.y+r.height>a.y+30);      // 모니터를 빼거나 바꿨으면 기본 자리로
+  const b=onScreen(note.bounds)?note.bounds:{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
+  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:glassNote,hasShadow:false,resizable:true,
+    backgroundColor:glassNote?'#00000000':nativeTheme.shouldUseDarkColors?'#161618':'#ffffff',
     skipTaskbar:true,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:false,
     webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
   noteWin.setOpacity(note.opacity||1);
@@ -66,11 +69,14 @@ function createNote(){
   noteWin.on('moved',keep);noteWin.on('resized',keep);
   noteWin.on('close',e=>{if(!quitting){e.preventDefault();hideNote()}});
   noteWin.on('closed',()=>{noteWin=null});
+  noteWin.webContents.on('render-process-gone',()=>{const w=noteWin;noteWin=null;w&&w.destroy();openMain()});      // 포스트잇 창이 죽으면 큰 창으로 돌아옴
 }
 function showNote(){
   if(!noteWin)createNote();
-  if(win&&win.isVisible())win.hide();      // 큰 창은 치우고 포스트잇만
-  const show=()=>{noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown')};
+  const show=()=>{
+    noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown');
+    if(win&&win.isVisible())win.hide();      // 포스트잇이 뜬 뒤에 큰 창을 치움 (안 뜨면 큰 창이 그대로 남게)
+  };
   if(noteWin.webContents.isLoading())noteWin.webContents.once('did-finish-load',show);else show();
 }
 function hideNote(){
@@ -119,7 +125,7 @@ app.whenReady().then(()=>{
   ipcMain.handle('sync:now',()=>runSync({notify:false}));
   setInterval(()=>runSync(),5*60*1000);
   /* 포스트잇 창 */
-  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,isMac}));
+  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,isMac,glass:glassNote}));
   ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
   ipcMain.handle('note:add',(e,t,k)=>callMain(`noteBridge.add(${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
   ipcMain.handle('note:update',(e,id,t,k)=>callMain(`noteBridge.update(${JSON.stringify(String(id))},${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
