@@ -2,7 +2,7 @@
 //   저장소 안의 storyline/ 폴더에 작품 목록 · 앱 취향 · 작품 데이터를 올리고 받음 (자동 백업은 기기마다 따로)
 //   파일마다 '마지막으로 맞춘 버전(sha)'을 기억해 두고, 어느 쪽이 바뀌었는지 보고 정함
 //     한쪽만 바뀜 → 그쪽으로 맞춤
-//     둘 다 바뀜   → 작품 목록은 합침 · 취향과 보기 상태는 이 기기 것 · 작품 글은 이 기기 것을 두고 다른 기기 것은 사본 작품으로 남김 (지우는 것 없음)
+//     둘 다 바뀜   → 작품 목록은 합침 · 취향과 보기 상태는 이 기기 것 · 작품 글은 카드 단위로 합침 (storage/merge.js, 같은 글을 둘 다 고친 곳만 사용자가 고름)
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {atomicWrite}=require('./files');
 
@@ -72,7 +72,12 @@ function createSync({store,fetch,getConfig,statePath}){
       if(remoteCh&&Rs){      // 둘 다 바뀜
         const text=await getBlob(cfg,Rs);
         if(rel==='library.json'){store.syncWrite(rel,text);changed=true}      // 합침
-        else if(/\/storyline\.json$/.test(rel)){const name=store.syncConflict(rel,text);if(name)res.conflicts.push(name);changed=true}
+        else if(/\/storyline\.json$/.test(rel)){
+          let baseText=null;if(B)try{baseText=await getBlob(cfg,B)}catch(e){}      // 마지막으로 맞춘 버전: 누가 무엇을 바꿨는지 가르는 기준
+          const m=store.syncConflict(rel,text,baseText);
+          if(m){res.merged.push(rel);if(m.asks)res.conflicts.push({rel,name:m.name,asks:m.asks})}
+          changed=true;
+        }
         // 취향 · 보기 상태: 이 기기 것을 올림
         const now=store.syncRead(rel);
         setBase(rel,await put(cfg,rel,now,Rs,empty));res.pushed.push(rel);
@@ -90,7 +95,7 @@ function createSync({store,fetch,getConfig,statePath}){
     let st=readState();
     if(st.repo!==cfg.repo||st.branch!==cfg.branch)st={repo:cfg.repo,branch:cfg.branch,files:{}};      // 저장소를 바꾸면 처음부터
     st.files=st.files||{};
-    const res={ok:true,pulled:[],pushed:[],conflicts:[]};
+    const res={ok:true,pulled:[],pushed:[],merged:[],conflicts:[]};
     try{
       for(let i=0;i<4;i++){      // 합치거나 사본을 만들면 한 번 더 (새로 생긴 파일까지 올림)
         let again;

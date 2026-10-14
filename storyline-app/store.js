@@ -6,12 +6,13 @@
 //   storage/works.js    작품 데이터 파일
 //   storage/backups.js  자동 백업
 //   storage/prefs.js    앱 전체 취향
-const {valid,okState,rm,stamp}=require('./storage/files');
+const {valid,okState,rm}=require('./storage/files');
 const {FILES,pickDir,wdir}=require('./storage/layout');
 const {createLibrary,newId}=require('./storage/library');
 const {createWorks}=require('./storage/works');
 const {createBackups}=require('./storage/backups');
 const {createPrefs}=require('./storage/prefs');
+const {mergeWork}=require('./storage/merge');
 
 function create(userData){
   const dirs=pickDir(userData);
@@ -22,12 +23,21 @@ function create(userData){
   const cur=library.current;
 
   /* ---------- 현재 작품 데이터 ---------- */
-  function load(key){const r=works.loadOf(cur(),key);const n=library.nov(cur());return {...r,fresh:!!(n&&n.fresh)}}
+  // 화면이 마지막으로 읽은 작품 글: 그사이 동기화가 파일을 바꿨는데 화면이 예전 글로 저장하면, 덮어쓰지 않고 합침
+  // (동기화 도중에 글을 쓰면 화면은 받은 글을 다시 읽지 못한 채 저장함 → 그대로 두면 다른 기기에서 고친 게 사라짐)
+  const seen={};
+  function load(key){const id=cur(),r=works.loadOf(id,key);if(key==='storyline_v1')seen[id]=r.text;const n=library.nov(id);return {...r,fresh:!!(n&&n.fresh)}}
   function save(key,text){
     if(!FILES[key])return {ok:false,err:'unknown key'};
     const o=valid(text);
     if(!o||(key==='storyline_v1'&&!okState(o)))return {ok:false,err:'invalid data'};
-    const id=cur(),r=works.writeOf(id,key,text);
+    const id=cur();let merged=false;
+    if(key==='storyline_v1'){
+      const was=seen[id],now=was==null?null:works.loadOf(id,key).text;
+      if(now!=null&&now!==was&&okState(valid(now))){text=JSON.stringify(mergeWork(valid(was),o,valid(now),newId).merged);merged=true}      // 기준(was)은 화면이 다시 읽을 때까지 그대로
+      else seen[id]=text;
+    }
+    const r=works.writeOf(id,key,text);if(merged)r.merged=true;
     if(key==='storyline_v1'){backups.backup(id,text);library.touch(id)}
     return r;
   }
@@ -64,10 +74,15 @@ function create(userData){
     if(w.key==='storyline_v1'){const cur=works.loadOf(w.id,w.key).text;if(cur)backups.force(w.id,cur)}      // 덮어쓰기 전 이 기기 것을 백업
     return works.writeOf(w.id,w.key,text).ok;
   }
-  function syncConflict(rel,text){      // 양쪽에서 고친 작품: 다른 기기 것을 사본 작품으로 (이 기기 것은 그대로)
-    const w=workPath(rel),o=valid(text);if(!w||!okState(o))return null;
-    const src=library.nov(w.id),nid=newId(),name=`${src?src.name:'작품'} (다른 기기 ${stamp(new Date()).slice(4,8)})`;
-    works.writeOf(nid,'storyline_v1',text);library.add(nid,name);return name;
+  function syncConflict(rel,text,baseText){      // 양쪽에서 고친 작품: 카드 · 인물 단위로 합침 (같은 글을 둘 다 고친 곳은 작품 안에 남겨 두고 사용자가 고름)
+    const w=workPath(rel),theirs=valid(text);if(!w||!okState(theirs))return null;
+    const curText=works.loadOf(w.id,w.key).text,mine=valid(curText);
+    if(!okState(mine)){syncWrite(rel,text);return {asks:0}}
+    const {merged,conflicts}=mergeWork(valid(baseText),mine,theirs,newId);
+    backups.force(w.id,curText);      // 합치기 전 이 기기 것을 백업
+    works.writeOf(w.id,w.key,JSON.stringify(merged));library.touch(w.id);
+    const src=library.nov(w.id);
+    return {name:src?src.name:'작품',asks:conflicts.length};
   }
 
   return {

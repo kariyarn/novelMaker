@@ -9,12 +9,16 @@ function onSyncResult(r){
   UI.syncLast=r;
   if(!r||!r.ok){if(r&&!r.skipped&&r.manual)notice('동기화하지 못했어요: '+r.error);refreshSyncRow();return}
   const cur=LIB&&LIB.current,mine=p=>cur&&p.startsWith(`works/${cur}/`);
-  const touched=r.pulled.some(mine)||r.pulled.includes('prefs.json');
-  if(touched&&!saveT){      // 이 작품을 다른 기기에서 고쳤음: 다시 읽음 (그사이 여기서 쓴 게 있으면 다음 동기화 때 사본으로 남김)
+  const touched=r.pulled.some(mine)||r.pulled.includes('prefs.json')||(r.merged||[]).some(mine);
+  if(touched){      // 이 작품을 다른 기기에서 고쳤거나 합쳤음: 다시 읽음 (그사이 여기서 쓴 게 있으면 먼저 저장 → 저장소 쪽에서 받은 글과 합쳐짐)
+    if(saveT)flushWork();
     const sel=UI.sel,mode=UI.mode;initWork();resetHistory();UI.mode=mode;UI.sel=sel;fixSel();applySettings();
   }
   afterWorkChange();renderAll();
-  if(r.conflicts.length)notice(`양쪽 기기에서 같은 작품을 고쳐서, 다른 기기 쪽 내용을 사본 작품으로 남겼어요.\n\n${r.conflicts.join('\n')}\n\n작품 목록에서 열어 보고 필요한 부분만 옮겨 주세요.`);
+  const others=r.conflicts.filter(c=>!mine(c.rel));
+  if((r.merged||[]).some(mine)&&pendingConflicts().length)showSyncConflicts();
+  else if(others.length)notice(`양쪽 기기에서 고친 내용을 합쳤어요. 같은 글을 양쪽에서 다르게 고친 곳은 그 작품을 열면 고를 수 있어요.\n\n${others.map(c=>`${c.name} (${c.asks}곳)`).join('\n')}`);
+  else if((r.merged||[]).length)toast('양쪽 기기에서 고친 내용을 합쳤어요');
   else if(r.manual)toast(r.pulled.length?'다른 기기에서 고친 내용을 받았어요':'동기화했어요');
   else if(touched)toast('다른 기기에서 고친 내용을 받았어요');
   refreshSyncRow();
@@ -69,4 +73,50 @@ function showSyncSetup(){
         closeModal();UI.syncCfg=Shell.sync.getConfig();onSyncResult({...res,manual:true});showSettings();
       }},'저장하고 연결')));
   setTimeout(()=>repo.focus(),30);
+}
+
+/* ---------- 같은 글을 양쪽 기기에서 다르게 고친 곳 고르기 (storage/merge.js 가 S.syncConflicts 에 남겨 둠) ---------- */
+const pendingConflicts=()=>Array.isArray(S.syncConflicts)?S.syncConflicts:[];
+function conflictTarget(path){      // ['cards','<id>','text'] → {obj, key}: 목록은 id(또는 label)로 찾음
+  let o=S;
+  for(let i=0;i<path.length-1;i++){
+    const k=path[i];
+    o=Array.isArray(o)?o.find(x=>x&&(String(x.id)===k||'label:'+x.label===k)):o&&o[k];
+    if(!o||typeof o!=='object')return null;
+  }
+  return {obj:o,key:path[path.length-1]};
+}
+function keepBothCard(id,text){      // 다른 기기 글을 새 카드로: 원래 카드 옆에 같은 자리 · 같은 화로
+  const c=S.cards.find(x=>x.id===id);if(!c)return false;
+  const n=JSON.parse(JSON.stringify(c));n.id=uid();n.text=text;n.created=Date.now();S.cards.push(n);
+  const near=b=>{if(b&&b[id]){S.z=(S.z||1)+1;b[n.id]={...b[id],x:b[id].x+28,y:b[id].y+28,z:S.z}}};
+  S.characters.forEach(ch=>near(ch.board));near(S.allBoard);near(S.noneBoard);
+  [...S.episodes,...(S.shelves||[])].forEach(e=>{const i=(e.cardIds||[]).indexOf(id);if(i>=0)e.cardIds.splice(i+1,0,n.id)});
+  return true;
+}
+function resolveConflict(c,how){
+  const t=conflictTarget(c.path);
+  act(()=>{
+    if(t&&how==='theirs')t.obj[t.key]=c.theirs;
+    else if(t&&how==='both'){
+      if(!(c.path[0]==='cards'&&c.path[2]==='text'&&keepBothCard(c.path[1],c.theirs)))t.obj[t.key]=`${c.mine}\n\n${c.theirs}`;
+    }
+    S.syncConflicts=pendingConflicts().filter(x=>x.id!==c.id);
+    if(!S.syncConflicts.length)delete S.syncConflicts;
+  });
+}
+function showSyncConflicts(){
+  const list=pendingConflicts();if(!list.length)return closeModal();
+  const c=list[0],t=conflictTarget(c.path),now=t?t.obj[t.key]:c.mine,isCard=c.path[0]==='cards';
+  const box=(title,text)=>h('div',{style:'flex:1;min-width:0'},h('div',{style:'font-weight:600;margin-bottom:4px'},title),
+    h('div',{style:'white-space:pre-wrap;max-height:40vh;overflow:auto;padding:10px;border-radius:8px;background:var(--acc-soft);font-size:.95em'},text||'(비어 있음)'));
+  const pick=how=>{resolveConflict(c,how);showSyncConflicts()};
+  openModal(mtitle('양쪽 기기에서 다르게 고친 글'),
+    h('p',{class:'muted'},`${c.label}${list.length>1?` · 남은 것 ${list.length}곳`:''}\n어느 쪽을 쓸지 골라 주세요. 고르기 전까지는 이 기기 글이 들어가 있어요.`),
+    h('div',{style:'display:flex;gap:12px;flex-wrap:wrap'},box('이 기기',now),box('다른 기기',c.theirs)),
+    h('div',{class:'row',style:'margin-top:14px'},
+      h('button',{class:'quiet',onclick:closeModal},'나중에'),h('span',{class:'sp'}),
+      h('button',{onclick:()=>pick('mine')},'이 기기 것'),
+      h('button',{onclick:()=>pick('theirs')},'다른 기기 것'),
+      h('button',{class:'on',onclick:()=>pick('both')},isCard?'둘 다 (카드 하나 더)':'둘 다 (이어 붙이기)')));
 }

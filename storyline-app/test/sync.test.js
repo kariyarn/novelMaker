@@ -7,7 +7,7 @@ const {createSync,gitSha}=require('../storage/sync');
 
 /* 가짜 GitHub: 이 앱이 쓰는 API 만 (트리 목록 · blob 읽기 · 파일 올리기) */
 function fakeGitHub({emptyRepo=false}={}){
-  const files=new Map();let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
+  const files=new Map(),blobs=new Map();let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
   const json=(status,o)=>({ok:status<300,status,text:async()=>JSON.stringify(o)});
   async function fetch(url,{method,headers,body}){
     calls++;
@@ -20,15 +20,15 @@ function fakeGitHub({emptyRepo=false}={}){
       return json(200,{tree:[...files].map(([path,f])=>({path,type:'blob',sha:f.sha}))});
     }
     if(method==='GET'&&p.startsWith('/git/blobs/')){
-      const sha=p.slice(11),f=[...files.values()].find(x=>x.sha===sha);
-      return f?json(200,{content:Buffer.from(f.text).toString('base64')}):json(404,{});
+      const t=blobs.get(p.slice(11));      // 진짜 GitHub 처럼 지나간 버전도 읽힘
+      return t!=null?json(200,{content:Buffer.from(t).toString('base64')}):json(404,{});
     }
     if(method==='PUT'&&p.startsWith('/contents/')){
       const fp=p.slice(10),b=JSON.parse(body),cur=files.get(fp);
       if(cur&&b.sha!==cur.sha)return json(409,{message:'sha mismatch'});
       if(!cur&&b.sha)return json(422,{message:'sha given for new file'});
       const text=Buffer.from(b.content,'base64').toString('utf8'),sha=gitSha(text);
-      files.set(fp,{text,sha});empty=false;
+      files.set(fp,{text,sha});blobs.set(sha,text);empty=false;
       return json(200,{content:{sha}});
     }
     return json(404,{message:'not found'});
@@ -84,21 +84,58 @@ test('한쪽에서 고친 글은 다른 쪽으로 · 새 작품도 따라감', a
   A.store.openNovel(nid);assert.equal(A.store.load('storyline_v1').text,doc('다'));
 });
 
-test('양쪽에서 같은 작품을 고치면: 이 기기 것은 그대로, 다른 기기 것은 사본 작품으로 (지우는 것 없음)', async()=>{
-  const gh=fakeGitHub(),A=device(gh);A.store.renameNovel(A.store.current(),'장편');A.store.save('storyline_v1',doc('처음'));await A.sync.sync();
+const work=(cards,extra={})=>JSON.stringify({characters:[{id:'c1',name:'조균',board:{}}],cards:cards.map(([id,text])=>({id,kind:'scene',text})),episodes:[{id:'e1',title:'1화',cardIds:cards.map(c=>c[0])}],...extra});
+const cardsOf=s=>JSON.parse(s.load('storyline_v1').text).cards.map(c=>[c.id,c.text]);
+
+test('양쪽에서 같은 작품을 고치면: 사본 작품 없이 카드 단위로 합침', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.renameNovel(A.store.current(),'장편');A.store.save('storyline_v1',work([['k1','처음'],['k2','메모']]));await A.sync.sync();
   const B=device(gh);await B.sync.sync();
-  A.store.save('storyline_v1',doc('A가 고침'));await A.sync.sync();
-  B.store.save('storyline_v1',doc('B가 고침'));
+  A.store.save('storyline_v1',work([['k1','처음'],['k2','메모'],['k3','A가 쓴 장면']]));await A.sync.sync();
+  B.store.save('storyline_v1',work([['k1','처음'],['k2','B가 고친 메모']]));
   const r=await B.sync.sync();
   assert.equal(r.ok,true,r.error);
-  assert.equal(r.conflicts.length,1);
-  assert.equal(B.store.load('storyline_v1').text,doc('B가 고침'));
-  const copy=B.store.library().novels.find(n=>n.name.startsWith('장편 (다른 기기'));
-  assert.ok(copy);
-  B.store.openNovel(copy.id);assert.equal(B.store.load('storyline_v1').text,doc('A가 고침'));
-  await A.sync.sync();      // A 도 사본까지 받음
-  assert.equal(A.store.load('storyline_v1').text,doc('B가 고침'));
-  assert.ok(names(A.store).some(n=>n.startsWith('장편 (다른 기기')));
+  assert.deepEqual(r.conflicts,[]);      // 서로 다른 카드를 고쳤으니 물을 것 없음
+  assert.deepEqual(names(B.store),['장편']);
+  assert.deepEqual(cardsOf(B.store),[['k1','처음'],['k2','B가 고친 메모'],['k3','A가 쓴 장면']]);
+  assert.deepEqual(JSON.parse(B.store.load('storyline_v1').text).episodes[0].cardIds,['k1','k2','k3']);
+  await A.sync.sync();      // A 도 합친 것을 받음
+  assert.deepEqual(cardsOf(A.store),cardsOf(B.store));
+  assert.deepEqual(names(A.store),['장편']);
+});
+
+test('같은 카드 글을 양쪽에서 다르게 고치면: 이 기기 글을 두고, 다른 기기 글은 고를 수 있게 남김', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  A.store.save('storyline_v1',work([['k1','A 글']]));await A.sync.sync();
+  B.store.save('storyline_v1',work([['k1','B 글']]));
+  const r=await B.sync.sync();
+  assert.equal(r.ok,true,r.error);
+  assert.equal(r.conflicts.length,1);assert.equal(r.conflicts[0].asks,1);
+  const st=JSON.parse(B.store.load('storyline_v1').text);
+  assert.equal(st.cards[0].text,'B 글');
+  assert.deepEqual(st.syncConflicts.map(c=>[c.path,c.mine,c.theirs]),[[['cards','k1','text'],'B 글','A 글']]);
+  assert.ok(B.store.listBackups().some(b=>B.store.readBackup(b.name)===work([['k1','B 글']])));      // 합치기 전 것을 백업
+});
+
+test('한쪽이 지운 카드: 다른 쪽이 안 고쳤으면 지우고, 고쳤으면 남김', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','하나'],['k2','둘'],['k3','셋']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  A.store.save('storyline_v1',work([['k1','하나'],['k3','셋 고침']]));await A.sync.sync();
+  B.store.save('storyline_v1',work([['k1','하나 고침'],['k2','둘']]));      // B 는 k3 를 지움 (A 는 k3 를 고쳤음)
+  const r=await B.sync.sync();assert.equal(r.ok,true,r.error);
+  assert.deepEqual(cardsOf(B.store),[['k1','하나 고침'],['k3','셋 고침']]);
+});
+
+test('동기화 도중에 쓴 글: 화면이 받은 글을 다시 읽기 전에 저장해도 다른 기기에서 고친 게 사라지지 않음', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  B.store.load('storyline_v1');      // 화면이 작품을 읽어 둠
+  A.store.save('storyline_v1',work([['k1','처음'],['k2','A가 쓴 장면']]));await A.sync.sync();
+  await B.sync.sync();      // B 가 받음 — 그런데 화면은 아직 예전 글을 들고 있음
+  B.store.save('storyline_v1',work([['k1','처음 고침']]));      // 예전 글 + 방금 고친 것으로 저장
+  assert.deepEqual(cardsOf(B.store),[['k1','처음 고침'],['k2','A가 쓴 장면']]);
+  await B.sync.sync();await A.sync.sync();
+  assert.deepEqual(cardsOf(A.store),[['k1','처음 고침'],['k2','A가 쓴 장면']]);
 });
 
 test('영구 삭제한 작품은 다른 기기에서 되살아나지 않음', async()=>{
