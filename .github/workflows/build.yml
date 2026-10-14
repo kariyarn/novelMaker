@@ -1,5 +1,6 @@
 # 테스트 + 앱 만들기: main 에 올리거나 PR 을 열면 자동으로, 또는 Actions 탭에서 직접 (Run workflow)
 # 다 만들어지면 Actions → 해당 실행 → Artifacts 에서 받기
+# main 에 올리면 설치 파일을 Releases 에도 올림 (README 맨 위 링크가 늘 최신 파일을 가리킴)
 name: build
 on:
   push:
@@ -48,3 +49,22 @@ jobs:
           name: mac-app
           path: storyline-app/dist/storyline-mac-arm64.zip
           if-no-files-found: error
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [windows, mac]
+    runs-on: ubuntu-latest
+    permissions: {contents: write}
+    defaults:
+      run: {working-directory: .}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {path: out, merge-multiple: true}
+      - name: 릴리스에 올리기
+        env: {GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}'}
+        run: |
+          tag="build-${{ github.run_number }}"
+          gh release create "$tag" out/storyline-windows-setup.exe out/storyline-mac-arm64.zip \
+            --target "${{ github.sha }}" --title "캐릭터 스토리라인 ($(date -u +%Y-%m-%d) · ${tag})" \
+            --notes "main 의 최신 코드로 자동으로 만든 설치 파일이에요. Windows 는 .exe, 맥(Apple 칩)은 .zip 을 받아요." --latest
+          # 오래된 자동 릴리스는 최근 5개만 남김
+          gh release list --limit 100 --json tagName -q '.[].tagName' | grep '^build-' | sort -t- -k2 -n -r | tail -n +6 | while read t; do gh release delete "$t" --yes --cleanup-tag; done

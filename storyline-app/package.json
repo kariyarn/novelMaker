@@ -49,7 +49,7 @@
       "perMachine": false,
       "createDesktopShortcut": "always",
       "shortcutName": "캐릭터 스토리라인",
-      "artifactName": "storyline-setup-${version}.${ext}"
+      "artifactName": "storyline-windows-setup.${ext}"
     }
   },
   "devDependencies": {

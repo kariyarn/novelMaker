@@ -1,5 +1,8 @@
 # 캐릭터 스토리라인
 
+> **⬇ 설치 파일 받기** · [Windows (.exe)](../../releases/latest/download/storyline-windows-setup.exe) · [맥 Apple 칩 (.zip)](../../releases/latest/download/storyline-mac-arm64.zip) · [모든 버전](../../releases)
+> main 에 새 코드가 들어가면 자동으로 최신 파일로 바뀌어요. 처음 열 때 경고가 뜨면 [아래 설치 안내](#설치)를 봐요.
+
 **글을 쓸 기분이 들게 해 주는, 캐릭터 중심 소설 구상 노트.**
 인물마다 코르크보드에 포스트잇을 붙이고, 화별로 늘어놓고, 누가 누구와 얽혀 있는지 한눈에 봐요.
 맥과 Windows에서 같이 쓰고, 두 컴퓨터는 GitHub 비공개 저장소로 맞춰요.
@@ -60,12 +63,14 @@
 
 ## 설치
 
-이 저장소의 **[Actions](../../actions) → `build` → 맨 위 실행 → Artifacts** 에서 받아요. (GitHub 로그인 필요)
+맨 위 링크나 **[Releases](../../releases/latest)** 에서 받아요.
 
 | 파일 | 대상 |
 |---|---|
-| `windows-setup` | Windows 10 · 11 (x64). 압축을 풀고 `.exe` 실행 · 관리자 권한 없이 내 계정에만 설치 |
-| `mac-app` | macOS (Apple Silicon). 압축을 풀고 `캐릭터 스토리라인.app` 을 응용 프로그램 폴더로 |
+| `storyline-windows-setup.exe` | Windows 10 · 11 (x64). 받아서 실행 · 관리자 권한 없이 내 계정에만 설치 |
+| `storyline-mac-arm64.zip` | macOS (Apple Silicon). 압축을 풀고 `캐릭터 스토리라인.app` 을 응용 프로그램 폴더로 |
+
+main 에 올라가기 전의 시험판은 **[Actions](../../actions) → `build` → 해당 실행 → Artifacts** 에서 받아요. (GitHub 로그인 필요 · 압축을 한 번 더 풀어야 함)
 
 > 서명하지 않은 앱이라 처음 열 때 경고가 떠요.
 > Windows: "Windows의 PC 보호" → **추가 정보 → 실행** · 맥: 앱을 우클릭 → **열기**

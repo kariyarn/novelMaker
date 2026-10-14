@@ -34,6 +34,10 @@ textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:inhe
 textarea::placeholder{color:var(--muted)}
 .foot{white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:8px;padding:2px 12px 6px;font-size:11px;color:var(--muted);user-select:none}
 .st{transition:opacity .3s}
+#work{font:inherit;font-size:11px;color:var(--muted);background:transparent;border:0;border-radius:5px;padding:1px 2px;max-width:45%;min-width:0;flex:none;cursor:pointer;outline:0;text-overflow:ellipsis}
+#work:hover{background:var(--line);color:var(--ink)}
+#work option{color:#1d1d1f;background:#fff}
+#hint{overflow:hidden;text-overflow:ellipsis;min-width:0}
 </style>
 </head>
 <body>
@@ -49,7 +53,7 @@ textarea::placeholder{color:var(--muted)}
     <button id="hide" title="숨기기 (Esc)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button>
   </div>
   <textarea id="ta" class="nta" placeholder="떠오른 걸 적어요"></textarea>
-  <div class="foot"><span id="hint"></span><span class="sp"></span><span class="st" id="st"></span></div>
+  <div class="foot"><select id="work" title="작품 바꾸기"></select><span id="hint"></span><span class="sp"></span><span class="st" id="st"></span></div>
 </div>
 <script src="../src/input/smartInput.js"></script>
 <script src="note.js"></script>
