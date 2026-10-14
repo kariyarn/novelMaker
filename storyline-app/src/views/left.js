@@ -212,7 +212,7 @@ function renderLeft0(){
       h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder())},icon('folderplus')),
       h('span',{class:'cslot'}),      // 표 보기 자리 (아이콘 열 맞춤)
       (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'폴더 추가',onclick:stop(()=>popMenu(mb,[{label:'폴더 추가',fn:()=>addFolder()}]))},'⋯');return mb})()],
-    ()=>[rootChars.length?h('div',{class:'lchips'},...rootChars.map(chip)):(!rootFolders.length?h('div',{class:'fhint'},'아직 캐릭터가 없어요 · ＋로 만들어요'):null),...rootFolders.map(f=>sub(f,1))].filter(Boolean),
+    ()=>[rootChars.length?h('div',{class:'lchips'},...rootChars.map(chip)):(!rootFolders.length?h('div',{class:'fhint'},'아직 캐릭터가 없어요 · ',h('button',{class:'fadd',onclick:stop(()=>addEntity('char'))},'＋ 새 캐릭터')):null),...rootFolders.map(f=>sub(f,1))].filter(Boolean),
     ()=>{if(DRAGE){const c=charById(DRAGE);DRAGE=null;dragOn(false);if(c)act(()=>{delete c.folder})}else if(DRAGF){const id=DRAGF;DRAGF=null;dragOn(false);moveFolder(id,null)}}));
   // 설정: 기본 설정 폴더(그 안의 폴더는 더 작은 판)
   const sf=folderById('f_setting');
@@ -222,7 +222,7 @@ function renderLeft0(){
         h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder(sf.id))},icon('folderplus')),
         h('button',{class:'cbtn',title:'표로 보기',onclick:stop(()=>openFolderTable(sf.id))},'▦'),
         (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'폴더 메뉴',onclick:stop(()=>folderMenu(sf,mb))},'⋯');return mb})()],
-      ()=>[items.length?h('div',{class:'lchips'},...items.map(chip)):(!subs.length?h('div',{class:'fhint'},q?'일치하는 항목이 없어요':'아직 설정이 없어요 · ＋로 만들어요'):null),...subs.map(f=>sub(f,1))].filter(Boolean),
+      ()=>[items.length?h('div',{class:'lchips'},...items.map(chip)):(!subs.length?h('div',{class:'fhint'},q?'일치하는 항목이 없어요':['아직 설정이 없어요 · ',h('button',{class:'fadd',onclick:stop(()=>addEntity('setting',sf.id))},'＋ 새 설정 노트')]):null),...subs.map(f=>sub(f,1))].filter(Boolean),
       ()=>{if(DRAGE){const c=charById(DRAGE);DRAGE=null;dragOn(false);if(c)act(()=>{c.folder=sf.id})}else if(DRAGF){const id=DRAGF;DRAGF=null;dragOn(false);moveFolder(id,sf.id)}}))}
   // 미분류: 어느 인물·설정에도 안 이어진 카드
   if(!q&&S.work)wrap.insertBefore(h('div',{class:'lboard lwork'+(UI.sel==='work'?' act':''),title:'소설 전체의 컨셉 · 목표 · 연재 진행 · 아이디어',onclick:()=>{if(UI.mode!=='story'){UI.mode='story'}setSel('work')}},

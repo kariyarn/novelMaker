@@ -1,6 +1,6 @@
 /* ---------- 스마트 입력: 둥근 따옴표 · 열고 닫는 괄호류 자동 닫기 · 말줄임표 (카드 글, 메모, 빠른 입력) ---------- */
 (function(){
-  const SEL='textarea.ktext,textarea.fval,textarea.zta,textarea.tlmemo,.widea textarea,.pquick input';      // 카드 글 · 집중 모드 · 시트 칸 · 화 메모 · 아이디어 · 빠른 입력
+  const SEL='textarea.ktext,textarea.fval,textarea.zta,textarea.tlmemo,.widea textarea,.pquick input,textarea.nta';      // 카드 글 · 집중 모드 · 시트 칸 · 화 메모 · 아이디어 · 빠른 입력 · 포스트잇 창
   const PAIR={'“':'”','‘':'’','「':'」','『':'』','[':']','(':')','《':'》','〈':'〉'};
   const CYC=[['[',']'],['「','」'],['『','』'],['《','》']];
   const EXTRA={'"':'"',"'":"'",'＂':'＂','＇':'＇','（':'）','［':'］','｛':'｝','〈':'〉','【':'】','〔':'〕','〖':'〗','〘':'〙','‹':'›','«':'»','‚':'‘','„':'“'};      // 곧은 따옴표 · 전각 괄호 · 기타 짝
@@ -59,7 +59,7 @@
   document.addEventListener('input',e=>{if(!e.isComposing)fix(e.target)},true);
   document.addEventListener('compositionend',e=>{const el=e.target;setTimeout(()=>fix(el),0)},true);
   document.addEventListener('keydown',e=>{
-    const el=e.target;if(e.key!=='Enter'||e.isComposing||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!el.matches||!el.matches('textarea.ktext,textarea.fval,textarea.zta,textarea.tlmemo,.widea textarea')||el.readOnly)return;
+    const el=e.target;if(e.key!=='Enter'||e.isComposing||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!el.matches||!el.matches('textarea.ktext,textarea.fval,textarea.zta,textarea.tlmemo,.widea textarea,textarea.nta')||el.readOnly)return;
     const v=el.value,a=el.selectionStart,nx=v[a];if(a!==el.selectionEnd||!REV[nx])return;
     const o=v.lastIndexOf(REV[nx],a-1),c=v.lastIndexOf(nx,a-1);if(o<0||c>o)return;      // 열고 닫는 글자 안에서만
     e.preventDefault();e.stopPropagation();el.setSelectionRange(a+1,a+1);put(el,'\n');      // 닫는 글자는 그대로 두고 아래 줄로

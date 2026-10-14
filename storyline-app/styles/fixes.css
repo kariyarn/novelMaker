@@ -94,3 +94,6 @@ button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink)
 /* ＋ 인물: 글자가 큰 글꼴(명조 등)에서도 위아래가 잘리지 않게 여백 · 줄 높이 · 폭 여유 */
 .kadd{font-size:.78em;line-height:1.4;height:auto;min-height:0;padding:2px 6px 2px 8px;max-width:8em;box-sizing:border-box}
 .kfoot{align-items:center}
+/* 빈 인물 · 설정 판: 머리줄의 ＋ 아이콘은 마우스를 올려야 보여서, 안내 글 안에 바로 누르는 버튼 */
+.fhint .fadd{font:inherit;color:var(--acc);background:none;border:0;padding:1px 4px;margin:0;border-radius:5px;cursor:pointer;font-weight:600}
+.fhint .fadd:hover{background:var(--fill);text-decoration:underline}

@@ -7,7 +7,7 @@ const {createSync,gitSha}=require('../storage/sync');
 
 /* 가짜 GitHub: 이 앱이 쓰는 API 만 (트리 목록 · blob 읽기 · 파일 올리기) */
 function fakeGitHub({emptyRepo=false}={}){
-  const files=new Map();let empty=emptyRepo,calls=0;
+  const files=new Map();let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
   const json=(status,o)=>({ok:status<300,status,text:async()=>JSON.stringify(o)});
   async function fetch(url,{method,headers,body}){
     calls++;
@@ -16,6 +16,7 @@ function fakeGitHub({emptyRepo=false}={}){
     if(method==='GET'&&p==='')return json(200,{full_name:'me/novel'});
     if(method==='GET'&&p.startsWith('/git/trees/')){
       if(empty)return json(409,{message:'Git Repository is empty.'});
+      if(stale)return json(200,{tree:stale});
       return json(200,{tree:[...files].map(([path,f])=>({path,type:'blob',sha:f.sha}))});
     }
     if(method==='GET'&&p.startsWith('/git/blobs/')){
@@ -32,7 +33,8 @@ function fakeGitHub({emptyRepo=false}={}){
     }
     return json(404,{message:'not found'});
   }
-  return {fetch,files,get calls(){return calls}};
+  const snapshot=()=>[...files].map(([path,f])=>({path,type:'blob',sha:f.sha}));
+  return {fetch,files,get calls(){return calls},freeze(){stale=snapshot()},thaw(){stale=null}};
 }
 const tmp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'storyline-sync-'));
 function device(gh,token='good'){
@@ -130,4 +132,19 @@ test('동기화로 덮어쓰기 전에 이 기기 글을 백업', async()=>{
   A.store.save('storyline_v1',doc('가','나'));await A.sync.sync();
   await B.sync.sync();
   assert.ok(B.store.listBackups().some(b=>B.store.readBackup(b.name)===doc('가')));
+});
+
+test('올린 직후 GitHub 가 예전 목록을 줘도 가짜 충돌 · 사본 작품이 생기지 않음', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.renameNovel(A.store.current(),'장편');A.store.save('storyline_v1',doc('처음'));await A.sync.sync();
+  gh.freeze();      // 이 뒤로 한동안 목록이 예전 그대로
+  A.store.save('storyline_v1',doc('메모 하나'));
+  let r=await A.sync.sync();assert.equal(r.ok,true,r.error);
+  A.store.save('storyline_v1',doc('메모 하나','메모 둘'));
+  r=await A.sync.sync();assert.equal(r.ok,true,r.error);
+  assert.deepEqual(r.conflicts,[]);
+  assert.equal(A.store.load('storyline_v1').text,doc('메모 하나','메모 둘'));      // 예전 글로 되돌아가지도 않음
+  assert.deepEqual(names(A.store),['장편']);
+  gh.thaw();
+  r=await A.sync.sync();assert.equal(r.ok,true,r.error);assert.deepEqual(r.conflicts,[]);
+  const id=A.store.current();assert.equal(gh.files.get(`storyline/works/${id}/storyline.json`).text,doc('메모 하나','메모 둘'));
 });
