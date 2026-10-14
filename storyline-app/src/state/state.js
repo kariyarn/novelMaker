@@ -39,6 +39,8 @@ function migrate(st){
   st.shelves=Array.isArray(st.shelves)?st.shelves:[];      // 보관 칸: 아직 몇 화인지 모르는 장면을 화 번호 없이 모아 두는 곳
   st.shelves.forEach(x=>{x.id=x.id||uid();x.name=x.name||'보관';x.cardIds=Array.isArray(x.cardIds)?x.cardIds:[]});
   st.characters.forEach(c=>{c.aliases=c.aliases||[];c.kind=c.kind||'char';if(c.kind==='char'){c.longGoal=c.longGoal||'';c.goals=Array.isArray(c.goals)?c.goals:[]}c.fields=c.fields||(c.kind==='setting'?[]:defFields());if(c.kind==='setting'&&c.memo===undefined)c.memo='';c.relations=c.relations||[];c.board=c.board||{};c.color=c.color||PAL[0]});
+  st.characters.forEach(c=>c.relations.forEach(r=>{if(r.type&&!Array.isArray(r.types))r.types=[r.type];delete r.type}));      // 관계: 하나(type) → 여러 개(types)
+  st.relTags=Array.isArray(st.relTags)?st.relTags.filter(t=>t&&t.k&&t.l):[];      // 직접 만든 관계 종류
   st.cards.forEach(c=>{c.chars=c.chars||[];c.autoChars=c.autoChars||[];c.offChars=c.offChars||[];c.stars=c.stars||0});
   return st;
 }

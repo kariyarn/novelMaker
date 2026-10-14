@@ -1,43 +1,81 @@
 /* ---------- 관계망: 포스트잇에 함께 나온 횟수로 자동 계산 (노드 스타일 / 원형 스타일) ---------- */
-/* 관계 종류: 선의 색 · 모양 · 라벨 (굵기는 그대로 '함께 나온 횟수') — 색이 잘 안 보여도 구분되게 점선 · 이중선도 씀 */
+/* 관계 종류: 선의 색 · 모양 · 라벨 (굵기는 그대로 '함께 나온 횟수') — 색이 잘 안 보여도 구분되게 점선 · 이중선도 씀
+   한 사이에 관계를 여러 개 (예: 적대 + 애증) · camp 는 진영 나누기용 (+1 같은 편 · -1 적 · 0 어느 쪽도 아님) */
+const RELG=[['우호','#4fb286'],['애정','#d9739a'],['인연','#8d7be0'],['대립','#e2675a'],['복합','#c48a2c']];
 const RELT=[
-  {k:'hostile',l:'적대',c:'#e2675a',d:[]},
-  {k:'wary',l:'경계',c:'#e8a33d',d:[6,5]},
-  {k:'ally',l:'협력',c:'#4fb286',d:[]},
-  {k:'trust',l:'신뢰',c:'#5b8def',d:[]},
-  {k:'family',l:'가족·사제',c:'#8d7be0',d:[],dbl:true},
-  {k:'love',l:'호감',c:'#d98aa0',d:[]},
-  {k:'use',l:'이용',c:'#8a8f98',d:[2,4]}];
-const relT=k=>RELT.find(t=>t.k===k)||null;
+  {k:'trust',l:'신뢰',g:'우호',c:'#5b8def',camp:1},
+  {k:'ally',l:'협력',g:'우호',c:'#4fb286',camp:1},
+  {k:'friend',l:'우정',g:'우호',c:'#3fb0c4',camp:1},
+  {k:'comrade',l:'동료',g:'우호',c:'#6aa84f',camp:1,d:[8,3]},
+  {k:'respect',l:'존경',g:'우호',c:'#2f8f9d',camp:1,d:[1,3]},
+  {k:'love',l:'호감',g:'애정',c:'#e58fb0',camp:1},
+  {k:'lover',l:'연인',g:'애정',c:'#d9467a',camp:1,dbl:true},
+  {k:'crush',l:'짝사랑',g:'애정',c:'#e58fb0',camp:0,d:[6,4]},
+  {k:'family',l:'가족',g:'인연',c:'#8d7be0',camp:1,dbl:true},
+  {k:'mentor',l:'사제',g:'인연',c:'#7a5cc7',camp:1,d:[8,3]},
+  {k:'lord',l:'주종',g:'인연',c:'#5d4fa8',camp:1,d:[1,3]},
+  {k:'debt',l:'은혜',g:'인연',c:'#a58fd8',camp:0,d:[6,4]},
+  {k:'hostile',l:'적대',g:'대립',c:'#e2675a',camp:-1},
+  {k:'grudge',l:'원한',g:'대립',c:'#b8322a',camp:-1,dbl:true},
+  {k:'rival',l:'라이벌',g:'대립',c:'#e8833d',camp:0,d:[8,3]},
+  {k:'wary',l:'경계',g:'대립',c:'#e8a33d',camp:0,d:[6,5]},
+  {k:'jealous',l:'질투',g:'대립',c:'#c9a227',camp:0,d:[1,3]},
+  {k:'scorn',l:'멸시',g:'대립',c:'#9a5b4f',camp:-1,d:[6,4]},
+  {k:'lovehate',l:'애증',g:'복합',c:'#b0457a',camp:0,dbl:true},
+  {k:'use',l:'이용',g:'복합',c:'#8a8f98',camp:0,d:[2,4]},
+  {k:'deal',l:'거래',g:'복합',c:'#9aa84a',camp:0,d:[8,3]},
+  {k:'secret',l:'비밀',g:'복합',c:'#6b6f78',camp:0,d:[1,3]},
+  {k:'subtle',l:'미묘',g:'복합',c:'#a3a7ae',camp:0,d:[6,4]}];
+const RELC=['#5b8def','#4fb286','#d9467a','#8d7be0','#e2675a','#e8a33d','#3fb0c4','#9aa84a','#c76fd6','#6b6f78'];      // 직접 만든 관계 색 차례
+const relAll=()=>[...RELT,...((S&&S.relTags)||[]).map(t=>({...t,g:'직접',camp:t.camp||0,mine:true}))];
+const relT=k=>relAll().find(t=>t.k===k)||null;
 const relOf=(from,to)=>{const e=charById(from);return e&&(e.relations||[]).find(r=>r.to===to)||null};      // from 이 보는 to
+const relTs=r=>r&&Array.isArray(r.types)?r.types.filter(k=>relT(k)):[];      // 그 방향의 관계들 (없어진 종류는 빼고)
 const relSet=(from,to,f)=>{const e=charById(from);if(!e)return;e.relations=e.relations||[];let r=e.relations.find(x=>x.to===to);
-  if(!r){r={id:uid(),to,note:''};e.relations.push(r)}f(r);if(!r.type)delete r.type;
-  if(!r.type&&!(r.note||'').trim()&&!r.stage)e.relations=e.relations.filter(x=>x!==r)};      // 종류도 메모도 없으면 지움
+  if(!r){r={id:uid(),to,note:''};e.relations.push(r)}r.types=Array.isArray(r.types)?r.types:[];f(r);if(!r.types.length)delete r.types;
+  if(!r.types&&!(r.note||'').trim()&&!r.stage)e.relations=e.relations.filter(x=>x!==r)};      // 종류도 메모도 없으면 지움
+const relTog=(list,k)=>list.includes(k)?list.filter(x=>x!==k):[...list,k];      // 누른 순서대로 쌓임 (첫 번째가 선 색)
+const relCamp=ts=>{const cs=ts.map(k=>(relT(k)||{}).camp||0),host=cs.includes(-1),fr=cs.includes(1);return host&&!fr?-1:fr&&!host?1:0};
 const iga=n=>{const c=String(n).charCodeAt(String(n).length-1);return n+(c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?'이':'가')};      // 받침 따라 이/가
-const RELCAMP=new Set(['ally','trust','family','love']);
-/* 선을 눌렀을 때: 둘 사이 관계 정하기 (기본은 양쪽 같이 · 필요하면 방향마다 따로) */
+const relSelEl=(val,fn,cls)=>{      // 관계 고르는 드롭다운 (묶음별)
+  const s=h('select',{class:cls||'',onchange:e=>fn(e.target.value)});s.append(h('option',{value:'all',selected:!val},'관계: 전체'));
+  const gs=[...RELG.map(g=>g[0]),'직접'];gs.forEach(g=>{const ts=relAll().filter(t=>t.g===g);if(!ts.length)return;const og=h('optgroup',{label:g});ts.forEach(t=>og.append(h('option',{value:t.k,selected:t.k===val},t.l+'만')));s.append(og)});
+  return s};
+/* 선을 눌렀을 때: 둘 사이 관계 정하기 (여러 개 · 기본은 양쪽 같이 · 필요하면 방향마다 따로) */
 function relEditor(a,b,cx,cy){
   closePop();
   const A=charById(a),B=charById(b);if(!A||!B)return;
-  const m=h('div',{class:'pop grel'});let split=null;
-  const chips=(cur,fn)=>h('div',{class:'grchips'},...RELT.map(t=>h('button',{class:'grc'+(cur===t.k?' on':''),style:`--rc:${t.c}`,onclick:()=>fn(cur===t.k?null:t.k)},t.l)),
-    h('button',{class:'grc grc0'+(!cur?' on':''),title:'관계 지우기',onclick:()=>fn(null)},'미정'));
+  const m=h('div',{class:'pop grel'});let split=null,side=0;
+  const chips=(cur,fn)=>{
+    const box=h('div',{class:'grgrid'});
+    [...RELG.map(g=>g[0]),'직접'].forEach(g=>{const ts=relAll().filter(t=>t.g===g);
+      box.append(h('div',{class:'grg'},h('span',{class:'grgl'},g),h('div',{class:'grchips'},
+        ...ts.map(t=>{const i=cur.indexOf(t.k);return h('button',{class:'grc'+(i>=0?' on':''),style:`--rc:${t.c}`,title:t.mine?'직접 만든 관계 · 오른쪽 클릭으로 지우기':'',
+          oncontextmenu:t.mine?async e=>{e.preventDefault();if(!await askConfirm(`'${t.l}' 관계를 목록에서 지울까요?\n이 관계를 붙인 선에서도 함께 빠져요. 되돌리기(⌘Z)로 복구할 수 있어요.`,{ok:'지우기',danger:true}))return;
+            act(()=>{S.relTags=S.relTags.filter(x=>x.k!==t.k);S.characters.forEach(c=>(c.relations||[]).forEach(r=>{if(r.types){r.types=r.types.filter(x=>x!==t.k);if(!r.types.length)delete r.types}}))});build()}:null,
+          onclick:()=>fn(relTog(cur,t.k))},t.l,cur.length>1&&i>=0?h('small',{},String(i+1)):null)}),
+        g==='직접'?h('button',{class:'grc grc0',title:'목록에 없는 관계를 직접 만들어요',onclick:async()=>{const l=((await askText('새 관계 이름 (예: 맞수, 의형제, 정략혼)'))||'').trim();if(!l)return;
+          const ex=relAll().find(t=>t.l===l);if(ex){fn(cur.includes(ex.k)?cur:[...cur,ex.k]);return}
+          const k='u_'+uid(),c=RELC[(S.relTags||[]).length%RELC.length];act(()=>{S.relTags=S.relTags||[];S.relTags.push({k,l,c})});fn([...cur,k]);if(!m.isConnected)relEditor(a,b,cx,cy)}},'＋ 직접 추가'):null)))});      // 이름 묻는 창을 닫으며 이 창도 닫혔으면 다시 엶
+    box.append(h('div',{class:'grfoot'},cur.length>1?h('span',{class:'muted'},'숫자: 고른 순서 · 1번 색으로 선을 그려요'):h('span'),h('button',{class:'grc grc0'+(!cur.length?' on':''),title:'관계 모두 지우기',onclick:()=>fn([])},'미정')));
+    return box};
   const build=()=>{
-    const ra=relOf(a,b),rb=relOf(b,a),ta=ra&&ra.type||null,tb=rb&&rb.type||null;
-    if(split===null)split=!!(ta&&tb&&ta!==tb)||(!!ta!==!!tb);
-    const setBoth=k=>{act(()=>{relSet(a,b,r=>r.type=k);relSet(b,a,r=>r.type=k)});build()};
-    const setOne=(x,y)=>k=>{act(()=>relSet(x,y,r=>r.type=k));build()};
+    const ta=relTs(relOf(a,b)),tb=relTs(relOf(b,a)),same=ta.join()===tb.join();
+    if(split===null)split=!same;
+    const setBoth=ks=>{act(()=>{relSet(a,b,r=>r.types=ks.slice());relSet(b,a,r=>r.types=ks.slice())});build()};
+    const setOne=(x,y)=>ks=>{act(()=>relSet(x,y,r=>r.types=ks));build()};
     const note=(x,y,lab)=>{const r=relOf(x,y);return h('label',{class:'grn'},h('span',{},lab),h('input',{value:r&&r.note||'',placeholder:'한 줄 메모 (예: 가문의 원수)',
       oninput:e=>edit(()=>relSet(x,y,r=>r.note=e.target.value)),onchange:()=>commit(),onkeydown:e=>{if(e.key==='Enter'&&!e.isComposing)e.target.blur();if(e.key==='Escape')closePop()}}))};
-    m.replaceChildren(h('div',{class:'ptitle'},`${A.name} ↔ ${B.name}`),
-      ...(split?[h('div',{class:'grdir'},`${A.name} → ${B.name}`),chips(ta,setOne(a,b)),h('div',{class:'grdir'},`${B.name} → ${A.name}`),chips(tb,setOne(b,a))]
-        :[chips(ta,setBoth)]),
-      h('button',{class:'grsplit',onclick:()=>{split=!split;build()}},split?'양쪽 같은 관계로':'방향마다 다르게 (예: 한쪽만 이용)'),
+    m.replaceChildren(h('div',{class:'ptitle'},`${A.name} ↔ ${B.name}`,h('span',{class:'grhint'},'여러 개 골라도 돼요')),
+      ...(split?[h('div',{class:'seg grtabs'},...[[a,b,ta],[b,a,tb]].map(([x,y,ts],i)=>h('button',{class:side===i?'on':'',onclick:()=>{side=i;build()}},`${charById(x).name} → ${charById(y).name}`,ts.length?h('small',{},' '+ts.map(k=>relT(k).l).join('·')):null))),
+          side?chips(tb,setOne(b,a)):chips(ta,setOne(a,b))]      // 방향마다: 탭으로 한쪽씩 (창이 길어지지 않게)
+        :[chips(ta.length?ta:tb,setBoth)]),
+      h('button',{class:'grsplit',onclick:()=>{split=!split;build()}},split?'양쪽 같은 관계로':'방향마다 다르게 (예: 한쪽만 짝사랑)'),
       h('div',{class:'psep'}),note(a,b,`${iga(A.name)} 보는 ${B.name}`),note(b,a,`${iga(B.name)} 보는 ${A.name}`));
   };
   build();document.body.append(m);
   m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,cx-m.offsetWidth/2))+'px';
-  m.style.top=(cy+12+m.offsetHeight>innerHeight-8?Math.max(8,cy-12-m.offsetHeight):cy+12)+'px';
+  m.style.top=Math.max(8,cy+12+m.offsetHeight>innerHeight-8?cy-12-m.offsetHeight:cy+12)+'px';
   POP=m;
 }
 function graphData(upTo){
@@ -54,10 +92,10 @@ function graphData(upTo){
   const nodes=ents.filter(e=>cnt[e.id]>0).map(e=>({id:e.id,e,n:cnt[e.id],eps:eps[e.id]||0}));
   const ok=new Set(nodes.map(n=>n.id)),edges=[];
   const ks=new Set([...Object.keys(pc),...Object.keys(pe)]);
-  ents.forEach(e=>(e.relations||[]).forEach(r=>{if(r.type&&ok.has(e.id)&&ok.has(r.to)&&r.to!==e.id)ks.add(key(e.id,r.to))}));      // 관계를 정해 두면 함께 나온 적이 없어도 가는 선으로
+  ents.forEach(e=>(e.relations||[]).forEach(r=>{if(relTs(r).length&&ok.has(e.id)&&ok.has(r.to)&&r.to!==e.id)ks.add(key(e.id,r.to))}));      // 관계를 정해 두면 함께 나온 적이 없어도 가는 선으로
   ks.forEach(k=>{const [a,b]=k.split('|');if(!ok.has(a)||!ok.has(b))return;
-    const ra=relOf(a,b),rb=relOf(b,a),ta=ra&&relT(ra.type)?ra.type:null,tb=rb&&relT(rb.type)?rb.type:null;
-    edges.push({a,b,w:(pc[k]||0)+.5*(pe[k]||0),cards:pc[k]||0,eps:pe[k]||0,ta,tb,typed:!!(ta||tb)})});
+    const ta=relTs(relOf(a,b)),tb=relTs(relOf(b,a));      // 한쪽만 정했으면 양쪽 같은 관계로 봄
+    edges.push({a,b,w:(pc[k]||0)+.5*(pe[k]||0),cards:pc[k]||0,eps:pe[k]||0,sa:ta.length?ta:tb,sb:tb.length?tb:ta,typed:!!(ta.length||tb.length)})});
   return {nodes,edges};
 }
 const hashN=s=>{let h2=2166136261;for(const ch of s)h2=Math.imul(h2^ch.charCodeAt(0),16777619);return ((h2>>>0)%10000)/10000};
@@ -90,6 +128,15 @@ function graphSim(nodes,edges,style,opts={}){
       if(e.camp<0){L=L*1.8+(circle?140:200);st=Math.max(st,.5)}else if(e.camp>0){L*=.75;st=Math.max(st,.45)}      // 진영: 적대는 멀리 · 같은 편은 가까이
       const k=(d-L)*(circle?.05:.045)*st*al;dx/=d;dy/=d;
       if(!e.a.fx){e.a.vx+=dx*k;e.a.vy+=dy*k}if(!e.b.fx){e.b.vx-=dx*k;e.b.vy-=dy*k}});
+    if(!circle&&sim.E.length<=N*4)sim.E.forEach(e=>{      // 선이 상관없는 노드를 뚫고 지나가지 않게 (선이 너무 빽빽하면 모두 바깥으로 밀려나니 하지 않음): 선 가까이 있는 노드는 옆으로 비키고, 선 양 끝은 반대로 조금
+      const A=e.a,B=e.b,dx=B.x-A.x,dy=B.y-A.y,L2=dx*dx+dy*dy;if(L2<1)return;
+      const x0=Math.min(A.x,B.x)-40,x1=Math.max(A.x,B.x)+40,y0=Math.min(A.y,B.y)-40,y1=Math.max(A.y,B.y)+40;
+      for(let i=0;i<N;i++){const n=nodes[i];if(n===A||n===B||n.x<x0||n.x>x1||n.y<y0||n.y>y1)continue;
+        const t=((n.x-A.x)*dx+(n.y-A.y)*dy)/L2;if(t<=.03||t>=.97)continue;
+        let ox=n.x-(A.x+t*dx),oy=n.y-(A.y+t*dy),d=Math.hypot(ox,oy);const minD=n.r+20;if(d>=minD)continue;
+        if(d<.01){ox=-dy;oy=dx;d=Math.hypot(ox,oy)}
+        const p=(minD-d)/d*.8;if(!n.fx){n.x+=ox*p;n.y+=oy*p}
+        const q=p*.5;if(!A.fx){A.x-=ox*q*(1-t);A.y-=oy*q*(1-t)}if(!B.fx){B.x-=ox*q*t;B.y-=oy*q*t}}});
     nodes.forEach(n=>{if(n.fx)return;
       const g=(circle?.006:.0045)+(circle?.02:.016)*n.mass+(sim.center&&n.id===sim.center?.08:0);      // 큰 노드일수록 중력이 세서 가운데로
       n.vx-=n.x*g*al;n.vy-=n.y*g*al;n.vx*=.74;n.vy*=.74;n.x+=n.vx;n.y+=n.vy});
@@ -127,10 +174,10 @@ function renderGraph(m){
       const keep=new Set();Object.values(per).forEach(l=>l.sort((a,b)=>b.s-a.s).slice(0,3).forEach(e=>keep.add(e)));
       E=E.filter(e=>keep.has(e)||e.typed);
     }
-    if(grel)E=E.filter(e=>e.ta===grel||e.tb===grel);      // 관계 종류로 거르기: 그 관계 선만 (사람은 남기고 흐리게)
+    if(grel)E=E.filter(e=>e.typed&&(e.sa.includes(grel)||e.sb.includes(grel)));      // 관계 종류로 거르기: 그 관계 선만 (사람은 남기고 흐리게)
     relN=grel?new Set(E.flatMap(e=>[e.a,e.b])):null;
     const camp=UIP.gcamp!==false;
-    E.forEach(e=>{const ts=[e.ta,e.tb].filter(Boolean);e.camp=!camp||!ts.length?0:ts.includes('hostile')?-1:ts.every(t=>RELCAMP.has(t))?1:0});
+    E.forEach(e=>{e.camp=camp&&e.typed?relCamp([...e.sa,...e.sb]):0});      // 애증처럼 섞이면 어느 쪽도 아님
     centerId=null;
     if(local&&N.length){      // 로컬: 한 노드를 가운데 두고 n단계 이웃까지만
       const ok=id=>N.some(n=>n.id===id);
@@ -156,7 +203,7 @@ function renderGraph(m){
     const k=view.k,f=sel1||hov,nb=f?near(f):null,qs=!!search,appear=Math.min(1,(performance.now()-t0)/600);
     const X=x=>(x-view.cx)*k+Wd/2,Y=y=>(y-view.cy)*k+Hh/2,mx=Math.max(1,...vis.map(e=>e.w));
     if(style!=='circle'){ctx.lineCap='round';ctx.strokeStyle=col.sub;
-      const line=(x1,y1,x2,y2,t,lw,al)=>{ctx.globalAlpha=al;ctx.strokeStyle=t?t.c:col.sub;ctx.setLineDash(t&&t.d.length?t.d.map(v=>v*Math.max(1,lw*.7)):[]);
+      const line=(x1,y1,x2,y2,t,lw,al)=>{ctx.globalAlpha=al;ctx.strokeStyle=t?t.c:col.sub;ctx.setLineDash(t&&t.d&&t.d.length?t.d.map(v=>v*Math.max(1,lw*.7)):[]);
         if(t&&t.dbl&&al>.2){ctx.lineWidth=lw+3.4;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.globalAlpha=1;ctx.strokeStyle=col.bg;ctx.lineWidth=Math.max(1,lw+3.4-2.6)}
         else ctx.lineWidth=lw;
         ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()};
@@ -164,7 +211,7 @@ function renderGraph(m){
         const dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,x1=X(A.x+ux*A.r),y1=Y(A.y+uy*A.r),x2=X(B.x-ux*B.r),y2=Y(B.y-uy*B.r);
         const lw=(.6+2.2*q)*Math.max(.7,Math.min(1.4,k));
         if(!e.typed){line(x1,y1,x2,y2,null,lw,(on?(.14+.5*q):.04)*appear*(qs?.5:1));return}
-        const ta=relT(e.ta||e.tb),tb=relT(e.tb||e.ta),al=(on?(.55+.4*q):.08)*appear*(qs?.5:1),w2=Math.max(1.3,lw)*(e===hovE?1.6:1);
+        const ta=relT(e.sa[0]),tb=relT(e.sb[0]),al=(on?(.55+.4*q):.08)*appear*(qs?.5:1),w2=Math.max(1.3,lw)*(e===hovE?1.6:1);      // 선 색은 처음 고른 관계
         if(ta===tb)line(x1,y1,x2,y2,ta,w2,al);
         else{const mx2=(x1+x2)/2,my2=(y1+y2)/2;line(x1,y1,mx2,my2,ta,w2,al);line(mx2,my2,x2,y2,tb,w2,al)}});      // 방향마다 다르면 반씩: 각자 쪽 반이 '내가 보는 상대'
       ctx.setLineDash([])}
@@ -172,6 +219,7 @@ function renderGraph(m){
       if(px<-60||px>Wd+60||py<-60||py>Hh+60)return;
       ctx.globalAlpha=(nb&&!nb.has(n.id)?.2:(qs&&!hit?.25:(relN&&!relN.has(n.id)?.22:1)))*appear*((style==='circle'&&n.set)?.78:1);ctx.fillStyle=n.col;
       ctx.beginPath();if(n.set&&style!=='circle'){const s=rr;if(ctx.roundRect)ctx.roundRect(px-s,py-s,s*2,s*2,s*.35);else ctx.rect(px-s,py-s,s*2,s*2)}else ctx.arc(px,py,rr,0,Math.PI*2);ctx.fill();
+      if(style!=='circle'){ctx.lineWidth=2.5;ctx.strokeStyle=col.bg;ctx.stroke()}      // 배경색 테두리: 선이 노드 밑으로 지나가는 게 보이게
       if(n.id===sel1||hit||n.id===hov){ctx.globalAlpha=appear;ctx.lineWidth=2;ctx.strokeStyle=n.id===hov&&n.id!==sel1&&!hit?col.ink:col.acc;ctx.stroke()}});
     // 이름: 큰 노드부터, 겹치지 않는 것만 (강조된 노드는 항상)
     ctx.font='650 11px -apple-system,"Apple SD Gothic Neo",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';
@@ -188,12 +236,16 @@ function renderGraph(m){
       else{ctx.strokeStyle=col.bg;ctx.lineWidth=3;ctx.strokeText(n.e.name,px,ly);ctx.fillStyle=col.ink;ctx.fillText(n.e.name,px,ly)}});
     if(style!=='circle'){      // 관계 라벨: 항상 보기 · 가리킨 선 · 고르거나 가리킨 사람의 선 · 크게 확대했을 때
       ctx.font='650 10.5px -apple-system,"Apple SD Gothic Neo",sans-serif';
-      const pill=(x,y,t)=>{const w=ctx.measureText(t.l).width+12;ctx.globalAlpha=appear;ctx.fillStyle=t.c;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x-w/2,y-8,w,16,8);else ctx.rect(x-w/2,y-8,w,16);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(t.l,x,y+.5)};
-      vis.forEach(e=>{if(!e.typed)return;if(!(UIP.glabels||e===hovE||(f&&(e.a===f||e.b===f))||k>1.6))return;
+      const pills=(x,y,ks)=>{const ts=ks.map(relT).filter(Boolean),ws=ts.map(t=>ctx.measureText(t.l).width+12);let x0=x-(ws.reduce((a,b)=>a+b,0)+3*(ts.length-1))/2;      // 관계가 여럿이면 나란히
+        ctx.globalAlpha=appear;ts.forEach((t,i)=>{const w=ws[i];ctx.fillStyle=t.c;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x0,y-8,w,16,8);else ctx.rect(x0,y-8,w,16);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(t.l,x0+w/2,y+.5);x0+=w+3})};
+      const placed=[],spot=(ax,ay,bx,by,ks,tsT)=>{const w=ks.map(relT).filter(Boolean).reduce((a,t)=>a+ctx.measureText(t.l).width+15,0);      // 다른 라벨과 겹치면 선을 따라 비켜 놓기
+        let best=null;for(const t of tsT){const x=ax+(bx-ax)*t,y=ay+(by-ay)*t,r=[x-w/2,y-9,x+w/2,y+9];if(!placed.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1])){best=r;break}}
+        if(!best){const t=tsT[0],x=ax+(bx-ax)*t,y=ay+(by-ay)*t;best=[x-w/2,y-9,x+w/2,y+9]}
+        placed.push(best);pills((best[0]+best[2])/2,(best[1]+best[3])/2,ks)};
+      vis.slice().sort((a,b)=>(b===hovE)-(a===hovE)||b.w-a.w).forEach(e=>{if(!e.typed)return;if(!(UIP.glabels||e===hovE||(f&&(e.a===f||e.b===f))||k>1.6))return;
         const A=byId[e.a],B=byId[e.b],ax=X(A.x),ay=Y(A.y),bx=X(B.x),by=Y(B.y);
         if(Math.min(ax,bx)>Wd+40||Math.max(ax,bx)<-40||Math.min(ay,by)>Hh+20||Math.max(ay,by)<-20)return;
-        const ta=relT(e.ta||e.tb),tb=relT(e.tb||e.ta);
-        if(ta===tb)pill((ax+bx)/2,(ay+by)/2,ta);else{pill(ax+(bx-ax)*.32,ay+(by-ay)*.32,ta);pill(ax+(bx-ax)*.68,ay+(by-ay)*.68,tb)}})}
+        if(e.sa.join()===e.sb.join())spot(ax,ay,bx,by,e.sa,[.5,.38,.62,.27,.73]);else{spot(ax,ay,bx,by,e.sa,[.3,.2,.4]);spot(ax,ay,bx,by,e.sb,[.7,.8,.6])}})}
     ctx.globalAlpha=1;
   }
   function bounds(){const xs=nodes.map(n=>n.x),ys=nodes.map(n=>n.y),R=Math.max(...nodes.map(n=>n.r))+(style==='node'?26:10);return {x0:Math.min(...xs)-R,x1:Math.max(...xs)+R,y0:Math.min(...ys)-R,y1:Math.max(...ys)+R}}
@@ -220,7 +272,7 @@ function renderGraph(m){
     vis.forEach(e=>{const A=byId[e.a],B=byId[e.b],x1=(A.x-view.cx)*k+Wd/2,y1=(A.y-view.cy)*k+Hh/2,x2=(B.x-view.cx)*k+Wd/2,y2=(B.y-view.cy)*k+Hh/2;
       const dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/L)),d=Math.hypot(x1+t*dx-px,y1+t*dy-py);if(d<bd){bd=d;best=e}});
     return best};
-  const relLine=(x,y)=>{const r=relOf(x,y),t=r&&relT(r.type);return t||(r&&r.note)?`${charById(x).name} → ${charById(y).name}: ${t?t.l:'미정'}${r.note?' · '+r.note:''}`:null};
+  const relLine=(x,y)=>{const r=relOf(x,y),ts=relTs(r).map(k=>relT(k).l);return ts.length||(r&&r.note)?`${charById(x).name} → ${charById(y).name}: ${ts.length?ts.join(' · '):'미정'}${r.note?' — '+r.note:''}`:null};
   const zoomBy=f=>{auto=false;view.anc={wx:view.cx,wy:view.cy,fx:.5,fy:.5};view.tk=Math.max(.12,Math.min(5,view.tk*f));kick()};
   /* ---- 정보 창 ---- */
   function showInfo(){
@@ -229,9 +281,9 @@ function renderGraph(m){
     const pick=id=>{if(local){UIP.gcenter=id;saveUIP();renderMid();return}sel1=id;UIP.gsel=id;auto=false;view.tc=[byId[id].x,byId[id].y];showInfo();kick()};
     info.hidden=false;info.replaceChildren(...[h('div',{class:'gih'},h('i',{style:`background:${n.col}`}),h('b',{},n.e.name),h('span',{class:'muted'},`${n.set?'설정':'인물'} · 포스트잇 ${n.n}장 · ${n.eps}화`)),
       list.length?h('div',{class:'muted',style:'font-size:.82em;margin:6px 0 2px'},'가까운 순 (함께 나온 횟수)'):h('div',{class:'muted',style:'font-size:.86em;margin-top:6px'},'함께 나온 적이 없어요 — 그래서 멀리 있어요'),
-      ...list.slice(0,6).map(({o,e})=>{const t=relT(e.a===f?e.ta||e.tb:e.tb||e.ta);
+      ...list.slice(0,6).map(({o,e})=>{const ks=e.typed?(e.a===f?e.sa:e.sb):[],t=relT(ks[0]);
         return h('div',{class:'gil',title:'눌러서 이 노드로',onclick:()=>pick(o.id)},h('i',{style:`background:${o.col}`}),h('span',{},o.e.name),
-          h('button',{class:'grtag'+(t?'':' grtag0'),style:t?`--rc:${t.c}`:'',title:'관계 정하기',onclick:ev=>{ev.stopPropagation();const r=ev.currentTarget.getBoundingClientRect();relEditor(f,o.id,r.left+r.width/2,r.bottom)}},t?t.l:'＋ 관계'),
+          h('button',{class:'grtag'+(t?'':' grtag0'),style:t?`--rc:${t.c}`:'',title:'관계 정하기',onclick:ev=>{ev.stopPropagation();const r=ev.currentTarget.getBoundingClientRect();relEditor(f,o.id,r.left+r.width/2,r.bottom)}},t?t.l+(ks.length>1?` +${ks.length-1}`:''):'＋ 관계'),
           h('small',{},e.cards?`${e.cards}장${e.eps?` · ${e.eps}화`:''}`:'정한 관계'))}),
       list.length>6?h('div',{class:'muted',style:'font-size:.8em'},`외 ${list.length-6}`):null,
       h('div',{class:'row',style:'margin-top:8px;gap:6px;flex-wrap:wrap'},
@@ -252,7 +304,7 @@ function renderGraph(m){
     GC.playT=setInterval(()=>{if(!canvas.isConnected||UI.mode!=='graph'){clearInterval(GC.playT);GC.playT=0;return}
       tpos+=stepN;if(tpos>nEp+1)tpos=nEp+1;UIP.gtime=tpos;auto=true;rebuild();
       if(tpos>=nEp+1){clearInterval(GC.playT);GC.playT=0;pb.textContent='▶ 재생';saveUIP()}},Math.max(110,base/speed))}},GC.playT?'⏸ 정지':'▶ 재생');
-  const relSel=sel([['all','관계: 전체'],...RELT.map(t=>[t.k,t.l+'만'])],grel||'all',v=>{UIP.grel=v==='all'?null:v;saveUIP();renderMid()},'seg2 grsel');
+  const relSel=relSelEl(grel,v=>{UIP.grel=v==='all'?null:v;saveUIP();renderMid()},'seg2 grsel');
   relSel.title='이 관계의 선만 보기 (선을 눌러 관계를 정해요)';
   const chk=(cls,label,title,on,fn)=>h('label',{class:'gchk '+cls,title},h('input',{type:'checkbox',checked:on,onchange:e=>fn(e.target.checked)}),label);
   const labChk=chk('grlab','관계 라벨 항상 보기','끄면 선이나 사람을 가리킬 때 · 크게 확대했을 때만 보여요',!!UIP.glabels,v=>{UIP.glabels=v;saveUIP();kick()});

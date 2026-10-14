@@ -19,7 +19,7 @@ function genreSeed(g){
   const d=D[g];if(!d)return seed();
   const cs=d.chars.map(([n,sum,role,al,goal],i)=>{const c=newChar(n,PAL[[3,5,0][i]]);c.summary=sum;c.role=role;c.aliases=al;c.longGoal=goal;return c});
   const ss=d.sets.map(([n,sum])=>{const c=newSetting(n);c.summary=sum;return c});
-  d.rel.forEach(([a,b,note,stage])=>cs[a].relations.push({id:uid(),to:cs[b].id,note,stage,type:{충돌:'hostile',대립:'use',소통:'ally',조화:'trust'}[stage]}));
+  d.rel.forEach(([a,b,note,stage])=>cs[a].relations.push({id:uid(),to:cs[b].id,note,stage,types:[{충돌:'hostile',대립:'use',소통:'ally',조화:'trust'}[stage]]}));
   const cards=d.cards.map(([k,t,st])=>{const c=newCard(k,t);c.stars=st;return c});
   const eps=d.eps.map(([t,ix])=>{const e=newEp();e.title=t;e.cardIds=ix.map(i=>cards[i].id);return e});
   return {version:1,characters:[...cs,...ss],cards,episodes:eps,kinds:defKinds(),noneBoard:{},trash:[],settings:{},demo:true,z:1};
