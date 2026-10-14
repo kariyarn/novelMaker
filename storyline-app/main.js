@@ -1,19 +1,21 @@
-const {app,BrowserWindow,shell,Menu,ipcMain,globalShortcut,safeStorage,screen,net}=require('electron');
+const {app,BrowserWindow,shell,Menu,Tray,nativeImage,ipcMain,globalShortcut,safeStorage,screen,net,nativeTheme}=require('electron');
 const path=require('path'),fs=require('fs');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
 const isMac=process.platform==='darwin';
+const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
-let store,sync,win=null,noteWin=null,quitting=false;
+const NOTE_ARG='--note';      // 작업 표시줄 우클릭 → 포스트잇 모드로 바로 열기
+let store,sync,win=null,noteWin=null,tray=null,quitting=false;
 const userFile=n=>path.join(app.getPath('userData'),n);
 const readJson=(p,d)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch(e){return d}};
 const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){}};
 const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w&&w===win)w.webContents.executeJavaScript(js).catch(()=>{})};
 const callMain=js=>win&&!win.isDestroyed()?win.webContents.executeJavaScript(js):Promise.resolve(null);      // 큰 창의 화면 코드에 일을 맡김
 
-function createWindow(){
-  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',
+function createWindow({hidden=false}={}){
+  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',show:!hidden,
     autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
   win.loadFile(path.join(__dirname,'index.html'));
   win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
@@ -54,9 +56,11 @@ const NOTE=()=>userFile('note.json');
 let note=null;
 function createNote(){
   note=readJson(NOTE(),{opacity:1,onTop:true,bounds:null});
-  const wa=screen.getPrimaryDisplay().workArea,w=340,h=280;
-  const b=note.bounds||{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
-  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:true,hasShadow:false,resizable:true,
+  const wa=screen.getPrimaryDisplay().workArea,w=400,h=300;
+  const onScreen=r=>r&&screen.getAllDisplays().some(({workArea:a})=>r.x<a.x+a.width-60&&r.x+r.width>a.x+60&&r.y<a.y+a.height-30&&r.y+r.height>a.y+30);      // 모니터를 빼거나 바꿨으면 기본 자리로
+  const b=onScreen(note.bounds)?note.bounds:{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
+  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:glassNote,hasShadow:false,resizable:true,
+    backgroundColor:glassNote?'#00000000':nativeTheme.shouldUseDarkColors?'#161618':'#ffffff',
     skipTaskbar:true,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:false,
     webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
   noteWin.setOpacity(note.opacity||1);
@@ -66,11 +70,15 @@ function createNote(){
   noteWin.on('moved',keep);noteWin.on('resized',keep);
   noteWin.on('close',e=>{if(!quitting){e.preventDefault();hideNote()}});
   noteWin.on('closed',()=>{noteWin=null});
+  noteWin.webContents.on('render-process-gone',()=>{const w=noteWin;noteWin=null;w&&w.destroy();openMain()});      // 포스트잇 창이 죽으면 큰 창으로 돌아옴
 }
 function showNote(){
+  if(win&&win.webContents.isLoading()){win.webContents.once('did-finish-load',showNote);return}      // 포스트잇은 큰 창의 작품 데이터를 빌려 씀
   if(!noteWin)createNote();
-  if(win&&win.isVisible())win.hide();      // 큰 창은 치우고 포스트잇만
-  const show=()=>{noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown')};
+  const show=()=>{
+    noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown');
+    if(win&&win.isVisible())win.hide();      // 포스트잇이 뜬 뒤에 큰 창을 치움 (안 뜨면 큰 창이 그대로 남게)
+  };
   if(noteWin.webContents.isLoading())noteWin.webContents.once('did-finish-load',show);else show();
 }
 function hideNote(){
@@ -87,7 +95,7 @@ function openMain(){
 }
 
 if(!app.requestSingleInstanceLock())app.quit();      // 두 번 실행하면 이미 켜진 창을 보여 줌
-app.on('second-instance',()=>openMain());
+app.on('second-instance',(e,argv)=>argv.includes(NOTE_ARG)?showNote():openMain());
 app.setName('캐릭터 스토리라인');
 if(!isMac)app.setAppUserModelId('local.character.storyline');
 app.whenReady().then(()=>{
@@ -119,7 +127,7 @@ app.whenReady().then(()=>{
   ipcMain.handle('sync:now',()=>runSync({notify:false}));
   setInterval(()=>runSync(),5*60*1000);
   /* 포스트잇 창 */
-  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,isMac}));
+  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,isMac,glass:glassNote}));
   ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
   ipcMain.handle('note:add',(e,t,k)=>callMain(`noteBridge.add(${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
   ipcMain.handle('note:update',(e,id,t,k)=>callMain(`noteBridge.update(${JSON.stringify(String(id))},${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
@@ -142,7 +150,16 @@ app.whenReady().then(()=>{
     {label:'보기',submenu:[{label:'포스트잇 모드',accelerator:NOTE_KEY,registerAccelerator:false,click:showNote},{type:'separator'},{role:'reload'},{role:'toggleDevTools'},{type:'separator'},{role:'togglefullscreen'}]},
     {role:'windowMenu'},
     {label:'도움말',submenu:[{label:'단축키 도움말',accelerator:'CmdOrCtrl+/',registerAccelerator:false,click:()=>run('showShortcuts()')},{label:'전체 검색',accelerator:'CmdOrCtrl+F',registerAccelerator:false,click:()=>run('openSearch()')}]}]));
-  createWindow();
+  const startNote=process.argv.includes(NOTE_ARG);
+  createWindow({hidden:startNote});if(startNote)showNote();
+  if(!isMac){
+    if(process.platform==='win32')app.setUserTasks([{program:process.execPath,arguments:NOTE_ARG,iconPath:process.execPath,iconIndex:0,title:'포스트잇 모드로 열기',description:'큰 창 없이 포스트잇만 띄워요'}]);
+    // 알림 영역 아이콘: 포스트잇을 숨기면 작업 표시줄에 아무것도 안 남아서, 여기서 다시 꺼냄
+    tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'build','icon.png')).resize({width:16,height:16}));
+    tray.setToolTip('캐릭터 스토리라인');
+    tray.setContextMenu(Menu.buildFromTemplate([{label:'포스트잇 열기',click:showNote},{label:'큰 창 열기',click:openMain},{type:'separator'},{label:'끝내기',click:()=>app.quit()}]));
+    tray.on('click',toggleNote);
+  }else app.dock.setMenu(Menu.buildFromTemplate([{label:'포스트잇 모드',click:showNote}]));
   app.on('activate',()=>{if(!win)createWindow();else if(!(noteWin&&noteWin.isVisible())){win.show()}});
 });
 // 끌 때: 마지막으로 한 번 올리고 끔 (최대 6초)
