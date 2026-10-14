@@ -112,7 +112,7 @@ function showSyncConflicts(){
     h('div',{style:'white-space:pre-wrap;max-height:40vh;overflow:auto;padding:10px;border-radius:8px;background:var(--acc-soft);font-size:.95em'},text||'(비어 있음)'));
   const pick=how=>{resolveConflict(c,how);showSyncConflicts()};
   openModal(mtitle('양쪽 기기에서 다르게 고친 글'),
-    h('p',{class:'muted'},`${c.label}${list.length>1?` · 남은 것 ${list.length}곳`:''}\n어느 쪽을 쓸지 골라 주세요. 고르기 전까지는 이 기기 글이 들어가 있어요.`),
+    h('p',{class:'muted',style:'white-space:pre-line'},`${c.label}${list.length>1?` · 남은 것 ${list.length}곳`:''}\n어느 쪽을 쓸지 골라 주세요. 고르기 전까지는 이 기기 글이 들어가 있어요.`),
     h('div',{style:'display:flex;gap:12px;flex-wrap:wrap'},box('이 기기',now),box('다른 기기',c.theirs)),
     h('div',{class:'row',style:'margin-top:14px'},
       h('button',{class:'quiet',onclick:closeModal},'나중에'),h('span',{class:'sp'}),

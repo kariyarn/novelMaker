@@ -56,14 +56,15 @@ function merge3(base,local,remote,path,out){
 
 /* 고를 때 보여 줄 이름: "카드 · 짜증나는군…" / "조균 · 한 줄 소개" */
 const TOP={cards:'카드',characters:'인물',episodes:'화',work:'작품 노트',kinds:'분류',folders:'폴더',shelves:'보관 칸',links:'연결',relTags:'관계 종류'};
+const FIELD={fields:'',goals:'목표',summary:'소개',memo:'메모',name:'이름',title:'제목',longGoal:'긴 목표',role:'역할',note:'메모',text:'',value:''};
 const snip=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>24?t.slice(0,24)+'…':t};
 function findIn(arr,k){return Array.isArray(arr)?arr.find(x=>keyOf(x)===k):arr&&arr[k]}
 function describe(state,c){
   const [top,id]=c.path,item=findIn(state[top],id),field=c.path[c.path.length-1];
   if(top==='cards')return `카드 · ${snip(c.mine)||snip(c.theirs)||'(빈 카드)'}`;
   const name=item&&(item.name||item.title||item.label);
-  const sub=c.path.length>2?c.path.slice(2).map(k=>{const s=String(k);return s.startsWith('label:')?s.slice(6):s}).filter(s=>!/^[a-z0-9]{8}$/.test(s)&&s!=='value'&&s!=='text').join(' · '):'';
-  return [TOP[top]||top,name,sub||(field!==name?field:'')].filter(Boolean).join(' · ');
+  const sub=c.path.length>2?c.path.slice(2).map(k=>{const s=String(k);return s.startsWith('label:')?s.slice(6):s}).filter(s=>!/^[a-z0-9]{8}$/.test(s)).map(s=>s in FIELD?FIELD[s]:s).filter(Boolean).join(' · '):'';
+  return [TOP[top]||top,name,sub].filter(Boolean).join(' · ');
 }
 
 /* 작품 데이터 셋을 합침: {merged, conflicts:[{path,mine,theirs,label}]} — 고를 것은 merged.syncConflicts 에도 넣어 둠 */
