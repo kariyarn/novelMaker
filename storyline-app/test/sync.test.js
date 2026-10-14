@@ -138,6 +138,17 @@ test('동기화 도중에 쓴 글: 화면이 받은 글을 다시 읽기 전에 
   assert.deepEqual(cardsOf(A.store),[['k1','처음 고침'],['k2','A가 쓴 장면']]);
 });
 
+test('다른 기기가 예전과 똑같은 내용을 다시 올려도 막히지 않고 합침', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const id=A.store.current(),fp=`storyline/works/${id}/storyline.json`,old=gh.files.get(fp);
+  A.store.save('storyline_v1',work([['k1','처음 고침']]));await A.sync.sync();
+  gh.files.set(fp,{...old});      // 다른 기기가 예전 내용 그대로를 새로 올림 (지문이 예전 것과 같음)
+  A.store.save('storyline_v1',work([['k1','처음 고침'],['k2','새 장면']]));
+  const r=await A.sync.sync();assert.equal(r.ok,true,r.error);
+  assert.notEqual(gh.files.get(fp).sha,old.sha,'올라가야 함');
+  assert.deepEqual(JSON.parse(gh.files.get(fp).text).cards.map(c=>c.id),['k1','k2']);
+});
+
 test('영구 삭제한 작품은 다른 기기에서 되살아나지 않음', async()=>{
   const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',doc('남김'));
   const gone=A.store.createNovel('지울 작품');await A.sync.sync();
