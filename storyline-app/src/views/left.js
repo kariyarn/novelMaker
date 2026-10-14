@@ -208,7 +208,7 @@ function renderLeft0(){
   const rootChars=entsIn(null),rootFolders=childFolders(null).filter(f=>!f.builtin).filter(hasMatch);
   const nChars=S.characters.filter(c=>c.kind!=='setting').length;
   if(!q||rootChars.length||rootFolders.length)wrap.append(board('__chars','인물',nChars,[
-      h('button',{class:'cbtn mk',title:'새 캐릭터',onclick:stop(()=>addEntity('char'))},icon('noteplus')),
+      h('button',{class:'cbtn mk add',title:'새 캐릭터',onclick:stop(()=>addEntity('char'))},icon('noteplus')),
       h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder())},icon('folderplus')),
       h('span',{class:'cslot'}),      // 표 보기 자리 (아이콘 열 맞춤)
       (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'폴더 추가',onclick:stop(()=>popMenu(mb,[{label:'폴더 추가',fn:()=>addFolder()}]))},'⋯');return mb})()],
@@ -218,7 +218,7 @@ function renderLeft0(){
   const sf=folderById('f_setting');
   if(sf&&hasMatch(sf)){const items=entsIn(sf.id),subs=childFolders(sf.id).filter(hasMatch);
     wrap.append(board('f_setting',(sf.icon?sf.icon+' ':'')+sf.name,folderCount(sf.id),[
-        h('button',{class:'cbtn mk',title:'새 설정 노트',onclick:stop(()=>addEntity('setting',sf.id))},icon('noteplus')),
+        h('button',{class:'cbtn mk add',title:'새 설정 노트',onclick:stop(()=>addEntity('setting',sf.id))},icon('noteplus')),
         h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder(sf.id))},icon('folderplus')),
         h('button',{class:'cbtn',title:'표로 보기',onclick:stop(()=>openFolderTable(sf.id))},'▦'),
         (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'폴더 메뉴',onclick:stop(()=>folderMenu(sf,mb))},'⋯');return mb})()],

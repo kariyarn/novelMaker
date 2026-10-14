@@ -67,6 +67,10 @@
 .lboard:hover>.lbh .cbtn,.lsub:hover>.lsh .cbtn,.lboard:hover>.lbh .cbtn.mk,.lsub:hover>.lsh .cbtn.mk{opacity:0}
 .lbh:hover .cbtn,.lsh:hover .cbtn,.lbh .cbtn:focus-visible,.lsh .cbtn:focus-visible{opacity:.65}
 .lbh .cbtn:hover,.lsh .cbtn:hover,.lbh .cbtn[data-pop]:focus,.lsh .cbtn[data-pop]:focus{opacity:1}
+/* 단, 인물 · 설정 판의 '새 노트' ＋ 는 늘 흐리게 보이게 (항목이 생겨 '＋ 새 캐릭터' 안내가 사라진 뒤에도 추가할 곳을 찾을 수 있게) */
+.lboard>.lbh .cbtn.mk.add{opacity:.45}
+.lboard>.lbh:hover .cbtn.mk.add{opacity:.75}
+.lboard>.lbh .cbtn.mk.add:hover,.lboard>.lbh .cbtn.mk.add:focus-visible{opacity:1}
 /* ===== 구상 보드 위쪽: 목표 줄이 있을 때 접힌 패널 아이콘을 보드 머리 줄(인물 이름 · 전체 화면 버튼)과 같은 높이로 ===== */
 #app.m-story:has(#mid>.goalstrip:not(.mini)) :is(#left,#sheet,#pool).cl>.ctab{top:42px!important}
 #app.m-story:has(#mid>.goalstrip:not(.mini)) .goalstrip:not(.mini){padding-left:16px!important;padding-right:16px!important}
