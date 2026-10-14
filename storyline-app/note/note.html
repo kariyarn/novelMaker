@@ -26,9 +26,11 @@ button:disabled{opacity:.3;cursor:default;background:none}
 .pos{font-size:12px;color:var(--muted);min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
 .kind{font-size:12px;white-space:nowrap;flex:none}      /* 좁아도 분류 이름이 세로로 쪼개지지 않게 */
 .bar>*{flex-shrink:0}
+.fsw{display:flex}.fsw button{font-size:12px;padding:2px 4px}.fsw sub,.fsw sup{font-size:9px;line-height:0}
 @media (max-width:360px){.opw{display:none}}      /* 좁으면 투명도 슬라이드를 치움 */
+@media (max-width:280px){.fsw{display:none}}      /* 더 좁으면 글자 크기 버튼도 (단축키는 그대로) */
 .sp{flex:1}
-textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:15px;line-height:1.65;padding:4px 14px 8px}
+textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:var(--fs,15px);line-height:1.65;padding:4px 14px 8px}
 textarea::placeholder{color:var(--muted)}
 .foot{white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:8px;padding:2px 12px 6px;font-size:11px;color:var(--muted);user-select:none}
 .st{transition:opacity .3s}
@@ -41,13 +43,15 @@ textarea::placeholder{color:var(--muted)}
     <button class="kind" id="kind" title="분류 바꾸기"></button>
     <span class="sp"></span>
     <label class="opw" title="투명도 (끌어서 조절)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg><input type="range" id="op" min="15" max="100" step="1"></label>
+    <span class="fsw"><button id="fsm" title="글자 작게 (Ctrl+-)">가<sub>−</sub></button><button id="fsp" title="글자 크게 (Ctrl+=)">가<sup>+</sup></button></span>
     <button id="top" title="항상 위에 두기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/></svg></button>
     <button id="main" title="큰 창 열기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>
     <button id="hide" title="숨기기 (Esc)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button>
   </div>
-  <textarea id="ta" placeholder="떠오른 걸 적어요"></textarea>
+  <textarea id="ta" class="nta" placeholder="떠오른 걸 적어요  (--- 를 치고 Enter 면 다음 포스트잇)"></textarea>
   <div class="foot"><span id="hint"></span><span class="sp"></span><span class="st" id="st"></span></div>
 </div>
+<script src="../src/input/smartInput.js"></script>
 <script src="note.js"></script>
 </body>
 </html>

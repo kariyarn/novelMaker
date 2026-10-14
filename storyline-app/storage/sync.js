@@ -51,17 +51,21 @@ function createSync({store,fetch,getConfig,statePath}){
 
   async function pass(cfg,st,res){
     const {files:remote,empty}=await remoteTree(cfg);
-    const base=st.files;let changed=false;
+    const base=st.files,hist=st.hist=st.hist||{};let changed=false;
+    const setBase=(rel,sha)=>{base[rel]=sha;const h=(hist[rel]||[]).filter(x=>x!==sha);h.push(sha);hist[rel]=h.slice(-40)};      // 지나간 버전 지문도 기억
+
     const paths=[...new Set([...store.syncPaths(),...Object.keys(remote).filter(p=>p==='library.json'||p==='prefs.json')])].sort((a,b)=>order(a)-order(b));
     for(const rel of paths){
       if(rel.startsWith('works/')&&!store.syncPaths().includes(rel))continue;      // 그사이 목록에서 빠진(영구 삭제한) 작품
-      const L=store.syncRead(rel),Ls=L!=null?gitSha(L):null,Rs=remote[rel]||null,B=base[rel]||null;
-      if(Ls===Rs){if(Rs)base[rel]=Rs;continue}
+      const L=store.syncRead(rel),Ls=L!=null?gitSha(L):null,B=base[rel]||null;
+      // GitHub 는 방금 올린 직후 잠깐 예전 목록을 줄 때가 있음: 저장소 쪽이 '이미 지나간 버전'이면 안 바뀐 걸로 봄 (안 그러면 가짜 충돌 · 사본 작품이 생김)
+      const R0=remote[rel]||null,Rs=R0&&B&&R0!==B&&(hist[rel]||[]).includes(R0)?B:R0;
+      if(Ls===Rs){if(Rs)setBase(rel,Rs);continue}
       const localCh=Ls!==B,remoteCh=Rs!==B;
       if(remoteCh&&Rs&&(!localCh||Ls==null)){      // 받기
-        const text=await getBlob(cfg,Rs);store.syncWrite(rel,text);base[rel]=Rs;res.pulled.push(rel);changed=true;
+        const text=await getBlob(cfg,Rs);store.syncWrite(rel,text);setBase(rel,Rs);res.pulled.push(rel);changed=true;
         const after=store.syncRead(rel);      // 작품 목록처럼 합친 결과가 다르면 바로 올림
-        if(after!=null&&gitSha(after)!==Rs){base[rel]=await put(cfg,rel,after,Rs,empty);res.pushed.push(rel)}
+        if(after!=null&&gitSha(after)!==Rs){setBase(rel,await put(cfg,rel,after,Rs,empty));res.pushed.push(rel)}
         continue;
       }
       if(L==null)continue;      // 이 기기에 없는 파일: 저장소 쪽은 지우지 않음
@@ -71,10 +75,10 @@ function createSync({store,fetch,getConfig,statePath}){
         else if(/\/storyline\.json$/.test(rel)){const name=store.syncConflict(rel,text);if(name)res.conflicts.push(name);changed=true}
         // 취향 · 보기 상태: 이 기기 것을 올림
         const now=store.syncRead(rel);
-        base[rel]=await put(cfg,rel,now,Rs,empty);res.pushed.push(rel);
+        setBase(rel,await put(cfg,rel,now,Rs,empty));res.pushed.push(rel);
         continue;
       }
-      base[rel]=await put(cfg,rel,L,Rs,empty);res.pushed.push(rel);changed=true;      // 올리기
+      setBase(rel,await put(cfg,rel,L,Rs,empty));res.pushed.push(rel);changed=true;      // 올리기
     }
     return changed;
   }
