@@ -60,10 +60,23 @@ document.addEventListener('keydown',e=>{
   if(e.altKey&&!mod&&e.key==='ArrowRight'){e.preventDefault();go(i-1);return}
 });
 
+/* 작품 고르기: 쓰던 걸 저장하고 큰 창의 작품을 바꾼 뒤, 그 작품의 새 글로 */
+function paintWorks(w){
+  const s=$('work');s.textContent='';
+  (w&&w.list||[]).forEach(n=>{const o=document.createElement('option');o.value=n.id;o.textContent='📖 '+n.name;s.append(o)});
+  s.value=w&&w.current||'';s.hidden=!s.options.length;
+}
+$('work').addEventListener('change',async e=>{
+  const id=e.target.value;await flush();
+  const ok=await noteApi.openWork(id);
+  cur={id:null,text:''};i=-1;ta.value='';dirty=false;
+  await refresh();status(ok?'작품을 바꿨어요':'작품을 열 수 없어요');ta.focus();
+});
 async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창에서 고친 것 반영)
   const d=await noteApi.init();
   kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;setFs(d.fontSize||15,false);document.body.classList.toggle('flat',!d.glass);$('op').value=Math.round(opacity*100);
   if(!kind||!kinds.some(k=>k.id===kind))kind=d.defaultKind;
+  paintWorks(d.works);
   const k=isMac?'⌘':'Ctrl+';
   $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;
   const busy=dirty||(!cur.id&&ta.value.trim());      // 쓰던 중 · 카드로 만드는 중

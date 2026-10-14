@@ -16,4 +16,7 @@ const noteBridge={
     return {id:c.id,color:cardColor(c)};
   },
   workName(){return workName()},
+  // 작품 고르기: 보관함에 안 넣은 작품들 (최근에 고친 것부터) · 지금 작품
+  works(){refreshLib();if(!LIB)return {current:null,list:[]};return {current:LIB.current,list:LIB.novels.filter(n=>!n.archived).sort((a,b)=>(b.updated||0)-(a.updated||0)).map(n=>({id:n.id,name:n.name}))}},
+  openWork(id){if(!LIB||id===LIB.current)return true;switchNovel(id);return LIB.current===id},
 };

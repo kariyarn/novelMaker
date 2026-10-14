@@ -3,7 +3,7 @@ const path=require('path'),fs=require('fs');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
-const isMac=process.platform==='darwin';
+const isMac=process.platform==='darwin',isWin=process.platform==='win32';
 const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
 const NOTE_ARG='--note';      // 작업 표시줄 우클릭 → 포스트잇 모드로 바로 열기
@@ -63,13 +63,14 @@ function createNote(){
   const b=onScreen(note.bounds)?note.bounds:{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
   noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:glassNote,hasShadow:false,resizable:true,
     backgroundColor:glassNote?'#00000000':nativeTheme.shouldUseDarkColors?'#161618':'#ffffff',
-    skipTaskbar:true,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:false,
+    skipTaskbar:!isWin,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:isWin,      // Windows: Alt+Tab 에 보이게 (숨기기는 최소화)
     webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
   noteWin.setOpacity(note.opacity||1);
   if(isMac)noteWin.setVisibleOnAllWorkspaces(true,{visibleOnFullScreen:true});
   noteWin.loadFile(path.join(__dirname,'note','note.html'));
   let bt=0;const keep=()=>{clearTimeout(bt);bt=setTimeout(()=>{if(noteWin){note.bounds=noteWin.getBounds();writeJson(NOTE(),note)}},400)};
   noteWin.on('moved',keep);noteWin.on('resized',keep);
+  if(isWin)noteWin.on('restore',()=>{if(noteWin)noteWin.setOpacity(note.opacity||1)});      // Alt+Tab · 작업 표시줄 · 단축키로 다시 꺼내면 원래 투명도로
   noteWin.on('close',e=>{if(!quitting){e.preventDefault();hideNote()}});
   noteWin.on('closed',()=>{noteWin=null});
   noteWin.webContents.on('render-process-gone',()=>{const w=noteWin;noteWin=null;w&&w.destroy();openMain()});      // 포스트잇 창이 죽으면 큰 창으로 돌아옴
@@ -79,17 +80,21 @@ function showNote(){
   if(!noteWin)createNote();
   setMode('note');
   const show=()=>{
+    if(noteWin.isMinimized())noteWin.restore();
+    if(isWin)noteWin.setOpacity(note.opacity||1);
     noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown');
     if(win&&win.isVisible())win.hide();      // 포스트잇이 뜬 뒤에 큰 창을 치움 (안 뜨면 큰 창이 그대로 남게)
   };
   if(noteWin.webContents.isLoading())noteWin.webContents.once('did-finish-load',show);else show();
 }
 function hideNote(){
-  if(!noteWin)return;noteWin.webContents.send('note:flush');noteWin.hide();
+  if(!noteWin)return;noteWin.webContents.send('note:flush');
+  if(isWin){noteWin.setOpacity(0);noteWin.minimize();return}      // Windows: 숨겨도 Alt+Tab · 작업 표시줄에서 다시 꺼낼 수 있게 최소화 (먼저 투명하게 해서 줄어드는 애니메이션 없이 바로 사라짐)
+  noteWin.hide();
   if(isMac&&!(win&&win.isVisible()))app.hide();      // 맥: 앞에 있던 다른 앱으로 바로 돌아감
 }
 function toggleNote(){
-  if(noteWin&&noteWin.isVisible()){if(noteWin.isFocused())hideNote();else noteWin.focus()}
+  if(noteWin&&noteWin.isVisible()&&!noteWin.isMinimized()){if(noteWin.isFocused())hideNote();else noteWin.focus()}
   else showNote();
 }
 function openMain(){
@@ -132,10 +137,11 @@ app.whenReady().then(()=>{
   ipcMain.handle('sync:now',()=>runSync({notify:false}));
   setInterval(()=>runSync(),5*60*1000);
   /* 포스트잇 창 */
-  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,glass:glassNote}));
+  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100),works:noteBridge.works()})')),opacity:note.opacity||1,onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,glass:glassNote}));
   ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
   ipcMain.handle('note:add',(e,t,k)=>callMain(`noteBridge.add(${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
   ipcMain.handle('note:update',(e,id,t,k)=>callMain(`noteBridge.update(${JSON.stringify(String(id))},${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
+  ipcMain.handle('note:openWork',(e,id)=>callMain(`noteBridge.openWork(${JSON.stringify(String(id))})`));
   ipcMain.handle('note:opacity',(e,v)=>{v=Math.max(.15,Math.min(1,+v||1));note.opacity=v;noteWin&&noteWin.setOpacity(v);writeJson(NOTE(),note)});
   ipcMain.handle('note:onTop',(e,v)=>{note.onTop=!!v;noteWin&&noteWin.setAlwaysOnTop(!!v);writeJson(NOTE(),note)});
   ipcMain.handle('note:fontSize',(e,v)=>{note.fontSize=Math.max(11,Math.min(32,Math.round(+v)||15));writeJson(NOTE(),note)});
