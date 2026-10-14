@@ -1,6 +1,6 @@
 /* 포스트잇 창: 쓰는 대로 지금 작품에 카드로 저장 · 지난 포스트잇 넘겨보며 고치기 */
 const $=id=>document.getElementById(id);
-let kinds=[],kind=null,list=[],i=-1,cur={id:null,text:''},dirty=false,saving=Promise.resolve(),t=0,paper=1,ink=1,onTop=true,isMac=false,fs=15;
+let kinds=[],kind=null,list=[],i=-1,cur={id:null,text:''},dirty=false,saving=Promise.resolve(),t=0,opacity=1,onTop=true,isMac=false,fs=15;
 // i=-1: 새 글 · i>=0: list[i] (최근 것부터)
 const ta=$('ta');
 
@@ -43,23 +43,8 @@ async function fresh(){await flush();i=-1;load();status('')}
 $('prev').onclick=()=>go(i+1);
 $('next').onclick=()=>go(i-1);
 $('kind').onclick=()=>{const j=kinds.findIndex(x=>x.id===kind);kind=kinds[(j+1)%kinds.length].id;if(cur.id){cur.color=null;dirty=true}paint();if(cur.id)flush()};
-/* 투명도: 종이(바탕)와 글자를 따로. 0 이면 완전히 투명 (창 전체를 흐리게 하지 않고 화면에서 칠함) */
-function look(){
-  const r=document.documentElement.style;r.setProperty('--pa',paper);r.setProperty('--ia',ink);
-  r.setProperty('--ua',Math.max(paper,ink,.35));      // 둘 다 옅어도 단추 줄은 찾을 수 있게
-  $('pa').value=Math.round(paper*100);$('ia').value=Math.round(ink*100);$('pav').textContent=$('pa').value+'%';$('iav').textContent=$('ia').value+'%';
-}
-let lt=0;const lookSave=()=>{clearTimeout(lt);lt=setTimeout(()=>noteApi.setLook({paper,ink}),250)};
-$('pa').addEventListener('input',e=>{paper=+e.target.value/100;look();lookSave()});      // 끄는 동안 바로 반영
-$('ia').addEventListener('input',e=>{ink=+e.target.value/100;look();lookSave()});
-$('op').onclick=()=>{const on=$('look').classList.toggle('on');$('op').classList.toggle('on',on);if(!on)ta.focus()};
-/* Windows: 오른쪽 아래 손잡이로 크기 바꾸기 */
-$('grip').addEventListener('pointerdown',e=>{
-  e.preventDefault();const g=e.currentTarget,x0=e.screenX,y0=e.screenY,w0=window.outerWidth,h0=window.outerHeight;g.setPointerCapture(e.pointerId);
-  let raf=0;const mv=ev=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>noteApi.resize(w0+ev.screenX-x0,h0+ev.screenY-y0))};
-  const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);noteApi.resize(null)};
-  g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);
-});
+$('op').addEventListener('input',e=>{opacity=+e.target.value/100;noteApi.setOpacity(opacity);status(`투명도 ${e.target.value}%`)});      // 끄는 동안 바로 반영
+$('op').addEventListener('change',()=>{setTimeout(()=>{if($('st').textContent.startsWith('투명도'))status('')},1200);ta.focus()});
 $('top').onclick=()=>{onTop=!onTop;noteApi.setOnTop(onTop);paint()};
 $('main').onclick=async()=>{await flush();noteApi.openMain()};
 $('hide').onclick=async()=>{await flush();noteApi.hide()};
@@ -77,7 +62,7 @@ document.addEventListener('keydown',e=>{
 
 async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창에서 고친 것 반영)
   const d=await noteApi.init();
-  kinds=d.kinds;list=d.list;paper=d.paper;ink=d.ink;onTop=d.onTop;isMac=d.isMac;setFs(d.fontSize||15,false);document.body.classList.toggle('wgrip',!!d.grip);look();
+  kinds=d.kinds;list=d.list;opacity=d.opacity;onTop=d.onTop;isMac=d.isMac;setFs(d.fontSize||15,false);document.body.classList.toggle('flat',!d.glass);$('op').value=Math.round(opacity*100);
   if(!kind||!kinds.some(k=>k.id===kind))kind=d.defaultKind;
   const k=isMac?'⌘':'Ctrl+';
   $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;

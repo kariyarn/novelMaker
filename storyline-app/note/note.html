@@ -5,23 +5,15 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
 <title>메모</title>
 <style>
-:root{--bgc:255,255,255;--inkc:29,29,31;--bg:rgb(var(--bgc));--ink:rgb(var(--inkc));--muted:rgba(0,0,0,.45);--line:rgba(0,0,0,.08);--edge:rgba(0,0,0,.14);--pa:1;--ia:1;--ua:1}      /* 무채색: 밝은 화면이면 흰 종이 */
-@media (prefers-color-scheme:dark){:root{--bgc:22,22,24;--inkc:230,230,232;--muted:rgba(255,255,255,.45);--line:rgba(255,255,255,.1);--edge:rgba(255,255,255,.12)}}      /* 어두운 화면이면 검은 종이 */
-/* --pa 종이 진하기 · --ia 글자 진하기 · --ua 단추 줄 진하기 (0~1, note.js 가 정함) */
+:root{--bg:#fff;--ink:#1d1d1f;--muted:rgba(0,0,0,.45);--line:rgba(0,0,0,.08);--edge:rgba(0,0,0,.14)}      /* 무채색: 밝은 화면이면 흰 종이 */
+@media (prefers-color-scheme:dark){:root{--bg:#161618;--ink:#e6e6e8;--muted:rgba(255,255,255,.45);--line:rgba(255,255,255,.1);--edge:rgba(255,255,255,.12)}}      /* 어두운 화면이면 검은 종이 */
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:transparent;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",sans-serif;color:var(--ink);overflow:hidden}
-.note{position:absolute;inset:6px;display:flex;flex-direction:column;background:rgba(var(--bgc),max(var(--pa),.01));border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,calc(.16*var(--pa))),0 0 0 .5px rgba(128,128,128,calc(.3*var(--pa)));overflow:hidden;transition:box-shadow .2s}
-.note:hover{box-shadow:0 4px 14px rgba(0,0,0,calc(.16*var(--pa))),0 0 0 1px rgba(128,128,128,max(calc(.3*var(--pa)),.35))}      /* 종이를 아주 옅게 해도 마우스를 올리면 테두리가 보임 */
-.bar,.foot{opacity:var(--ua);transition:opacity .2s}
-.note:hover .bar,.note:hover .foot{opacity:1}      /* 단추 줄은 마우스를 올리면 다시 또렷하게 */
-.grip{position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:nwse-resize;display:none;-webkit-app-region:no-drag}
-.grip::after{content:"";position:absolute;right:4px;bottom:4px;width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);border-bottom-right-radius:2px}
-body.wgrip .grip{display:block}      /* Windows: 투명 창은 가장자리로 크기를 못 바꿔서 오른쪽 아래 손잡이로 */
-.look{display:none;flex-direction:column;gap:2px;padding:2px 12px 6px;font-size:12px;color:var(--muted);-webkit-app-region:no-drag;user-select:none}
-.look.on{display:flex}
-.look label{display:flex;align-items:center;gap:8px}.look label span:first-child{width:28px}.look input{flex:1;width:auto}.look .v{width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.note{position:absolute;inset:6px;display:flex;flex-direction:column;background:var(--bg);border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.16),0 0 0 .5px var(--edge);overflow:hidden}
+body.flat{background:var(--bg)}body.flat .note{inset:0;border-radius:0;box-shadow:none}      /* Windows: 불투명 창이라 종이를 창에 꽉 채움 */
 .bar{display:flex;align-items:center;gap:2px;padding:4px 6px 2px 8px;-webkit-app-region:drag;user-select:none;min-height:30px}
 .bar button,.bar .kind,.bar input{-webkit-app-region:no-drag}
+.opw{display:flex;align-items:center;gap:4px;color:var(--muted);padding:0 4px}
 input[type=range]{-webkit-appearance:none;appearance:none;width:64px;height:16px;background:transparent;margin:0;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:var(--line)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-4px;border-radius:50%;background:var(--muted);border:0}
@@ -35,10 +27,11 @@ button:disabled{opacity:.3;cursor:default;background:none}
 .kind{font-size:12px;white-space:nowrap;flex:none}      /* 좁아도 분류 이름이 세로로 쪼개지지 않게 */
 .bar>*{flex-shrink:0}
 .fsw{display:flex}.fsw button{font-size:12px;padding:2px 4px}.fsw sub,.fsw sup{font-size:9px;line-height:0}
+@media (max-width:360px){.opw{display:none}}      /* 좁으면 투명도 슬라이드를 치움 */
 @media (max-width:280px){.fsw{display:none}}      /* 더 좁으면 글자 크기 버튼도 (단축키는 그대로) */
 .sp{flex:1}
-textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:rgba(var(--inkc),var(--ia));caret-color:var(--ink);font:inherit;font-size:var(--fs,15px);line-height:1.65;padding:4px 14px 8px}
-textarea::placeholder{color:var(--muted);opacity:max(var(--ia),.5)}
+textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:var(--fs,15px);line-height:1.65;padding:4px 14px 8px}
+textarea::placeholder{color:var(--muted)}
 .foot{white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:8px;padding:2px 12px 6px;font-size:11px;color:var(--muted);user-select:none}
 .st{transition:opacity .3s}
 </style>
@@ -49,19 +42,14 @@ textarea::placeholder{color:var(--muted);opacity:max(var(--ia),.5)}
     <button id="prev" title="이전 포스트잇 (Alt+←)">‹</button><span class="pos" id="pos">새 글</span><button id="next" title="다음 포스트잇 (Alt+→)">›</button>
     <button class="kind" id="kind" title="분류 바꾸기"></button>
     <span class="sp"></span>
-    <button id="op" title="투명도 (종이 · 글자 따로)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+    <label class="opw" title="투명도 (끌어서 조절)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg><input type="range" id="op" min="15" max="100" step="1"></label>
     <span class="fsw"><button id="fsm" title="글자 작게 (Ctrl+-)">가<sub>−</sub></button><button id="fsp" title="글자 크게 (Ctrl+=)">가<sup>+</sup></button></span>
     <button id="top" title="항상 위에 두기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/></svg></button>
     <button id="main" title="큰 창 열기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>
     <button id="hide" title="숨기기 (Esc)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button>
   </div>
-  <div class="look" id="look">
-    <label title="종이(바탕)가 보이는 정도 · 0 이면 완전히 투명"><span>종이</span><input type="range" id="pa" min="0" max="100" step="1"><span class="v" id="pav"></span></label>
-    <label title="글자가 보이는 정도 · 0 이면 완전히 투명"><span>글자</span><input type="range" id="ia" min="0" max="100" step="1"><span class="v" id="iav"></span></label>
-  </div>
   <textarea id="ta" class="nta" placeholder="떠오른 걸 적어요"></textarea>
   <div class="foot"><span id="hint"></span><span class="sp"></span><span class="st" id="st"></span></div>
-  <div class="grip" id="grip" title="끌어서 크기 바꾸기"></div>
 </div>
 <script src="../src/input/smartInput.js"></script>
 <script src="note.js"></script>

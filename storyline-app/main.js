@@ -1,10 +1,10 @@
-const {app,BrowserWindow,shell,Menu,Tray,nativeImage,ipcMain,globalShortcut,safeStorage,screen,net}=require('electron');
+const {app,BrowserWindow,shell,Menu,Tray,nativeImage,ipcMain,globalShortcut,safeStorage,screen,net,nativeTheme}=require('electron');
 const path=require('path'),fs=require('fs');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
 const isMac=process.platform==='darwin';
-const isWin=process.platform==='win32';      // Windows: 투명 창은 가장자리로 크기를 바꾸면 안 보이는 일이 있어서, 크기는 포스트잇 안의 손잡이로
+const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
 const NOTE_ARG='--note';      // 작업 표시줄 우클릭 → 포스트잇 모드로 바로 열기
 let store,sync,win=null,noteWin=null,tray=null,quitting=false;
@@ -54,21 +54,18 @@ const syncSoon=()=>{if(!syncTimer&&syncConfig())syncTimer=setTimeout(()=>runSync
 /* ---------- 포스트잇 창 (몰래 쓰기): 테두리 · 작업 표시줄 아이콘 없이 작은 창 하나 ---------- */
 const NOTE=()=>userFile('note.json');
 let note=null;
-const clamp01=v=>Math.max(0,Math.min(1,Number.isFinite(+v)?+v:1));
-const loadNote=()=>{
-  if(note)return note;note=readJson(NOTE(),{onTop:true,bounds:null});
-  if(note.paper==null){note.paper=note.opacity||1;note.ink=1;delete note.opacity}      // 예전 '창 투명도'는 종이 진하기로
-  return note;
-};
+const loadNote=()=>note||(note=readJson(NOTE(),{opacity:1,onTop:true,bounds:null}));
 function setMode(m){loadNote();if(note.mode!==m){note.mode=m;writeJson(NOTE(),note)}}      // 마지막에 쓴 모드 (다음에 켤 때 그 모드로)
 function createNote(){
   loadNote();
   const wa=screen.getPrimaryDisplay().workArea,w=400,h=300;
   const onScreen=r=>r&&screen.getAllDisplays().some(({workArea:a})=>r.x<a.x+a.width-60&&r.x+r.width>a.x+60&&r.y<a.y+a.height-30&&r.y+r.height>a.y+30);      // 모니터를 빼거나 바꿨으면 기본 자리로
   const b=onScreen(note.bounds)?note.bounds:{x:wa.x+wa.width-w-24,y:wa.y+wa.height-h-24,width:w,height:h};
-  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:true,hasShadow:false,resizable:!isWin,backgroundColor:'#00000000',
+  noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:glassNote,hasShadow:false,resizable:true,
+    backgroundColor:glassNote?'#00000000':nativeTheme.shouldUseDarkColors?'#161618':'#ffffff',
     skipTaskbar:true,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:false,
     webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
+  noteWin.setOpacity(note.opacity||1);
   if(isMac)noteWin.setVisibleOnAllWorkspaces(true,{visibleOnFullScreen:true});
   noteWin.loadFile(path.join(__dirname,'note','note.html'));
   let bt=0;const keep=()=>{clearTimeout(bt);bt=setTimeout(()=>{if(noteWin){note.bounds=noteWin.getBounds();writeJson(NOTE(),note)}},400)};
@@ -135,16 +132,11 @@ app.whenReady().then(()=>{
   ipcMain.handle('sync:now',()=>runSync({notify:false}));
   setInterval(()=>runSync(),5*60*1000);
   /* 포스트잇 창 */
-  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),paper:clamp01(note.paper),ink:clamp01(note.ink),onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,grip:isWin}));
+  ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100)})')),opacity:note.opacity||1,onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,glass:glassNote}));
   ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
   ipcMain.handle('note:add',(e,t,k)=>callMain(`noteBridge.add(${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
   ipcMain.handle('note:update',(e,id,t,k)=>callMain(`noteBridge.update(${JSON.stringify(String(id))},${JSON.stringify(String(t))},${JSON.stringify(k||null)})`));
-  ipcMain.handle('note:look',(e,v)=>{note.paper=clamp01(v&&v.paper);note.ink=clamp01(v&&v.ink);writeJson(NOTE(),note)});
-  ipcMain.handle('note:resize',(e,w,h)=>{
-    if(!noteWin)return;
-    if(w==null){note.bounds=noteWin.getBounds();writeJson(NOTE(),note);return}      // 다 끌었으면 기억
-    noteWin.setSize(Math.max(220,Math.round(+w)||220),Math.max(150,Math.round(+h)||150));
-  });
+  ipcMain.handle('note:opacity',(e,v)=>{v=Math.max(.15,Math.min(1,+v||1));note.opacity=v;noteWin&&noteWin.setOpacity(v);writeJson(NOTE(),note)});
   ipcMain.handle('note:onTop',(e,v)=>{note.onTop=!!v;noteWin&&noteWin.setAlwaysOnTop(!!v);writeJson(NOTE(),note)});
   ipcMain.handle('note:fontSize',(e,v)=>{note.fontSize=Math.max(11,Math.min(32,Math.round(+v)||15));writeJson(NOTE(),note)});
   ipcMain.handle('note:hide',()=>hideNote());
