@@ -70,6 +70,7 @@ function createNote(){
   noteWin.loadFile(path.join(__dirname,'note','note.html'));
   let bt=0;const keep=()=>{clearTimeout(bt);bt=setTimeout(()=>{if(noteWin){note.bounds=noteWin.getBounds();writeJson(NOTE(),note)}},400)};
   noteWin.on('moved',keep);noteWin.on('resized',keep);
+  if(isWin)noteWin.on('restore',()=>{if(noteWin)noteWin.setOpacity(note.opacity||1)});      // Alt+Tab · 작업 표시줄 · 단축키로 다시 꺼내면 원래 투명도로
   noteWin.on('close',e=>{if(!quitting){e.preventDefault();hideNote()}});
   noteWin.on('closed',()=>{noteWin=null});
   noteWin.webContents.on('render-process-gone',()=>{const w=noteWin;noteWin=null;w&&w.destroy();openMain()});      // 포스트잇 창이 죽으면 큰 창으로 돌아옴
@@ -80,6 +81,7 @@ function showNote(){
   setMode('note');
   const show=()=>{
     if(noteWin.isMinimized())noteWin.restore();
+    if(isWin)noteWin.setOpacity(note.opacity||1);
     noteWin.show();noteWin.focus();noteWin.webContents.send('note:shown');
     if(win&&win.isVisible())win.hide();      // 포스트잇이 뜬 뒤에 큰 창을 치움 (안 뜨면 큰 창이 그대로 남게)
   };
@@ -87,7 +89,7 @@ function showNote(){
 }
 function hideNote(){
   if(!noteWin)return;noteWin.webContents.send('note:flush');
-  if(isWin){noteWin.minimize();return}      // Windows: 숨겨도 Alt+Tab · 작업 표시줄에서 다시 꺼낼 수 있게 최소화
+  if(isWin){noteWin.setOpacity(0);noteWin.minimize();return}      // Windows: 숨겨도 Alt+Tab · 작업 표시줄에서 다시 꺼낼 수 있게 최소화 (먼저 투명하게 해서 줄어드는 애니메이션 없이 바로 사라짐)
   noteWin.hide();
   if(isMac&&!(win&&win.isVisible()))app.hide();      // 맥: 앞에 있던 다른 앱으로 바로 돌아감
 }
