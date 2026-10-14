@@ -8,6 +8,7 @@ function flushWork(){cancelPendingSave();if(UI.noSave)return;saveNow();saveUIPNo
 function enterWork(opts){
   initWork(opts);resetUI();resetHistory();
   afterWorkChange();renderAll();
+  if(pendingConflicts().length)setTimeout(showSyncConflicts,300);      // 다른 기기와 다르게 고친 글이 남아 있으면 고르게
 }
 function brandEl(){
   if(!Repo.novels||!LIB)return h('b',{class:'brand'},'캐릭터 스토리라인');
