@@ -34,6 +34,15 @@ async function delCard(id){
   act(()=>{if(!empty)S.trash.push({id:uid(),type:'card',data:c,at:Date.now()});S.cards=S.cards.filter(x=>x!==c);S.episodes.forEach(e=>e.cardIds=e.cardIds.filter(x=>x!==id))});
   toast(empty?'빈 포스트잇을 지웠어요':'휴지통으로 보냈어요',{undo:true});
 }
+function dropIfEmpty(id){      // 글을 다 쓰고 나왔는데 비어 있으면 저장하지 않고 지움 (휴지통 · 되돌리기 기록 없이)
+  setTimeout(()=>{
+    if(!document.hasFocus())return;      // 다른 앱으로 잠깐 넘어간 것뿐
+    const c=cardById(id),a=document.activeElement;if(!c||(c.text||'').trim())return;
+    if(a&&a.closest&&a.closest(`.kcard[data-id="${id}"]`))return;      // 같은 카드 안에서 다시 쓰는 중
+    S.cards=S.cards.filter(x=>x!==c);detach([id]);
+    if(SELCARD===id)SELCARD=null;idxClear();commit();
+  },0);
+}
 /* 따옴표·대괄호 강조: 글자 모양은 그대로 두고 배경 표시만 겹쳐서 보여줌 */
 const HLRE=/"(?:[^"\n]|\n(?!\n)){1,300}"|“(?:[^”\n]|\n(?!\n)){1,300}”|(?<![\p{L}\p{N}])'[^'\n]+'|‘[^’\n]+’|「(?:[^」\n]|\n(?!\n)){1,300}」|『(?:[^』\n]|\n(?!\n)){1,300}』|《(?:[^》\n]|\n(?!\n)){1,300}》|\[[^\]\n]+\]|`[^`\n]+`/gu;
 function hlFill(box,text){

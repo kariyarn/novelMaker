@@ -72,7 +72,7 @@ function kcard(card,mode,opt={}){
     el.addEventListener('dragstart',e=>{if(e.target!==el)return;DRAG={id:card.id};e.dataTransfer.setData('text/plain',card.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setDragImage(el,12,12);setTimeout(()=>el.classList.add('dragging'))});
     el.addEventListener('dragend',()=>{DRAG=null;document.querySelectorAll('.dragging,.drop-before,.drop-after,.over').forEach(x=>x.classList.remove('dragging','drop-before','drop-after','over'))});
     el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;enterEditList(el)});
-    ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true});
+    ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true;dropIfEmpty(card.id)});
     el.addEventListener('contextmenu',ev=>{if(ev.target.closest('input,select'))return;ev.preventDefault();ev.stopPropagation();      // 우클릭: 이 카드(또는 선택한 카드들)를 다른 화로
       const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
       msMenu(a,MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id]);a.remove()});
