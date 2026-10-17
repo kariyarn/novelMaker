@@ -65,19 +65,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 
 /* 왼쪽: 인물 · 설정 목록 */
 .left{width:232px;flex:none;background:var(--side);border-right:1px solid var(--line);padding:12px 8px;display:flex;flex-direction:column;gap:2px}
-.find{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;margin:0 4px 12px;border-radius:var(--r-s);background:var(--fill);color:var(--faint);font-size:var(--t2)}
-.find .ic{width:14px;height:14px}
+.find{display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;margin:0 0 12px;border-radius:var(--r-s);background:var(--fill);color:var(--faint);font-size:var(--t2)}
 .find kbd{margin-left:auto;font:var(--t1)/1 var(--ui);color:var(--faint)}
 .sec{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 4px;font-size:var(--t1);font-weight:600;color:var(--faint);letter-spacing:.02em}
-.sec .ic{width:14px;height:14px;opacity:0;transition:opacity .15s}
-.left:hover .sec .ic{opacity:1}
+.sec .add2{font-size:var(--t3);line-height:1;font-weight:400;color:var(--faint);opacity:0;transition:opacity .15s}
+.left:hover .sec .add2{opacity:1}
 .item{display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;border-radius:var(--r-s);font-size:var(--t2);color:var(--ink)}
 .item:hover{background:var(--fill)}
 .item.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
-.item .dot{width:8px;height:8px;border-radius:50%;flex:none}
-.item .n{margin-left:auto;font-size:var(--t1);color:var(--faint);font-variant-numeric:tabular-nums;font-weight:400}
-.item .ic{color:var(--faint)}
-.empty{padding:2px 12px 0;font-size:var(--t1);color:var(--faint)}
+.item .dot{width:6px;height:6px;border-radius:50%;flex:none;margin-left:auto}
+.item .dot+.n{margin-left:0}
+.item .n{margin-left:auto;min-width:12px;text-align:right;font-size:var(--t1);color:var(--faint);font-variant-numeric:tabular-nums;font-weight:400}
+.empty{padding:4px 12px 0;font-size:var(--t1);color:var(--faint)}
 .empty b{color:var(--acc);font-weight:500;cursor:pointer}
 .spacer{flex:1}
 
@@ -205,15 +204,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 
   <div class="body">
     <aside class="left">
-      <div class="find"><svg class="ic"><use href="#i-search"/></svg>이름으로 찾기<kbd>⌘K</kbd></div>
-      <div class="item"><svg class="ic"><use href="#i-book"/></svg>작품 노트<span class="n">12화</span></div>
-      <div class="sec">인물<svg class="ic"><use href="#i-plus"/></svg></div>
-      <div class="item on"><span class="dot" style="background:#3ba7e0"></span>이도윤<span class="n">3</span></div>
-      <div class="item"><span class="dot" style="background:#b05fd6"></span>서하린<span class="n">2</span></div>
-      <div class="sec">설정<svg class="ic"><use href="#i-plus"/></svg></div>
+      <div class="find">이름으로 찾기<kbd>⌘K</kbd></div>
+      <div class="item">작품 노트<span class="n">12화</span></div>
+      <div class="sec">인물<span class="add2" title="인물 추가">+</span></div>
+      <div class="item on">이도윤<span class="dot" style="background:#3ba7e0"></span><span class="n">3</span></div>
+      <div class="item">서하린<span class="dot" style="background:#b05fd6"></span><span class="n">2</span></div>
+      <div class="sec">설정<span class="add2" title="설정 추가">+</span></div>
       <div class="empty">아직 설정이 없어요 · <b>새 설정 노트</b></div>
       <div class="sec">기타</div>
-      <div class="item"><svg class="ic"><use href="#i-inbox"/></svg>미분류<span class="n">1</span></div>
+      <div class="item">미분류<span class="n">1</span></div>
       <div class="spacer"></div>
     </aside>
 
@@ -279,7 +278,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
   <div><b>글자 두 벌</b>UI는 고딕 하나, 쓰는 글(카드 · 작품 이름 · 인물 이름)만 명조. 크기는 11 · 13 · 15 · 18 · 24 다섯 단계.</div>
   <div><b>강조색 하나</b>테마마다 강조색은 딱 하나. 선택 · 주요 버튼 · 저장 표시에만 써요. 나머지는 잉크색과 회색.</div>
   <div><b>장식은 포스트잇에만</b>살짝 기운 각도, 접힌 듯한 모서리, 핀 하나. 위쪽 바 · 패널 · 버튼은 끝까지 조용하게.</div>
-  <div><b>필요할 때만 보이기</b>카드의 분류 · 도구, 목록의 + 버튼은 마우스를 올릴 때만. 이모지 대신 같은 굵기의 선 아이콘.</div>
+  <div><b>필요할 때만 보이기</b>카드의 분류 · 도구, 목록의 + 버튼은 마우스를 올릴 때만. 이모지 대신 같은 굵기의 선 아이콘. 왼쪽 목록은 아이콘 없이 글자 한 줄로 정렬.</div>
 </div>
 
 <script>
