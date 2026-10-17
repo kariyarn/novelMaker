@@ -187,7 +187,9 @@ function boardInteract(el,card,ta,key){
     if(el.classList.contains('editing')&&e.target.closest('.ktext'))return;
     if(wasSel&&UI.mode!=='all'){const sx0=e.clientX,sy0=e.clientY;addEventListener('pointerup',ev=>{if(Math.hypot(ev.clientX-sx0,ev.clientY-sy0)<4&&!el.classList.contains('editing'))setTimeout(()=>enterEdit(el),0)},{once:true})}      // 이미 선택된 노트를 한 번 더 누르면 바로 글쓰기
     e.stopPropagation();e.preventDefault();
-    if(el.classList.contains('editing'))ta.blur();
+    if(el.classList.contains('editing')){
+      if(!(card.text||'').trim()){el.dataset.hold='1';addEventListener('pointerup',()=>setTimeout(()=>{const x=document.querySelector(`.bview .kcard[data-id="${card.id}"]`);if(x)enterEdit(x)},0),{once:true})}      // 빈 포스트잇을 끌어 옮기면 놓은 뒤 이어서 씀
+      ta.blur();delete el.dataset.hold}
     if(card.pin){      // 핀이 꽂힌 포스트잇: 꾹 누르면 이어진 것만 강조, 끌면 직접 옮길 수 있음 (자동 배치에서는 안 움직임)
       const t=setTimeout(()=>{cl();togglePinFocus(card.id)},520),cl=()=>{clearTimeout(t);removeEventListener('pointerup',cl)};
       addEventListener('pointerup',cl,{once:true});
@@ -199,7 +201,7 @@ function boardInteract(el,card,ta,key){
   el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars,.rz'))return;
     if(UI.mode==='all'){const to=eff(card)[0]||'none';UI.mode='story';UI.focusCard=null;setSel(to);setTimeout(()=>{const x=document.querySelector(`.bview .kcard[data-id="${card.id}"]`);if(x){selectCard(card.id);flashEl(x)}},120);return}      // 전체 보기: 그 카드의 인물 보드로
     enterEdit(el)});
-  ta.addEventListener('blur',()=>{el.classList.remove('editing');ta.readOnly=true});
+  ta.addEventListener('blur',()=>{el.classList.remove('editing');ta.readOnly=true;if(!el.dataset.hold)dropIfEmpty(card.id)});
   const applyFix=()=>{
     if(pos.fh){el.classList.add('fixh');el.style.height=pos.fh+'px';el.style.minHeight='0'}
     else{el.classList.remove('fixh');el.style.height='';el.style.minHeight=(pos.mh||0)+'px'}

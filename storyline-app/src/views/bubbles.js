@@ -36,7 +36,7 @@ function bubblePath(w,h,kind,lv){
   if(kind==='ge')return {d:zig(2,4.5,[1.4,2,2.8][lv])};      // …! 이를 악묾: 각진 상자 + 촘촘한 이빨
   if(kind==='qe')return {d:zig(Math.min(9,h/2),3,[1.3,1.9,2.6][lv],true)};      // ?! 어처구니없음: 출렁이는 물결
   if(kind==='eq')return {d:zig(Math.min(9,h/2),3,[1.1,1.6,2.2][lv],true)};      // …? 어리둥절: 물결 + 점선
-  if(kind==='th')return {d:cloudD(w,h,Math.min(9,h/2),13,[.6,.64,.72][lv]),dots:[[9,h+1.2,1.5]]};      // 구름: 둘레를 고르게 나눈 작은 호
+  if(kind==='th')return {d:cloudD(w,h,Math.min(9,h/2),13,[.6,.64,.72][lv]),dots:[[-2,h+2.5,1.3]]};      // 구름: 둘레를 고르게 나눈 작은 호 · 꼬리 점은 왼쪽 아래 모서리 바깥에 떼어 둠 (구름 혹과 겹치면 얼룩처럼 보임)
   if(kind==='q')return {d:rr(Math.min(h/2,16),'R')};      // 알약 + 오른쪽 꼬리
   return {d:rr(Math.min(9,h/2),'L')};      // 마침표 · 말줄임: 둥근 상자 + 왼쪽 꼬리
 }
