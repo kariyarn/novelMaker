@@ -16,7 +16,8 @@ function commit(){save();notifyChange()}      // 되돌리기 기록 없이 바�
 addEventListener('beforeunload',()=>{if(saveT)saveNow();if(uipT)saveUIPNow()});
 const ser=()=>JSON.stringify(S,(k,v)=>k==='settings'?undefined:v);
 function loadSer(str){const keep=S.settings;S=JSON.parse(str);S.settings=keep}
-function snap(){undoS.push(ser());if(undoS.length>60)undoS.shift();redoS=[]}
+const UNDO_MAX=60,UNDO_BYTES=80e6;      // 되돌리기 기록: 60번까지, 단 작품이 커서 기록이 너무 무거워지면(약 80MB) 개수를 줄임 (최소 15번)
+function snap(){const t=ser();undoS.push(t);const lim=Math.max(15,Math.min(UNDO_MAX,Math.floor(UNDO_BYTES/(t.length*2||1))));while(undoS.length>lim)undoS.shift();redoS=[]}
 function resetHistory(){undoS=[];redoS=[];lastEdit=0}
 function act(fn){snap();fn();idxClear();commit()}
 function edit(fn){if(Date.now()-lastEdit>1000)snap();lastEdit=Date.now();fn();idxClear();save()}

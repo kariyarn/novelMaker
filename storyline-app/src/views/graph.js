@@ -27,8 +27,16 @@ const RELT=[
   {k:'secret',l:'비밀',g:'복합',c:'#6b6f78',camp:0,d:[1,3]},
   {k:'subtle',l:'미묘',g:'복합',c:'#a3a7ae',camp:0,d:[6,4]}];
 const RELC=['#5b8def','#4fb286','#d9467a','#8d7be0','#e2675a','#e8a33d','#3fb0c4','#9aa84a','#c76fd6','#6b6f78'];      // 직접 만든 관계 색 차례
-const relAll=()=>[...RELT,...((S&&S.relTags)||[]).map(t=>({...t,g:'직접',camp:t.camp||0,mine:true}))];
-const relT=k=>relAll().find(t=>t.k===k)||null;
+const RELT0=[];
+let RELC_={src:null,n:-1,all:null,by:null};      // 관계 종류 목록 캐시: 선마다 · 프레임마다 새로 만들지 않게 (직접 만든 관계를 더하거나 지우면 다시)
+function relCache(){
+  const tags=(S&&S.relTags)||RELT0;
+  if(RELC_.all&&RELC_.src===tags&&RELC_.n===tags.length)return RELC_;
+  const all=[...RELT,...tags.map(t=>({...t,g:'직접',camp:t.camp||0,mine:true}))];
+  RELC_={src:tags,n:tags.length,all,by:new Map(all.map(t=>[t.k,t]))};return RELC_;
+}
+const relAll=()=>relCache().all.slice();
+const relT=k=>relCache().by.get(k)||null;
 const relOf=(from,to)=>{const e=charById(from);return e&&(e.relations||[]).find(r=>r.to===to)||null};      // from 이 보는 to
 const relTs=r=>r&&Array.isArray(r.types)?r.types.filter(k=>relT(k)):[];      // 그 방향의 관계들 (없어진 종류는 빼고)
 const relSet=(from,to,f)=>{const e=charById(from);if(!e)return;e.relations=e.relations||[];let r=e.relations.find(x=>x.to===to);
@@ -146,6 +154,7 @@ function graphSim(nodes,edges,style,opts={}){
 }
 /* 관계망 (Canvas): 노드가 수백 개여도 부드럽게 */
 function renderGraph(m){
+  const offs={push:onMidClear};      // document 에 건 것들은 가운데 화면을 다시 그리거나 다른 화면으로 갈 때 뗌 (다시 그릴 때마다 쌓이지 않게)
   const style=UIP.gstyle==='circle'?'circle':'node',type=UIP.gtype||'all',local=UIP.gscope==='local',depth=Math.max(1,Math.min(3,UIP.gdepth||1));
   const nEp=S.episodes.length;let tpos=nEp?Math.max(1,Math.min(nEp+1,UIP.gtime||nEp+1)):1;
   const cs=getComputedStyle(document.documentElement),CV=n=>cs.getPropertyValue(n).trim();
@@ -255,7 +264,8 @@ function renderGraph(m){
       view.cx+=(tx-view.cx)*.12;view.cy+=(ty-view.cy)*.12;view.tk=tk}
     if(view.tc&&!auto){view.cx+=(view.tc[0]-view.cx)*.14;view.cy+=(view.tc[1]-view.cy)*.14;if(Math.hypot(view.tc[0]-view.cx,view.tc[1]-view.cy)<.5)view.tc=null}
     const dk=view.tk-view.k;
-    if(view.anc&&!auto&&!view.tc){view.k+=dk*.2;const a=view.anc;view.cx=a.wx-(a.fx-.5)*Wd/view.k;view.cy=a.wy-(a.fy-.5)*Hh/view.k}
+    if(view.anc&&!auto&&!view.tc){view.k+=dk*.2;const a=view.anc;view.cx=a.wx-(a.fx-.5)*Wd/view.k;view.cy=a.wy-(a.fy-.5)*Hh/view.k;
+      if(Math.abs(view.tk-view.k)<=view.k*.002){view.k=view.tk;view.anc=null}}      // 확대가 끝나면 기준점을 뗌 (안 떼면 이후 스크롤 · 끌기를 매번 되돌림)
     else view.k+=dk*.12;
     GC.view={cx:view.cx,cy:view.cy,k:view.k};
     return Math.abs(dk)>view.k*.002||!!view.tc||auto;
@@ -334,7 +344,8 @@ function renderGraph(m){
       h('div',{class:'ghd'},'걸러 내기'),
       h('div',{class:'gpr gprs'},pick('.gstrl')));
     const ob=h('button',{class:'gob'+(UI.gopts?' on':''),'data-pop':'1',onclick:e=>{e.stopPropagation();UI.gopts=!UI.gopts;panel.hidden=!UI.gopts;ob.classList.toggle('on',UI.gopts)}},icon('sliders'),'보기 옵션',nOn?h('small',{},nOn):null);
-    document.addEventListener('pointerdown',function off(e){if(!panel.isConnected){document.removeEventListener('pointerdown',off,true);return}if(!panel.hidden&&!panel.contains(e.target)&&!ob.contains(e.target)){UI.gopts=false;panel.hidden=true;ob.classList.remove('on')}},true);
+    const off=e=>{if(!panel.isConnected){document.removeEventListener('pointerdown',off,true);return}if(!panel.hidden&&!panel.contains(e.target)&&!ob.contains(e.target)){UI.gopts=false;panel.hidden=true;ob.classList.remove('on')}};
+    document.addEventListener('pointerdown',off,true);offs.push(()=>document.removeEventListener('pointerdown',off,true));
     bar.textContent='';bar.classList.add('gbar-n');
     bar.append(searchIn,typeEl,relSel,h('span',{class:'gobw'},ob,panel),h('span',{class:'sp'}));
     if(zoomEl){zoomEl.classList.add('gzoom-n');box.append(zoomEl)}
@@ -353,11 +364,13 @@ function renderGraph(m){
   canvas.addEventListener('wheel',e=>{e.preventDefault();
     if(e.ctrlKey||e.metaKey){auto=false;const r=canvas.getBoundingClientRect(),fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;
       view.anc={wx:view.cx+(fx-.5)*Wd/view.k,wy:view.cy+(fy-.5)*Hh/view.k,fx,fy};view.tk=Math.max(.12,Math.min(5,view.tk*Math.exp(-e.deltaY*.012)));kick()}
-    else{auto=false;view.cx+=e.deltaX/view.k;view.cy+=e.deltaY/view.k;view.tk=view.k;GC.view={cx:view.cx,cy:view.cy,k:view.k};kick()}},{passive:false});
+    else{auto=false;const dx=e.deltaX/view.k,dy=e.deltaY/view.k;view.cx+=dx;view.cy+=dy;view.tc=null;
+      if(view.anc){view.anc.wx+=dx;view.anc.wy+=dy}      // 확대 중이면 확대는 이어가고 기준점만 함께 옮김
+      GC.view={cx:view.cx,cy:view.cy,k:view.k};kick()}},{passive:false});
   const keyH=e=>{if(!canvas.isConnected){document.removeEventListener('keydown',keyH);return}
     if(UI.mode!=='graph'||e.metaKey||e.ctrlKey||e.altKey)return;const a=document.activeElement;if(a&&(a.tagName==='INPUT'&&a.type!=='range'||a.tagName==='TEXTAREA'))return;
     if(e.key==='+'||e.key==='='){e.preventDefault();zoomBy(1.25)}else if(e.key==='-'||e.key==='_'){e.preventDefault();zoomBy(.8)}else if(e.key==='0'){e.preventDefault();auto=true;kick()}};
-  document.addEventListener('keydown',keyH);
+  document.addEventListener('keydown',keyH);offs.push(()=>document.removeEventListener('keydown',keyH));
   const pt=e=>{const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
   canvas.addEventListener('pointermove',e=>{if(dragN)return;const [px,py]=pt(e),n=hit(px,py),id=n?n.id:null;
     if(id!==hov){hov=id;canvas.style.cursor=n?'pointer':'grab';kick()}
@@ -376,12 +389,13 @@ function renderGraph(m){
         if(!moved){if(local&&n.id!==centerId){UIP.gcenter=n.id;saveUIP();renderMid();return}sel1=sel1===n.id?(local?centerId:null):n.id;UIP.gsel=sel1;showInfo()}kick()};
       canvas.addEventListener('pointermove',mv);canvas.addEventListener('pointerup',up);return}
     const e0=hitE(px,py);
-    canvas.style.cursor='grabbing';const c0=[view.cx,view.cy];
+    canvas.style.cursor='grabbing';view.anc=null;view.tc=null;view.tk=view.k;const c0=[view.cx,view.cy];
     const mv=ev=>{if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>3){moved=true;auto=false}view.cx=c0[0]-(ev.clientX-sx)/view.k;view.cy=c0[1]-(ev.clientY-sy)/view.k;view.tk=view.k;GC.view={cx:view.cx,cy:view.cy,k:view.k};kick()};
     const up=()=>{canvas.removeEventListener('pointermove',mv);canvas.removeEventListener('pointerup',up);canvas.style.cursor='grab';if(!moved&&e0){relEditor(e0.a,e0.b,sx,sy);return}if(!moved&&sel1&&!local){sel1=null;UIP.gsel=null;showInfo();kick()}};
     canvas.addEventListener('pointermove',mv);canvas.addEventListener('pointerup',up)});
   canvas.addEventListener('dblclick',e=>{const [px,py]=pt(e),n=hit(px,py);if(n){UI.mode='story';setSel(n.id)}});
-  if(window.ResizeObserver)new ResizeObserver(()=>resize()).observe(box);
+  if(window.ResizeObserver){const ro=new ResizeObserver(()=>resize());ro.observe(box);offs.push(()=>ro.disconnect())}
+  offs.push(()=>{cancelAnimationFrame(raf);raf=0});
   sel1=local?null:(UIP.gsel||null);
   requestAnimationFrame(()=>{resize();rebuild();if(!local&&sel1&&!byId[sel1])sel1=null})
 }

@@ -6,6 +6,7 @@
 //   storage/works.js    작품 데이터 파일
 //   storage/backups.js  자동 백업
 //   storage/prefs.js    앱 전체 취향
+const fs=require('fs'),path=require('path');
 const {valid,okState,rm}=require('./storage/files');
 const {FILES,pickDir,wdir}=require('./storage/layout');
 const {createLibrary,newId}=require('./storage/library');
@@ -26,6 +27,14 @@ function create(userData){
   // 화면이 마지막으로 읽은 작품 글: 그사이 동기화가 파일을 바꿨는데 화면이 예전 글로 저장하면, 덮어쓰지 않고 합침
   // (동기화 도중에 글을 쓰면 화면은 받은 글을 다시 읽지 못한 채 저장함 → 그대로 두면 다른 기기에서 고친 게 사라짐)
   const seen={};
+  // 저장할 때마다 폴더를 훑고 파일을 통째로 다시 읽지 않도록: 마지막으로 쓴 글과 그때의 파일 상태(수정 시각 · 크기)를 기억해 두고,
+  // 그 뒤로 아무도(동기화 · iCloud) 파일을 안 건드렸으면 다시 읽는 대신 기억한 글을 씀
+  const wrote={};
+  const sigOf=id=>{const parts=[];
+    for(const d of [wdir(dirs.main,id),wdir(dirs.mirror,id)]){let names=[];try{names=fs.readdirSync(d)}catch(e){}
+      names.filter(n=>/^storyline( \d+)?\.json$/.test(n)).sort().forEach(n=>{try{const st=fs.statSync(path.join(d,n));parts.push(n+':'+st.mtimeMs+':'+st.size)}catch(e){}});parts.push('|')}
+    return parts.join(',')};
+  const current=id=>{const w=wrote[id];return w&&w.sig===sigOf(id)?w.text:works.loadOf(id,'storyline_v1').text};
   function load(key){const id=cur(),r=works.loadOf(id,key);if(key==='storyline_v1')seen[id]=r.text;const n=library.nov(id);return {...r,fresh:!!(n&&n.fresh)}}
   function save(key,text){
     if(!FILES[key])return {ok:false,err:'unknown key'};
@@ -33,11 +42,12 @@ function create(userData){
     if(!o||(key==='storyline_v1'&&!okState(o)))return {ok:false,err:'invalid data'};
     const id=cur();let merged=false;
     if(key==='storyline_v1'){
-      const was=seen[id],now=was==null?null:works.loadOf(id,key).text;
+      const was=seen[id],now=was==null?null:current(id);
       if(now!=null&&now!==was&&okState(valid(now))){text=JSON.stringify(mergeWork(valid(was),o,valid(now),newId).merged);merged=true}      // 기준(was)은 화면이 다시 읽을 때까지 그대로
       else seen[id]=text;
     }
     const r=works.writeOf(id,key,text);if(merged)r.merged=true;
+    if(key==='storyline_v1'){if(r.ok)wrote[id]={text,sig:sigOf(id)};else delete wrote[id]}
     if(key==='storyline_v1'){backups.backup(id,text);library.touch(id)}
     return r;
   }
@@ -71,7 +81,7 @@ function create(userData){
     if(rel==='library.json'){if(!Array.isArray(o.novels))return false;library.adopt(o,{merge:true});return true}
     if(rel==='prefs.json')return prefs.save(text);
     const w=workPath(rel);if(!w||(w.key==='storyline_v1'&&!okState(o)))return false;
-    if(w.key==='storyline_v1'){const cur=works.loadOf(w.id,w.key).text;if(cur)backups.force(w.id,cur)}      // 덮어쓰기 전 이 기기 것을 백업
+    if(w.key==='storyline_v1'){delete wrote[w.id];const cur=works.loadOf(w.id,w.key).text;if(cur)backups.force(w.id,cur)}      // 덮어쓰기 전 이 기기 것을 백업
     return works.writeOf(w.id,w.key,text).ok;
   }
   function syncConflict(rel,text,baseText){      // 양쪽에서 고친 작품: 카드 · 인물 단위로 합침 (같은 글을 둘 다 고친 곳은 작품 안에 남겨 두고 사용자가 고름)
@@ -79,7 +89,7 @@ function create(userData){
     const curText=works.loadOf(w.id,w.key).text,mine=valid(curText);
     if(!okState(mine)){syncWrite(rel,text);return {asks:0}}
     const {merged,conflicts}=mergeWork(valid(baseText),mine,theirs,newId);
-    backups.force(w.id,curText);      // 합치기 전 이 기기 것을 백업
+    delete wrote[w.id];backups.force(w.id,curText);      // 합치기 전 이 기기 것을 백업
     works.writeOf(w.id,w.key,JSON.stringify(merged));library.touch(w.id);
     const src=library.nov(w.id);
     return {name:src?src.name:'작품',asks:conflicts.length};
