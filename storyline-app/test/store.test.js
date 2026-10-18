@@ -148,3 +148,17 @@ test('앱 전체 취향: 저장 · 읽기, 잘못된 JSON 은 거부', ()=>{
   fs.rmSync(path.join(main(d),'prefs.json'));
   assert.equal(s.loadPrefs(),'{"theme":"dark"}');      // 주 폴더에 없으면 미러에서
 });
+
+test('저장: 화면이 읽은 뒤 다른 곳(동기화 · iCloud)에서 파일이 바뀌면 덮어쓰지 않고 합침 · 안 바뀌었으면 그대로 씀', ()=>{
+  const d=tmp(),s=open(d),id=s.current();
+  const st=cards=>JSON.stringify({characters:[{id:'c0',name:'가'}],cards:cards.map(k=>({id:k,text:k,chars:[],autoChars:[],offChars:[]})),episodes:[]});
+  s.save('storyline_v1',st(['k1']));s.load('storyline_v1');      // 화면이 읽음
+  assert.equal(s.save('storyline_v1',st(['k1','k2'])).merged,undefined);      // 그사이 바뀐 게 없으면 합치지 않음
+  assert.equal(s.save('storyline_v1',st(['k1','k2','k3'])).merged,undefined);
+  const f=path.join(main(d),'works',id,'storyline.json');
+  fs.writeFileSync(f,st(['k1','k9']));fs.utimesSync(f,new Date(),new Date(Date.now()+5000));      // 다른 기기에서 고친 글이 들어옴
+  const r=s.save('storyline_v1',st(['k1','k2','k3','k4']));
+  assert.equal(r.merged,true);
+  const ids=JSON.parse(fs.readFileSync(f,'utf8')).cards.map(c=>c.id).sort();
+  assert.ok(ids.includes('k9')&&ids.includes('k4'),ids.join());
+});

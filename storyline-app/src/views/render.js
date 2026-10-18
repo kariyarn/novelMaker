@@ -36,6 +36,9 @@ onSaveStatus(st=>{if(st==='fail')toast('저장 실패! 백업을 내려받아 �
 /* 가운데 화면 등록: 화면마다 언제 보일지(match) · 앱 테두리 class · 그리는 함수를 각자 파일에서 등록. 새 화면을 더해도 이 파일은 고치지 않아도 됨
    order 가 작은 것부터 match 를 물어 처음 맞는 화면을 씀 */
 const MID_VIEWS=[];
+const midOffs=[];
+const onMidClear=fn=>{midOffs.push(fn)};      // 가운데 화면이 document · 타이머에 건 것을 다음에 다시 그리기 전에 정리
+function midClear(){midOffs.splice(0).forEach(f=>{try{f()}catch(e){}})}
 function registerMidView(v){MID_VIEWS.push(v);MID_VIEWS.sort((a,b)=>a.order-b.order)}
 const midView=()=>MID_VIEWS.find(v=>v.match());
 function renderMid(){
@@ -44,7 +47,7 @@ function renderMid(){
   m.querySelectorAll(SC).forEach(el=>{keep[el.className.split(' ')[0]]=[el.scrollLeft,el.scrollTop]});
   const bkey=el=>{const p=el.closest('[data-ep],[data-sh]');return p?(p.dataset.ep!==undefined?'e'+p.dataset.ep:'s'+p.dataset.sh):null};
   m.querySelectorAll('.tlbody').forEach(el=>{const k=bkey(el);if(k&&el.scrollTop)kb[k]=el.scrollTop});
-  m.innerHTML='';
+  midClear();m.innerHTML='';
   midView().render(m);
   fitAll(m);syncBoard();hlLayoutAll(m);      // 다시 그린 뒤 글 높이를 다시 맞춤
   m.querySelectorAll(SC).forEach(el=>{const k=keep[el.className.split(' ')[0]];if(k){el.scrollLeft=k[0];el.scrollTop=k[1]}});
@@ -106,6 +109,7 @@ function renderTop(){
 }
 function renderBanner(){
   const b=$('banner');b.innerHTML='';b.classList.toggle('on',!!UI.noSave);
+  if(!UI.noSave&&typeof appUpdBanner==='function'&&appUpdBanner(b)){b.classList.add('on');return}      // 새 앱 버전 알림
   if(UI.noSave)b.append(h('span',{},EM('⚠ ','alert'),'이 작품의 파일을 읽지 못해서 저장을 잠시 멈췄어요 (원본을 덮어쓰지 않기 위해서예요).'),
     h('button',{class:'quiet',onclick:showRestore},'백업에서 복구'),
     h('button',{class:'quiet',onclick:async()=>{if(await askConfirm('이 작품을 빈 상태로 시작할까요?\n(읽지 못한 기존 파일이 있다면 그 파일은 새 내용으로 바뀌어요)')){UI.noSave=false;saveNow();saveUIP();renderAll()}}},'빈 작품으로 시작'));

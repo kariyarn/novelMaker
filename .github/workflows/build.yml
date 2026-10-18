@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
       - run: npm ci
+      - run: npm version --no-git-tag-version --allow-same-version "1.0.${{ github.run_number }}"      # 앱 자동 업데이트가 비교하는 버전 (1.0.<빌드 번호>)
       - run: npx electron-builder --win --x64 --publish never
       - uses: actions/upload-artifact@v4
         with:
@@ -43,6 +44,7 @@ jobs:
         with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
       - run: npm ci
       - run: test -d node_modules/electron/dist/Electron.app || node node_modules/electron/install.js
+      - run: npm version --no-git-tag-version --allow-same-version "1.0.${{ github.run_number }}"
       - run: zsh build.sh      # electron-builder 맥 앱은 켜자마자 죽어서 순정 Electron.app 에 코드를 넣는 방식
       - run: ditto -c -k --keepParent "dist/캐릭터 스토리라인.app" dist/storyline-mac-arm64.zip
       - uses: actions/upload-artifact@v4
@@ -58,14 +60,22 @@ jobs:
     defaults:
       run: {working-directory: .}
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: 앱 코드 묶음 만들기 (설치된 앱이 이걸 받아서 스스로 업데이트)
+        working-directory: storyline-app
+        run: |
+          npm version --no-git-tag-version --allow-same-version "1.0.${{ github.run_number }}"
+          node tools/pack-code.js
       - uses: actions/download-artifact@v4
         with: {path: out, merge-multiple: true}
       - name: 릴리스에 올리기
         env: {GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}'}
         run: |
           tag="build-${{ github.run_number }}"
-          gh release create "$tag" out/storyline-windows-setup.exe out/storyline-mac-arm64.zip \
+          gh release create "$tag" out/storyline-windows-setup.exe out/storyline-mac-arm64.zip storyline-app/dist/app-code.json.gz \
             --target "${{ github.sha }}" --title "캐릭터 스토리라인 ($(date -u +%Y-%m-%d) · ${tag})" \
-            --notes "main 의 최신 코드로 자동으로 만든 설치 파일이에요. Windows 는 .exe, 맥(Apple 칩)은 .zip 을 받아요." --latest
+            --notes "main 의 최신 코드로 자동으로 만든 설치 파일이에요. Windows 는 .exe, 맥(Apple 칩)은 .zip 을 받아요. 이미 설치한 앱은 app-code.json.gz 를 받아 스스로 업데이트해요." --latest
           # 오래된 자동 릴리스는 최근 5개만 남김
           gh release list --limit 100 --json tagName -q '.[].tagName' | grep '^build-' | sort -t- -k2 -n -r | tail -n +6 | while read t; do gh release delete "$t" --yes --cleanup-tag; done

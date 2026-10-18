@@ -28,4 +28,10 @@ contextBridge.exposeInMainWorld('appShell',{
     now:()=>ipcRenderer.invoke('sync:now'),
   },
   note:{show:()=>ipcRenderer.sendSync('shell:showNote')},
+  update:{
+    info:()=>ipcRenderer.sendSync('update:info'),      // {bundled, running, latest, ready, needInstaller, error, ...}
+    check:()=>ipcRenderer.invoke('update:check'),
+    relaunch:()=>ipcRenderer.invoke('update:relaunch'),
+    openReleases:()=>ipcRenderer.invoke('update:openReleases'),
+  },
 });

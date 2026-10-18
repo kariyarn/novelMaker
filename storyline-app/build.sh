@@ -13,7 +13,7 @@ else
 fi
 mv dist/_el/Electron.app "$OUT"; rm -rf dist/_el
 mkdir -p "$OUT/Contents/Resources/app"
-cp main.js store.js preload.js index.html package.json "$OUT/Contents/Resources/app/"
+cp launcher.js main.js updater.js store.js preload.js index.html package.json "$OUT/Contents/Resources/app/"
 cp -R storage styles src note "$OUT/Contents/Resources/app/"      # 저장소 · 화면 코드 · 포스트잇 창
 mkdir -p "$OUT/Contents/Resources/app/build" && cp build/icon.png "$OUT/Contents/Resources/app/build/"   # 메뉴 막대 아이콘
 [ -f icon.icns ] && cp icon.icns "$OUT/Contents/Resources/electron.icns"      # 앱 아이콘

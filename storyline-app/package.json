@@ -2,7 +2,7 @@
   "name": "character-storyline",
   "version": "1.0.0",
   "description": "캐릭터 스토리라인",
-  "main": "main.js",
+  "main": "launcher.js",
   "author": "me",
   "scripts": {
     "start": "electron .",
@@ -18,7 +18,9 @@
       "identity": null
     },
     "files": [
+      "launcher.js",
       "main.js",
+      "updater.js",
       "store.js",
       "preload.js",
       "index.html",

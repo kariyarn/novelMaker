@@ -3,11 +3,12 @@ const path=require('path'),fs=require('fs');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
+const {createUpdater}=require('./updater');
 const isMac=process.platform==='darwin',isWin=process.platform==='win32';
 const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
 const NOTE_ARG='--note';      // 작업 표시줄 우클릭 → 포스트잇 모드로 바로 열기
-let store,sync,win=null,noteWin=null,tray=null,quitting=false;
+let store,sync,updater,win=null,noteWin=null,tray=null,quitting=false;
 const userFile=n=>path.join(app.getPath('userData'),n);
 const readJson=(p,d)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch(e){return d}};
 const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){}};
@@ -19,7 +20,7 @@ function createWindow({hidden=false}={}){
     autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
   win.loadFile(path.join(__dirname,'index.html'));
   win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
-  win.webContents.once('did-finish-load',()=>setTimeout(()=>runSync(),1500));
+  win.webContents.once('did-finish-load',()=>{setTimeout(()=>runSync(),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js)
   win.on('focus',()=>{if(Date.now()-sync.lastSync()>60*1000)runSync()});      // 다른 컴퓨터에서 쓰다 왔을 때
   win.on('closed',()=>{win=null;app.quit()});      // 큰 창을 닫으면 끔 (숨은 포스트잇 창이 남아 있어도)
 }
@@ -50,6 +51,14 @@ async function runSync({notify=true}={}){
   return r;
 }
 const syncSoon=()=>{if(!syncTimer&&syncConfig())syncTimer=setTimeout(()=>runSync(),30*1000)};      // 고친 뒤 30초쯤 모아서 올림
+
+/* ---------- 앱 자동 업데이트: 새 앱 코드를 받아 두고, 다시 켜면 적용 (updater.js · launcher.js) ---------- */
+let updNotified=0;
+async function checkUpdate({notify=true}={}){
+  const r=await updater.check();
+  if(notify&&(r.ready||r.needInstaller)){const k=r.ready||-r.latest;if(k!==updNotified){updNotified=k;callMain(`typeof onAppUpdate==="function"&&onAppUpdate(${JSON.stringify(r)})`).catch(()=>{})}}
+  return r;
+}
 
 /* ---------- 포스트잇 창 (몰래 쓰기): 테두리 · 작업 표시줄 아이콘 없이 작은 창 하나 ---------- */
 const NOTE=()=>userFile('note.json');
@@ -136,6 +145,14 @@ app.whenReady().then(()=>{
   ipcMain.on('sync:setConfig',(e,c)=>{e.returnValue=setSyncConfig(c)});
   ipcMain.handle('sync:now',()=>runSync({notify:false}));
   setInterval(()=>runSync(),5*60*1000);
+  /* 앱 업데이트 */
+  const AU=global.appUpdate||{bundled:require('./package.json').version,running:require('./package.json').version,dir:null};      // launcher.js 없이 켰을 때(개발용)
+  updater=createUpdater({fetch:(u,o)=>net.fetch(u,o),dir:userFile('app-update'),bundled:AU.bundled,running:AU.running,electron:process.versions.electron,keep:AU.dir});
+  ipcMain.on('update:info',e=>{e.returnValue=updater.info()});
+  ipcMain.handle('update:check',()=>checkUpdate({notify:false}));
+  ipcMain.handle('update:relaunch',()=>{app.relaunch();app.quit()});
+  ipcMain.handle('update:openReleases',()=>shell.openExternal(updater.info().releases));
+  setTimeout(()=>checkUpdate(),20*1000);setInterval(()=>checkUpdate(),6*60*60*1000);      // 켜고 잠시 뒤 · 6시간마다
   /* 포스트잇 창 */
   ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100),works:noteBridge.works()})')),opacity:note.opacity||1,onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,glass:glassNote}));
   ipcMain.handle('note:list',()=>callMain('noteBridge.list(100)'));
