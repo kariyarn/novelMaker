@@ -68,6 +68,10 @@ async function deleteFolder(f){
   if(!await askConfirm(`'${f.name}' 폴더를 지울까요? 안에 있는 폴더와 항목은 한 단계 위로 나와요.`))return;
   act(()=>{S.folders.forEach(x=>{if(x.parent===f.id){if(f.parent)x.parent=f.parent;else delete x.parent}});S.characters.forEach(c=>{if(c.folder===f.id){if(f.parent)c.folder=f.parent;else delete c.folder}});S.folders=S.folders.filter(x=>x!==f)});
 }
+function setFoldersOpen(list,open){      // 폴더들을 그 안쪽 폴더까지 한꺼번에 펴기 · 접기
+  const ids=new Set();list.forEach(f=>scopeIds(f.id).forEach(id=>ids.add(id)));
+  ids.forEach(id=>{UIP.fo[id]=!open});saveUIP();renderLeft();
+}
 function moveFolder(fid,to){      // to: 폴더 id 또는 null(최상위). 자기 자신/자기 안쪽으로는 못 옮김
   const f=folderById(fid);if(!f||f.builtin||fid===to||(to&&inside(to,fid)))return;
   act(()=>{if(to){f.parent=to;UIP.fo[to]=false}else delete f.parent});
@@ -211,7 +215,9 @@ function renderLeft0(){
       h('button',{class:'cbtn mk add',title:'새 캐릭터',onclick:stop(()=>addEntity('char'))},icon('noteplus')),
       h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder())},icon('folderplus')),
       h('span',{class:'cslot'}),      // 표 보기 자리 (아이콘 열 맞춤)
-      (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'폴더 추가',onclick:stop(()=>popMenu(mb,[{label:'폴더 추가',fn:()=>addFolder()}]))},'⋯');return mb})()],
+      (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'인물 메뉴',onclick:stop(()=>popMenu(mb,[
+        {label:'새 캐릭터',fn:()=>addEntity('char')},{label:'새 폴더',fn:()=>addFolder()},'sep',
+        {label:'인물 폴더 모두 펴기',fn:()=>setFoldersOpen(childFolders(null).filter(f=>!f.builtin),true)},{label:'인물 폴더 모두 접기',fn:()=>setFoldersOpen(childFolders(null).filter(f=>!f.builtin),false)}]))},'⋯');return mb})()],
     ()=>[rootChars.length?h('div',{class:'lchips'},...rootChars.map(chip)):(!rootFolders.length?h('div',{class:'fhint'},'아직 캐릭터가 없어요 · ',h('button',{class:'fadd',onclick:stop(()=>addEntity('char'))},'＋ 새 캐릭터')):null),...rootFolders.map(f=>sub(f,1))].filter(Boolean),
     ()=>{if(DRAGE){const c=charById(DRAGE);DRAGE=null;dragOn(false);if(c)act(()=>{delete c.folder})}else if(DRAGF){const id=DRAGF;DRAGF=null;dragOn(false);moveFolder(id,null)}}));
   // 설정: 기본 설정 폴더(그 안의 폴더는 더 작은 판)
