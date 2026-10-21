@@ -21,13 +21,17 @@ function flush(){
   if(!dirty)return saving;dirty=false;clearTimeout(t);
   const text=ta.value,k=kind,c=cur;
   saving=saving.then(async()=>{
-    if(c.id){const r=await noteApi.update(c.id,text,k);if(r){c.text=text;c.kind=k;c.color=r.color}}
-    else if(text.trim()){const r=await noteApi.add(text,k);if(r){c.id=r.id;c.text=text;c.kind=k;c.color=r.color;list=[c,...list.filter(x=>x.id!==r.id)];if(cur===c)i=0;else if(i>=0)i++;paint()}}
+    const r0=c.id?await noteApi.update(c.id,text,k):null;
+    if(r0){c.text=text;c.kind=k;c.color=r0.color}
+    else if(text.trim()){const r=await noteApi.add(text,k);if(r){c.id=r.id;c.text=text;c.kind=k;c.color=r.color;list=[c,...list.filter(x=>x.id!==r.id)];if(cur===c)i=0;else if(i>=0)i++;paint()}}      // 새 글 · 큰 창에서 카드가 없어졌으면 새 카드로 (쓴 글을 버리지 않음)
     status('저장됨');
   }).catch(()=>status('저장 못 함'));
   return saving;
 }
 ta.addEventListener('input',()=>{dirty=true;status('');clearTimeout(t);t=setTimeout(flush,600)});
+let composing=false;      // 한글 조합 중: 글자를 다시 넣으면 조합이 깨짐
+ta.addEventListener('compositionstart',()=>{composing=true});
+ta.addEventListener('compositionend',()=>{composing=false});
 /* 글자 크기: 포스트잇 창에만 (이 컴퓨터에 기억) */
 function setFs(n,save=true){fs=Math.max(11,Math.min(32,Math.round(n)));document.documentElement.style.setProperty('--fs',fs+'px');if(save){noteApi.setFontSize(fs);status(`글자 ${fs}`);clearTimeout(setFs.t);setFs.t=setTimeout(()=>{if($('st').textContent.startsWith('글자'))status('')},1200)}}
 $('fsm').onclick=()=>{setFs(fs-1);ta.focus()};
@@ -79,10 +83,13 @@ async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창
   paintWorks(d.works);
   const k=isMac?'⌘':'Ctrl+';
   $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;
-  const busy=dirty||(!cur.id&&ta.value.trim());      // 쓰던 중 · 카드로 만드는 중
   const j=cur.id?list.findIndex(x=>x.id===cur.id):-1;
-  if(j>=0)list[j]=busy?cur:Object.assign(cur,list[j]);      // 보던 포스트잇은 같은 객체로 (저장 중인 것과 어긋나지 않게)
-  if(busy){if(j>=0)i=j;paint();ta.focus();return}      // 쓰던 건 그대로
+  const same=j>=0&&list[j].text===ta.value;      // 큰 창 글과 같음: 다시 넣으면 커서만 끝으로 튐 (동기화 뒤마다 글쓰기가 끊겼음)
+  const lost=cur.id&&j<0&&ta.value.trim()&&document.hasFocus();      // 쓰던 포스트잇이 큰 창에서 없어짐: 쓴 글을 새 카드로 살림
+  const busy=lost||dirty||composing||(!cur.id&&ta.value.trim());      // 쓰던 중 · 카드로 만드는 중
+  if(lost){dirty=true;flush()}
+  if(j>=0)list[j]=busy&&!same?cur:Object.assign(cur,list[j]);      // 보던 포스트잇은 같은 객체로 (저장 중인 것과 어긋나지 않게)
+  if(busy||same){if(j>=0)i=j;paint();if(document.activeElement!==ta)ta.focus();return}      // 쓰던 건 그대로
   i=j;load();      // 보던 포스트잇 (지워졌으면 새 글)
 }
 noteApi.onShown(refresh);

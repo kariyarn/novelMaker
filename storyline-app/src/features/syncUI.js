@@ -2,19 +2,36 @@
 const Shell=window.appShell||null;      // 앱(Electron)에만 있음: 동기화 · 포스트잇 창
 const agoText=t=>{if(!t)return '아직 안 함';const m=Math.round((Date.now()-t)/60000);return m<1?'방금':m<60?`${m}분 전`:m<1440?`${Math.round(m/60)}시간 전`:fmtFull(t)};
 
-/* main.js 가 동기화 직전에 부름: 쓰고 있던 걸 바로 파일에 씀 */
-function flushForSync(){flushWork();return true}
+/* main.js 가 동기화 직전에 부름: 쓰고 있던 걸 파일에 씀 (화면을 멈추지 않게 비동기로, 다 쓸 때까지 기다림)
+   예전엔 동기 저장이라 고친 뒤 30초마다 글쓰기가 잠깐씩 멈췄음 */
+async function flushForSync(){
+  if(UI.noSave)return true;
+  if(saveT)await saveAsyncNow();
+  if(uipT)saveUIPNow();
+  return true;
+}
+/* 글을 쓰는 중인지: 쓰는 칸에 커서가 있으면 화면을 다시 그리지 않음 (다시 그리면 쓰던 칸이 사라져 글쓰기가 끊기고, 막 만든 빈 포스트잇이 지워짐) */
+const typingNow=()=>{const a=document.activeElement;return !!(a&&a.matches&&a.matches('textarea,input:not([type=checkbox]):not([type=radio]):not([type=range]),[contenteditable=true]')&&!a.readOnly)};
+let syncHeld=null;      // 쓰는 동안 미뤄 둔 동기화 결과 (여러 번이면 합쳐 둠)
+function holdSyncResult(r){
+  if(syncHeld){['pulled','pushed','merged','conflicts'].forEach(k=>{syncHeld[k]=[...(syncHeld[k]||[]),...(r[k]||[])]});syncHeld.manual=syncHeld.manual||r.manual;return}
+  syncHeld=r;
+  const check=()=>setTimeout(()=>{if(typingNow())return;document.removeEventListener('focusout',check);const x=syncHeld;syncHeld=null;onSyncResult(x)},0);      // 다른 칸으로 옮겨 가면 계속 기다림
+  document.addEventListener('focusout',check);
+}
 /* main.js 가 동기화 뒤에 부름 */
 function onSyncResult(r){
   UI.syncLast=r;
   if(!r||!r.ok){if(r&&!r.skipped&&r.manual)notice('동기화하지 못했어요: '+r.error);refreshSyncRow();return}
   const cur=LIB&&LIB.current,mine=p=>cur&&p.startsWith(`works/${cur}/`);
   const touched=r.pulled.some(mine)||r.pulled.includes('prefs.json')||(r.merged||[]).some(mine);
+  const redraw=touched||r.pulled.includes('library.json')||r.pushed.includes('library.json');      // 지금 작품 · 작품 목록이 안 바뀌었으면 다시 그리지 않음 (예전엔 동기화마다 화면 전체를 다시 그려 글쓰기가 끊겼음)
+  if(redraw&&typingNow()){holdSyncResult(r);refreshSyncRow();return}      // 쓰던 글은 그대로 저장됨 (store.save 가 받은 글과 합침): 쓰기를 마치면 반영
   if(touched){      // 이 작품을 다른 기기에서 고쳤거나 합쳤음: 다시 읽음 (그사이 여기서 쓴 게 있으면 먼저 저장 → 저장소 쪽에서 받은 글과 합쳐짐)
     if(saveT)flushWork();
     const sel=UI.sel,mode=UI.mode;initWork();resetHistory();UI.mode=mode;UI.sel=sel;fixSel();applySettings();
   }
-  afterWorkChange();renderAll();
+  if(redraw){afterWorkChange();renderAll()}
   const others=r.conflicts.filter(c=>!mine(c.rel));
   if((r.merged||[]).some(mine)&&pendingConflicts().length)showSyncConflicts();
   else if(others.length)notice(`양쪽 기기에서 고친 내용을 합쳤어요. 같은 글을 양쪽에서 다르게 고친 곳은 그 작품을 열면 고를 수 있어요.\n\n${others.map(c=>`${c.name} (${c.asks}곳)`).join('\n')}`);

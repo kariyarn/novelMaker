@@ -9,7 +9,7 @@ let saveT=null,undoS=[],redoS=[],lastEdit=0;
 function saveNow(){clearTimeout(saveT);saveT=null;if(UI.noSave)return;const ok=wr(KEY,JSON.stringify(S));notifySave(ok?'saved':'fail');savePrefs(true)}
 function saveAsyncNow(){clearTimeout(saveT);saveT=null;if(UI.noSave)return;
   if(!Repo.writeAsync)return saveNow();
-  Repo.writeAsync(KEY,JSON.stringify(S)).then(ok=>notifySave(ok?'saved':'fail')).catch(()=>notifySave('fail'));savePrefs()}
+  const p=Repo.writeAsync(KEY,JSON.stringify(S)).then(ok=>notifySave(ok?'saved':'fail')).catch(()=>notifySave('fail'));savePrefs();return p}
 function save(){clearTimeout(saveT);saveT=setTimeout(saveAsyncNow,400);notifySave('saving')}
 const cancelPendingSave=()=>{clearTimeout(saveT);saveT=null};
 function commit(){save();notifyChange()}      // 되돌리기 기록 없이 바꾼 뒤: 저장하고 다시 그림

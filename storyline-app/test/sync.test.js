@@ -138,6 +138,23 @@ test('동기화 도중에 쓴 글: 화면이 받은 글을 다시 읽기 전에 
   assert.deepEqual(cardsOf(A.store),[['k1','처음 고침'],['k2','A가 쓴 장면']]);
 });
 
+test('받는 도중에 이 기기에서 쓴 글(새 포스트잇)은 받은 글로 덮어쓰지 않고 합침', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  B.store.load('storyline_v1');
+  A.store.save('storyline_v1',work([['k1','처음'],['k2','A가 쓴 장면']]));await A.sync.sync();
+  const fetch0=gh.fetch;let once=false;
+  const slow=async(url,o)=>{      // B 가 저장소 글을 받아 오는 사이에 화면이 새 포스트잇을 저장
+    if(!once&&o.method==='GET'&&url.includes('/git/blobs/')){once=true;B.store.save('storyline_v1',work([['k1','처음'],['k3','B가 방금 쓴 포스트잇']]))}
+    return fetch0(url,o);
+  };
+  const B2=createSync({store:B.store,fetch:slow,getConfig:()=>({repo:'me/novel',branch:'main',token:'good'}),statePath:path.join(B.dir,'sync-state.json')});
+  const r=await B2.sync();assert.equal(r.ok,true,r.error);
+  assert.deepEqual(cardsOf(B.store).sort(),[['k1','처음'],['k2','A가 쓴 장면'],['k3','B가 방금 쓴 포스트잇']]);
+  await A.sync.sync();
+  assert.deepEqual(cardsOf(A.store).sort(),cardsOf(B.store).sort());
+});
+
 test('다른 기기가 예전과 똑같은 내용을 다시 올려도 막히지 않고 합침', async()=>{
   const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
   const id=A.store.current(),fp=`storyline/works/${id}/storyline.json`,old=gh.files.get(fp);
