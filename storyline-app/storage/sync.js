@@ -63,15 +63,20 @@ function createSync({store,fetch,getConfig,statePath}){
       const R0=remote[rel]||null,Rs=!trust&&R0&&B&&R0!==B&&(hist[rel]||[]).includes(R0)?B:R0;
       if(Ls===Rs){if(Rs)setBase(rel,Rs);continue}
       const localCh=Ls!==B,remoteCh=Rs!==B;
+      let text=null;
       if(remoteCh&&Rs&&(!localCh||Ls==null)){      // 받기
-        const text=await getBlob(cfg,Rs);store.syncWrite(rel,text);setBase(rel,Rs);res.pulled.push(rel);changed=true;
-        const after=store.syncRead(rel);      // 작품 목록처럼 합친 결과가 다르면 바로 올림
-        if(after!=null&&gitSha(after)!==Rs){setBase(rel,await put(cfg,rel,after,Rs,empty));res.pushed.push(rel)}
-        continue;
+        text=await getBlob(cfg,Rs);
+        const L2=store.syncRead(rel);      // 받는 동안 이 기기에서 글을 썼으면 덮어쓰지 않고 아래에서 합침 (안 그러면 방금 쓴 포스트잇이 사라짐)
+        if(L2===L||L2==null){
+          store.syncWrite(rel,text);setBase(rel,Rs);res.pulled.push(rel);changed=true;
+          const after=store.syncRead(rel);      // 작품 목록처럼 합친 결과가 다르면 바로 올림
+          if(after!=null&&gitSha(after)!==Rs){setBase(rel,await put(cfg,rel,after,Rs,empty));res.pushed.push(rel)}
+          continue;
+        }
       }
       if(L==null)continue;      // 이 기기에 없는 파일: 저장소 쪽은 지우지 않음
       if(remoteCh&&Rs){      // 둘 다 바뀜
-        const text=await getBlob(cfg,Rs);
+        if(text==null)text=await getBlob(cfg,Rs);
         if(rel==='library.json'){store.syncWrite(rel,text);changed=true}      // 합침
         else if(/\/storyline\.json$/.test(rel)){
           let baseText=null;if(B)try{baseText=await getBlob(cfg,B)}catch(e){}      // 마지막으로 맞춘 버전: 누가 무엇을 바꿨는지 가르는 기준
