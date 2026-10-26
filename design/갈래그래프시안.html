@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>갈래 그래프 시안</title>
+<style>
+:root{--bg:#f5f5f7;--panel:#fff;--side:#f2f2f5;--ink:#1d1d1f;--sub:#6e6e73;--line:rgba(0,0,0,.09);--fill:rgba(0,0,0,.045);--fill2:rgba(0,0,0,.08);--acc:#0071e3;--acc-soft:rgba(0,113,227,.12);--seg:rgba(0,0,0,.06);--segon:#fff;--card:#fff;--warn:#e5484d;--shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px rgba(0,0,0,.06);
+  --main:#2f9bd8;--l1:#e0307a;--l2:#e8b900;--l3:#8e5bd8;--hi:rgba(255,214,0,.35)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1e;--panel:#2c2c2e;--side:#242426;--ink:#f5f5f7;--sub:#98989d;--line:rgba(255,255,255,.1);--fill:rgba(255,255,255,.07);--fill2:rgba(255,255,255,.12);--acc:#0a84ff;--acc-soft:rgba(10,132,255,.22);--seg:rgba(255,255,255,.1);--segon:#636366;--card:#2c2c2e;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--main:#4fb4ef;--l1:#ff5c9b;--l2:#ffd23f;--l3:#b48cff;--hi:rgba(255,214,0,.22)}}
+:root[data-theme="dark"]{--bg:#1c1c1e;--panel:#2c2c2e;--side:#242426;--ink:#f5f5f7;--sub:#98989d;--line:rgba(255,255,255,.1);--fill:rgba(255,255,255,.07);--fill2:rgba(255,255,255,.12);--acc:#0a84ff;--acc-soft:rgba(10,132,255,.22);--seg:rgba(255,255,255,.1);--segon:#636366;--card:#2c2c2e;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--main:#4fb4ef;--l1:#ff5c9b;--l2:#ffd23f;--l3:#b48cff;--hi:rgba(255,214,0,.22)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:var(--fill);border:0;border-radius:8px;padding:4px 11px;cursor:pointer}
+button:hover{background:var(--fill2)}
+main{max-width:1320px;margin:0 auto;padding:36px 16px 80px}
+h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
+.lead{color:var(--sub);margin:0 0 18px;max-width:820px}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin:0 0 22px;padding:0;list-style:none}
+.how li{background:var(--panel);border:.5px solid var(--line);border-radius:12px;padding:10px 13px;font-size:.9em;color:var(--sub)}
+.how b{color:var(--ink)}
+.how strong{color:var(--ink);display:block;margin-bottom:2px}
+.thm{float:right;display:inline-flex;gap:2px;background:var(--seg);border-radius:9px;padding:2px}
+.thm button{background:transparent;padding:2px 10px;font-size:.85em}
+.thm button.on{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+
+/* 앱 창: 실제 앱처럼 데스크톱 너비 고정 */
+.winwrap{overflow-x:auto;border-radius:14px;box-shadow:var(--shadow)}
+.win{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);width:100%;min-width:1100px;height:820px;border-radius:14px;overflow:hidden;border:.5px solid var(--line);background:var(--panel)}
+.appbar{grid-column:1/-1;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 16px;border-bottom:.5px solid var(--line)}
+.appbar .nm{font-weight:650}
+.appbar .r{justify-self:end;color:var(--sub);letter-spacing:4px}
+.seg{display:inline-flex;background:var(--seg);border-radius:9px;padding:2px;gap:2px}
+.seg button{background:transparent;padding:2px 12px;font-weight:500}
+.seg button.on{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg button[disabled]{opacity:.45;cursor:default}
+.left{background:var(--side);border-right:.5px solid var(--line);padding:12px 10px;overflow:auto;font-size:.92em}
+.left h4{margin:0 4px 8px;font-size:.92em}
+.left .row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;color:var(--sub)}
+.left .row b{color:var(--ink);min-width:28px}
+.left .row .c{margin-left:auto;font-size:.85em}
+.left .row .fk{font-size:.78em;font-weight:650;color:var(--l1)}
+.mid{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:.5px solid var(--line)}
+.bar h3{margin:0;font-size:1.02em}
+.brtog{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.brtog.on{background:var(--l1);color:#fff}
+.brtog small{font-size:.8em;border-radius:99px;padding:0 7px;background:rgba(255,255,255,.25)}
+.next{margin-left:auto;background:transparent;color:var(--l1);font-weight:600}
+.next[hidden]{display:none}
+.scroll{flex:1;overflow:auto;padding:14px 16px 80px}
+
+/* ---------- 갈래 그래프: 왼쪽 선 · 점, 오른쪽 한 줄 글 ---------- */
+.graph{position:relative;background:var(--panel);border-radius:16px;box-shadow:var(--shadow);padding:8px 0 14px}
+.graph svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.graph path{fill:none;stroke-width:2.5;stroke-linecap:round}
+.graph circle{stroke:var(--panel);stroke-width:2.5}
+.g-ep{display:flex;align-items:baseline;gap:8px;padding:12px 16px 4px var(--gw);font-size:.82em;color:var(--sub)}
+.g-ep b{color:var(--acc);font-size:1.05em}
+.g-ep .t{color:var(--ink);font-weight:650;font-size:1.05em}
+.g-row{position:relative;display:flex;align-items:flex-start;gap:8px;padding:6px 16px 6px var(--gw);cursor:pointer;min-height:34px;border-radius:10px;margin:0 6px}
+.g-row:hover{background:var(--fill)}
+.g-row.sel{background:var(--fill)}
+.g-row .tx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-row.sel .tx{white-space:pre-wrap;overflow:visible}
+.g-row .tag{flex:none;font-size:.72em;font-weight:650;border-radius:99px;padding:1px 7px;margin-top:2px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.g-row .st{flex:none;color:#f0a000;font-size:.78em;margin-top:2px;letter-spacing:1px}
+.g-row.br .tx{color:color-mix(in srgb,var(--ink) 82%,var(--sub))}
+.g-row.drop{outline:2px dashed var(--l1);outline-offset:-2px}
+.g-row.drop::after{content:'⑂ 여기의 갈래로 넣기';position:absolute;right:14px;top:6px;font-weight:700;color:var(--l1);font-size:.85em;background:var(--panel);padding:0 6px;border-radius:6px}
+.g-merge{position:relative;height:22px;padding-left:var(--gw);font-size:.74em;color:var(--sub);display:flex;align-items:center}
+/* 고른 줄: 아래로 펼쳐서 전문 · 다른 문장 표시 · 버튼 */
+.g-more{margin:2px 16px 8px var(--gw);padding:10px 12px;border-radius:10px;background:var(--bg);border:.5px solid var(--line)}
+.g-more .full{white-space:pre-wrap;outline:none;border-radius:6px;padding:2px 4px;margin:0 -4px}
+.g-more .full:focus{background:var(--panel)}
+.g-more .same{color:var(--sub)}
+.g-more .diff{background:var(--hi);border-radius:4px}
+.g-more .legend{font-size:.76em;color:var(--sub);margin:6px 0 0}
+.g-more .legend i{background:var(--hi);border-radius:3px;padding:0 4px;font-style:normal}
+.g-more .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{font-size:.74em;border-radius:99px;padding:0 8px;background:var(--fill);display:inline-flex;align-items:center;gap:4px}
+.chip i{width:6px;height:6px;border-radius:50%;background:var(--cc)}
+.acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.acts button{font-size:.82em;padding:3px 10px}
+.acts .keep{background:var(--l1);color:#fff}
+.acts .del{margin-left:auto;background:transparent;color:var(--sub)}
+.acts .del:hover{color:var(--warn)}
+/* 합치기: 펼친 칸 안에서 바로 */
+.mg{margin-top:10px;border-top:.5px solid var(--line);padding-top:10px}
+.mg .cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg h5{margin:0 0 5px;font-size:.78em;color:var(--sub)}
+.sent{display:block;width:100%;text-align:left;background:var(--panel);border:.5px solid var(--line);border-radius:8px;padding:5px 8px;margin:0 0 4px;font-size:.88em}
+.sent::before{content:'＋ ';color:var(--l1);font-weight:700}
+.sent.used{opacity:.45}
+.mg textarea{width:100%;min-height:90px;margin-top:6px;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--l1);border-radius:10px;padding:8px 10px;resize:vertical}
+
+/* 오른쪽 목록 */
+.pool{border-left:.5px solid var(--line);background:var(--side);display:flex;flex-direction:column;min-width:0}
+.pool h4{margin:0;padding:14px 14px 4px;font-size:.92em}
+.pool .hint{color:var(--sub);font-size:.8em;padding:0 14px 10px}
+.pool .list{flex:1;overflow:auto;padding:4px 12px 20px;display:flex;flex-direction:column;gap:9px}
+.pc{background:color-mix(in srgb,#fff1a6 34%,var(--card));border-radius:10px;padding:8px 12px;box-shadow:var(--shadow);cursor:grab;border-left:4px solid #e9c443}
+.pc .st{color:#f0a000;font-size:.78em}
+.pool .back{display:none;margin:0 12px 8px;padding:14px;border:2px dashed var(--l1);border-radius:10px;color:var(--l1);font-weight:650;text-align:center;font-size:.86em}
+body.dragbr .pool .back{display:block}
+.pool.over .back{background:var(--l1);color:#fff}
+.empty{color:var(--sub);font-size:.85em;text-align:center;padding:20px 0}
+
+/* 갈래 끄면: 예전 한 줄 보기 (간단히) */
+.plain .ep{background:var(--panel);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px}
+.plain .ep h4{margin:0 0 8px;font-size:.95em}
+.plain .k{background:color-mix(in srgb,#fff1a6 30%,var(--card));border-left:4px solid #e9c443;border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;gap:8px}
+.plain .k .tx{flex:1}
+.badge{font-size:.76em;font-weight:650;color:var(--l1);background:color-mix(in srgb,var(--l1) 13%,transparent);border-radius:99px;padding:0 8px;height:fit-content;cursor:pointer}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:var(--bg);border-radius:12px;padding:9px 14px;display:flex;gap:12px;align-items:center;transition:all .25s;z-index:30;font-size:.9em}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.toast button{background:transparent;color:inherit;font-weight:700;text-decoration:underline;padding:0}
+</style>
+</head>
+<body>
+<main>
+  <div class="thm" id="thm"><button data-t="">자동</button><button data-t="light">밝게</button><button data-t="dark">어둡게</button></div>
+  <h1>갈래 그래프 시안</h1>
+  <p class="lead">카드를 큰 상자로 늘어놓지 않고 <b>점 하나 + 한 줄 글</b>로 줄였어요. 화는 위에서 아래로 흐르고, 갈래는 옆 선으로 갈라졌다가 합치면 본선으로 돌아와요. 줄을 누르면 그 자리에서 펼쳐서 전문과 버튼이 보여요.</p>
+  <ul class="how">
+    <li><strong>① 읽기</strong>파란 선이 본선, 분홍 · 노랑 선이 갈래예요. 갈래 줄을 누르면 <b>본선과 다른 문장</b>만 노랗게 칠해져요.</li>
+    <li><strong>② 갈래로 넣기</strong>오른쪽 목록 카드를 본선 줄 위에 끌어다 놓아 보세요. 줄 안의 <b>⑂ 갈래 만들기</b>도 있어요.</li>
+    <li><strong>③ 정리</strong><b>이걸로</b> · <b>합치기</b> · <b>↩ 떼어내기</b> · <b>✕</b>. 합친 갈래는 본선으로 돌아오는 선과 점이 생겨요.</li>
+    <li><strong>④ 끄기</strong>위쪽 <b>⑂ 갈래</b>를 끄면 예전 한 줄 보기로 돌아가고 <b>⑂3</b> 배지만 남아요.</li>
+  </ul>
+
+  <div class="winwrap"><div class="win">
+    <div class="appbar"><span class="nm">📖 내 첫 작품</span><div class="seg"><button disabled>구상</button><button class="on">타임라인</button><button disabled>관계망</button></div><span class="r">⌕ ⋯</span></div>
+    <nav class="left"><h4>화 목록</h4><div id="eplist"></div></nav>
+    <section class="mid">
+      <div class="bar">
+        <h3>타임라인</h3>
+        <div class="seg"><button disabled>칸반</button><button class="on">한 줄</button><button disabled>등장표</button><button disabled>보관</button></div>
+        <button class="brtog" id="tog"></button>
+        <button class="next" id="next">갈래 있는 곳 ›</button>
+      </div>
+      <div class="scroll" id="tl"></div>
+    </section>
+    <aside class="pool" id="poolbox">
+      <h4>쓰고 싶은 장면 · 대사</h4>
+      <div class="hint">본선 줄 위에 끌어다 놓으면 그 카드의 갈래가 돼요</div>
+      <div class="back">↩ 여기 놓으면 갈래를 떼어서 따로 된 카드로 돌려놔요</div>
+      <div class="list" id="pool"></div>
+    </aside>
+  </div></div>
+</main>
+<div class="toast" id="toast"><span id="tmsg"></span><button id="tundo">되돌리기</button></div>
+
+<script>
+const CH={d:['이도윤','#32ade6'],h:['서하린','#af52de'],f:['서회장','#a2845e']};
+const LANES=['var(--l1)','var(--l2)','var(--l3)'];
+let uidN=100;const uid=()=>'x'+(uidN++);
+let S={on:true,sel:null,merge:null,
+  eps:[
+    {n:1,title:'새벽의 접촉사고',cards:['c1','c2','c3']},
+    {n:2,title:'반지하',cards:['c4']},
+    {n:3,title:'봉투',cards:['c7','c8']},
+  ],
+  cards:{
+    c1:{text:'새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.',stars:3,chars:['d','h'],br:[
+      {id:'b1',text:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다. 하린은 그런 사람을 처음 본다.',stars:2,chars:['d','h']}]},
+    c2:{text:'"저는 사과를 드릴 수 있고, 돈은 없습니다. 둘 중 하나만 고르세요." — 도윤',stars:3,chars:['d'],br:[]},
+    c3:{text:'"왜 죄송하다고 안 하죠? 다들 그러던데." — 하린',stars:2,chars:['h'],br:[]},
+    c4:{text:'서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.',stars:2,chars:['d','h'],br:[]},
+    c7:{text:'하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.',stars:3,chars:['d','f'],br:[
+      {id:'b2',text:'서회장이 봉투를 책상 위에 놓고 먼저 나간다. 도윤은 받지 않고 봉투의 두께만 본다.',stars:2,chars:['d','f']},
+      {id:'b3',text:'서회장과 도윤의 독대. "얼마면 되겠나." 도윤은 봉투가 아니라 회장의 손목시계를 본다.',stars:1,chars:['d','f'],merged:true}]},
+    c8:{text:'도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.',stars:3,chars:['d','h'],br:[]},
+    p1:{text:'회장이 내민 봉투. 도윤은 두께부터 가늠하고, 그게 스스로도 싫다.',stars:1,chars:['d','f'],br:[]},
+    p2:{text:'하린은 도시락을 두 개 싸 오지만 하나는 끝내 꺼내지 못한다.',stars:2,chars:['h'],br:[]},
+  },
+  pool:['p1','p2']};
+let hist=[];const snap=()=>hist.push(JSON.stringify(S));
+const $=id=>document.getElementById(id);
+function h(t,a,...k){const e=document.createElement(t);for(const x in a||{}){if(x.startsWith('on'))e.addEventListener(x.slice(2),a[x]);else if(a[x]!=null)e.setAttribute(x,a[x])}e.append(...k.flat().filter(v=>v!=null&&v!==false));return e}
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const chips=cs=>h('div',{class:'chips'},cs.map(c=>h('span',{class:'chip',style:`--cc:${CH[c][1]}`},h('i'),CH[c][0])));
+let toastT;
+function toast(m){$('tmsg').textContent=m;$('toast').classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('show'),4200)}
+$('tundo').onclick=()=>{if(hist.length){S=JSON.parse(hist.pop());render()}$('toast').classList.remove('show')};
+const split=t=>t.split(/\n+|(?<=[.!?…][”"’'」』)]?)\s+/).map(s=>s.trim()).filter(Boolean);
+/* 본선과 다른 문장만 칠함 (같은 문장은 흐리게) */
+function diffEl(text,base){const B=new Set(split(base));const box=h('span');split(text).forEach((s,i)=>{if(i)box.append(' ');box.append(h('span',{class:B.has(s)?'same':'diff'},s))});return box}
+
+/* ---------- 그래프 ---------- */
+const DX=26,X0=22;
+const laneX=l=>X0+l*DX;
+function render(){
+  const tl=$('tl');tl.textContent='';
+  const forks=Object.keys(S.cards).filter(id=>S.cards[id].br.length&&!S.pool.includes(id));
+  $('tog').className='brtog'+(S.on?' on':'');$('tog').replaceChildren('⑂ 갈래',forks.length?h('small',{},forks.length):'');
+  $('next').hidden=!S.on||!forks.length;
+  S.on?renderGraph(tl):renderPlain(tl);
+  renderPool();renderLeft();
+}
+function renderGraph(tl){
+  const maxL=Math.max(1,...Object.values(S.cards).map(c=>c.br.length));
+  const g=h('div',{class:'graph',style:`--gw:${laneX(maxL)+22}px`});tl.append(g);
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');g.append(svg);
+  S.eps.forEach(ep=>{
+    g.append(h('div',{class:'g-ep'},h('b',{},ep.n+'화'),h('span',{class:'t'},ep.title)));
+    ep.cards.forEach(id=>{const c=S.cards[id];
+      g.append(rowEl(id,c,null,0));
+      if(S.sel===id)g.append(moreEl(id,c,null));
+      c.br.forEach((b,i)=>{g.append(rowEl(id,c,b,i+1));if(S.sel===b.id)g.append(moreEl(id,c,b))});
+      if(c.br.some(b=>b.merged))g.append(h('div',{class:'g-merge','data-mg':id},'↙ 합친 갈래가 본선으로 돌아옴'));
+    });
+  });
+  requestAnimationFrame(()=>draw(g,svg));
+}
+function rowEl(id,c,b,lane){
+  const sel=S.sel===(b?b.id:id),t=b||c;
+  const el=h('div',{class:'g-row'+(b?' br':'')+(sel?' sel':''),'data-node':b?b.id:id,'data-card':id,'data-lane':lane,'data-merged':b&&b.merged?'1':'',
+    onclick:()=>{S.sel=sel?null:(b?b.id:id);S.merge=null;render()}},
+    b?h('span',{class:'tag',style:`--c:${LANES[(lane-1)%3]}`},'갈래 '+(lane+1)+(b.note?' · '+b.note:'')+(b.merged?' · 합침':'')):(c.br.length?h('span',{class:'tag',style:'--c:var(--main)'},'본선'):null),
+    h('span',{class:'tx'},t.text),
+    h('span',{class:'st'},t.stars?'★'.repeat(t.stars):''));
+  if(!b){      // 본선 줄: 목록 카드 · 다른 갈래를 받음
+    el.addEventListener('dragover',e=>{if(DRAG&&!(DRAG.from==='br'&&DRAG.card===id)){e.preventDefault();el.classList.add('drop')}});
+    el.addEventListener('dragleave',()=>el.classList.remove('drop'));
+    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drop');if(!DRAG)return;DRAG.from==='pool'?absorb(DRAG.id,id):moveBr(DRAG.card,DRAG.bid,id)});
+  }else{
+    el.draggable=true;
+    el.addEventListener('dragstart',e=>{DRAG={from:'br',card:id,bid:b.id};e.dataTransfer.setData('text/plain',b.id);document.body.classList.add('dragbr')});
+    el.addEventListener('dragend',()=>{DRAG=null;document.body.classList.remove('dragbr')});
+  }
+  return el;
+}
+function moreEl(id,c,b){
+  const t=b||c;
+  const full=h('div',{class:'full',contenteditable:'true',oninput:e=>{t.text=e.target.innerText}});
+  if(b)full.append(diffEl(b.text,c.text));else full.textContent=c.text;
+  const box=h('div',{class:'g-more',onclick:e=>e.stopPropagation()},full,
+    b?h('div',{class:'legend'},h('i',{},'노란 문장'),' = 본선에 없는 문장 · 흐린 문장 = 본선과 같음'):null,
+    chips(t.chars),
+    h('div',{class:'acts'},...(b?[
+      h('button',{class:'keep',onclick:()=>keep(id,b.id)},'이걸로'),
+      h('button',{onclick:()=>{S.merge=S.merge?null:b.id;render()}},'합치기'),
+      h('button',{onclick:()=>detach(id,b.id)},'↩ 떼어내기'),
+      h('button',{class:'del',onclick:()=>delBr(id,b.id)},'✕ 지우기')]:[
+      h('button',{onclick:()=>makeBr(id)},'⑂ 갈래 만들기')])));
+  if(b&&S.merge===b.id)box.append(mergeEl(id,c,b));
+  return box;
+}
+function mergeEl(id,c,b){
+  const ta=h('textarea',{},c.text);
+  const ins=s=>{const a=ta.selectionStart,e=ta.selectionEnd,v=ta.value,pre=v.slice(0,a),sep=pre&&!/\s$/.test(pre)?' ':'';ta.value=pre+sep+s+v.slice(e);const p=(pre+sep+s).length;ta.focus();ta.setSelectionRange(p,p)};
+  const col=(lab,t)=>h('div',{},h('h5',{},lab),...split(t).map(s=>h('button',{class:'sent',onclick:e=>{ins(s);e.currentTarget.classList.add('used')}},s)));
+  return h('div',{class:'mg'},h('div',{class:'cols'},col('본선',c.text),col('이 갈래',b.text)),ta,
+    h('div',{class:'acts'},h('button',{class:'keep',onclick:()=>doMerge(id,b.id,ta.value)},'합쳐서 본선으로'),h('button',{onclick:()=>{S.merge=null;render()}},'취소')));
+}
+/* 선 · 점: 본선은 한 줄로 쭉, 갈래는 본선 점에서 비스듬히 갈라지고, 합친 갈래는 본선으로 돌아옴 */
+function draw(g,svg){
+  const ns='http://www.w3.org/2000/svg',gr=g.getBoundingClientRect();svg.textContent='';
+  const P=(d,col)=>{const p=document.createElementNS(ns,'path');p.setAttribute('d',d);p.setAttribute('stroke',col);svg.append(p)};
+  const C=(x,y,col,r)=>{const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',r||6.5);c.setAttribute('fill',col);svg.append(c)};
+  const yOf=el=>{const r=el.getBoundingClientRect();return r.top-gr.top+17};
+  const mains=[...g.querySelectorAll('.g-row:not(.br)')];if(!mains.length)return;
+  const xm=laneX(0),dots=[];
+  P(`M${xm} ${yOf(mains[0])}V${yOf(mains[mains.length-1])}`,'var(--main)');
+  mains.forEach(m=>{
+    const id=m.dataset.card,y0=yOf(m);dots.push([xm,y0,'var(--main)']);
+    const brs=[...g.querySelectorAll(`.g-row.br[data-card="${id}"]`)],mg=g.querySelector(`.g-merge[data-mg="${id}"]`);
+    brs.forEach(b=>{const l=+b.dataset.lane,x=laneX(l),y=yOf(b),col=LANES[(l-1)%3];
+      P(`M${xm} ${y0}C${xm} ${y0+14} ${x} ${y-14} ${x} ${y}`,col);dots.push([x,y,col]);
+      if(b.dataset.merged&&mg){const ym=mg.getBoundingClientRect().top-gr.top+11;P(`M${x} ${y}C${x} ${y+12} ${xm} ${ym-10} ${xm} ${ym}`,col);dots.push([xm,ym,'var(--main)',5])}});
+  });
+  dots.forEach(d=>C(...d));
+}
+addEventListener('resize',()=>{const g=document.querySelector('.graph');if(g)draw(g,g.querySelector('svg'))});
+
+function renderPlain(tl){
+  const box=h('div',{class:'plain'});tl.append(box);
+  S.eps.forEach(ep=>box.append(h('div',{class:'ep'},h('h4',{},ep.n+'화 · '+ep.title),...ep.cards.map(id=>{const c=S.cards[id];
+    return h('div',{class:'k'},h('span',{class:'tx'},c.text),c.br.length?h('span',{class:'badge',title:'갈래 보기',onclick:()=>{S.on=true;S.sel=id;render();focusNode(id)}},'⑂'+(c.br.length+1)):null)}))));
+}
+function renderPool(){
+  const pl=$('pool');pl.textContent='';
+  S.pool.forEach(id=>{const c=S.cards[id];const el=h('div',{class:'pc',draggable:'true'},h('div',{class:'st'},stars(c.stars)),c.text);
+    el.addEventListener('dragstart',e=>{DRAG={from:'pool',id};e.dataTransfer.setData('text/plain',id)});el.addEventListener('dragend',()=>{DRAG=null});pl.append(el)});
+  if(!S.pool.length)pl.append(h('div',{class:'empty'},'목록이 비었어요'));
+}
+function renderLeft(){$('eplist').replaceChildren(...S.eps.map(ep=>{const f=ep.cards.filter(id=>S.cards[id].br.length).length;return h('div',{class:'row'},h('b',{},ep.n+'화'),ep.title,f?h('span',{class:'fk'},'⑂'+f):null,h('span',{class:'c'},ep.cards.length))}))}
+function focusNode(id){requestAnimationFrame(()=>{const r=document.querySelector(`.g-row[data-node="${id}"]`);if(r)r.scrollIntoView({block:'center',behavior:'smooth'})})}
+let DRAG=null,nextI=0;
+{const P=$('poolbox');
+  P.addEventListener('dragover',e=>{if(DRAG&&DRAG.from==='br'){e.preventDefault();P.classList.add('over')}});
+  P.addEventListener('dragleave',e=>{if(!P.contains(e.relatedTarget))P.classList.remove('over')});
+  P.addEventListener('drop',e=>{P.classList.remove('over');if(DRAG&&DRAG.from==='br'){e.preventDefault();const d=DRAG;DRAG=null;document.body.classList.remove('dragbr');detach(d.card,d.bid)}})}
+$('tog').onclick=()=>{S.on=!S.on;render()};
+$('next').onclick=()=>{const ids=S.eps.flatMap(e=>e.cards).filter(id=>S.cards[id].br.length);if(!ids.length)return;const id=ids[nextI++%ids.length];S.sel=id;render();focusNode(id)};
+
+/* ---------- 동작 (모두 되돌리기) ---------- */
+const asBr=c=>({id:uid(),text:c.text,stars:c.stars,chars:[...c.chars],note:'이전 본선'});
+const take=(id,bid)=>{const c=S.cards[id],b=c.br.find(x=>x.id===bid);c.br=c.br.filter(x=>x!==b);return b};
+function makeBr(id){const c=S.cards[id];snap();const b={id:uid(),text:c.text,stars:c.stars,chars:[...c.chars]};c.br.push(b);S.sel=b.id;render();
+  requestAnimationFrame(()=>{const f=document.querySelector('.g-more .full');if(f){f.focus();getSelection().selectAllChildren(f);getSelection().collapseToEnd()}});toast('갈래를 만들었어요 · 고쳐 써 보세요')}
+function absorb(from,to){const f=S.cards[from];snap();S.cards[to].br.push({id:uid(),text:f.text,stars:f.stars,chars:f.chars});S.pool=S.pool.filter(x=>x!==from);delete S.cards[from];S.sel=to;render();focusNode(to);toast('갈래로 넣었어요 · 잘못 넣었으면 ↩ 떼어내기')}
+function keep(id,bid){const c=S.cards[id],i=c.br.findIndex(x=>x.id===bid),b=c.br[i];snap();c.br[i]=asBr(c);Object.assign(c,{text:b.text,stars:b.stars,chars:b.chars});S.sel=id;render();toast('이 갈래를 본선으로 올렸어요 · 원래 본선은 갈래로 남겨 뒀어요')}
+function doMerge(id,bid,t){const c=S.cards[id],b=c.br.find(x=>x.id===bid);snap();t=t.trim();if(t&&t!==c.text){c.br.unshift(asBr(c));c.text=t}b.merged=true;c.chars=[...new Set([...c.chars,...b.chars])];c.stars=Math.max(c.stars,b.stars);S.merge=null;S.sel=id;render();toast('합친 글을 본선으로 · 원래 본선과 갈래는 그대로 남겨 뒀어요')}
+function detach(id,bid){snap();const b=take(id,bid),nid=uid();S.cards[nid]={text:b.text,stars:b.stars,chars:b.chars,br:[]};S.pool.unshift(nid);S.sel=null;render();toast('갈래를 떼어서 오른쪽 목록에 돌려놨어요')}
+function moveBr(from,bid,to){if(from===to)return;snap();const b=take(from,bid);delete b.note;S.cards[to].br.push(b);S.sel=b.id;render();focusNode(to);toast('다른 카드의 갈래로 옮겼어요')}
+function delBr(id,bid){snap();take(id,bid);S.sel=id;render();toast('갈래를 휴지통으로 보냈어요')}
+
+document.querySelectorAll('#thm button').forEach(b=>{b.onclick=()=>{const t=b.dataset.t;t?document.documentElement.dataset.theme=t:delete document.documentElement.dataset.theme;document.querySelectorAll('#thm button').forEach(x=>x.classList.toggle('on',x===b));render()}});
+document.querySelector('#thm button').classList.add('on');
+render();
+</script>
+</body>
+</html>
