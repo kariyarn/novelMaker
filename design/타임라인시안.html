@@ -80,6 +80,16 @@ h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
 .hdl{position:absolute;left:0;top:8px;width:12px;color:var(--faint);cursor:grab;font-size:.8em;line-height:1.85;visibility:hidden;user-select:none}
 .rd .row:hover .hdl{visibility:visible}
 .rd .erun{max-width:720px;margin-left:auto;margin-right:auto}
+.shdiv{max-width:720px;margin:34px auto 4px;display:flex;align-items:baseline;gap:10px;padding:10px 4px 0;border-top:1px solid var(--line)}
+.shdiv b{font-size:.95em}
+.shdiv span{color:var(--sub);font-size:.84em}
+.shelf .eph{background:transparent;position:static}
+.shelf .eph .no{color:var(--sub)}
+.shelf .eph .tt{font-size:1.02em}
+.shelf .rows{background:var(--fill);border-radius:12px;padding:4px 0}
+.shelf .row{font-size:14px;line-height:1.7}
+.send{border:0;background:var(--fill);border-radius:7px;padding:2px 6px;font-size:.82em;color:var(--acc);cursor:pointer}
+.shadd{background:transparent;color:var(--sub);font-size:.88em}
 .eph{display:flex;align-items:baseline;gap:8px;padding:10px 4px 4px;position:sticky;top:-4px;background:var(--panel);z-index:2}
 .eph .no{font-weight:700;color:var(--acc);min-width:34px}
 .eph .tt{font-weight:650;border:0;background:transparent;padding:0;outline:0;min-width:0;flex:0 1 auto;width:auto}
@@ -117,13 +127,13 @@ h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
 .chip.off{opacity:.4}
 .edit .done{margin-left:auto;background:var(--acc);color:#fff}
 
-/* 빈 화: 이어진 빈 화는 한 줄로 접힘 · 끄는 동안에만 칸이 펼쳐짐 */
+/* 빈 화: 이어진 빈 화는 한 줄로 접힘 · 카드를 끌어 그 위에 올렸을 때만 펼쳐짐 (다른 곳은 밀리지 않게) */
 .erun{margin:4px 0 8px 16px;border-left:1.5px dashed var(--line);padding-left:12px}
 .erun .sum{color:var(--faint);font-size:.86em;padding:5px 4px;cursor:pointer}
 .erun .sum:hover{color:var(--sub)}
 .erun .one{display:none}
-.erun.open .one,body.dragging .erun .one{display:block}
-body.dragging .erun .sum{display:none}
+.erun.open .one,.erun.hov .one{display:block}
+.erun.hov .sum{display:none}
 .one{border-radius:8px;padding:5px 8px;color:var(--faint);font-size:.86em}
 .one b{color:var(--sub);margin-right:6px}
 .one.over,.rows.over{background:var(--acc-soft)}
@@ -194,7 +204,7 @@ body.dragging .erun .sum{display:none}
     <li><strong>① 옮기면 깔끔해져요</strong>오른쪽 포스트잇을 가운데 화 사이에 끌어다 놓아 보세요. 놓는 순간 포스트잇 장식이 빠져요.</li>
     <li><strong>② 남은 장수가 줄어요</strong>오른쪽 위 막대가 정리한 만큼 차요. 다 옮기면 “다 정리했어요”가 떠요.</li>
     <li><strong>③ 칸반은 훑기 · 한 줄은 읽기</strong>칸반은 카드를 2줄로 잘라 여러 화를 한눈에 봐요. 한 줄 보기는 전문이 다 보이고, 글을 누르면 바로 고쳐져요. 옮길 때는 왼쪽 <b>⋮⋮</b>을 잡아요.</li>
-    <li><strong>④ 빈 화는 접혀요</strong>비어 있는 화는 “5–12화 비어 있어요” 한 줄로 접혀 있다가, 카드를 끄는 동안에만 칸이 펼쳐져요.</li>
+    <li><strong>④ 빈 화는 접히고 보관은 맨 아래</strong>비어 있는 화는 한 줄로 접혀 있다가 카드를 끌어 올리면 펼쳐져요. 몇 화에 쓸지 안 정한 장면은 한 줄 보기 <b>맨 아래 보관</b>에 두었다가 <b>화로 보내기</b>로 옮겨요.</li>
   </ul>
   <div class="cmp">
     <div class="seg" id="ver"><button data-v="new">시안</button><button data-v="old">지금 모습</button></div>
@@ -235,7 +245,8 @@ const C={
 const TITLES=['새벽의 접촉사고','반지하','봉투','','','','','','','','',''];
 const MEMOS=['둘의 아비투스가 처음 충돌','','돈으로 선을 긋는 아버지','','','','','','','','',''];
 let S,UI={ver:'new',mode:'line',open:null,just:null,runs:{}};
-function reset(){S={eps:TITLES.map((t,i)=>({n:i+1,title:t,memo:MEMOS[i],cards:[]})),pool:['c5','c6','c9','c10','c11','c12','c13','c14','c4']};
+function reset(){S={eps:TITLES.map((t,i)=>({n:i+1,title:t,memo:MEMOS[i],cards:[]})),pool:['c5','c6','c9','c10','c11','c13','c4'],
+  shelves:[{key:'s1',name:'25화쯤',cards:['c12','c14']},{key:'s2',name:'결말 후보',cards:[]}]};
   S.eps[0].cards=['c1','c2','c3'];S.eps[2].cards=['c7','c8'];}
 reset();
 
@@ -246,11 +257,12 @@ const dot=k=>h('span',{class:'dot',style:'--c:'+CH[k][1],title:CH[k][0]});
 const starTxt=n=>'★'.repeat(n);
 const isDlg=t=>/^["“]/.test(t);
 const total=()=>Object.keys(C).length;
-const placed=()=>S.eps.reduce((a,e)=>a+e.cards.length,0);
+const placed=()=>total()-S.pool.length;      // 화나 보관 칸에 들어갔으면 정리된 것
 
 /* 어디 있든 빼기 → 넣기 */
-function detach(id){S.pool=S.pool.filter(x=>x!==id);S.eps.forEach(e=>e.cards=e.cards.filter(x=>x!==id))}
-function place(id,epN,before){detach(id);const e=S.eps[epN-1];let i=before?e.cards.indexOf(before):-1;if(i<0)i=e.cards.length;e.cards.splice(i,0,id);UI.just=id;render()}
+function detach(id){S.pool=S.pool.filter(x=>x!==id);[...S.eps,...S.shelves].forEach(e=>e.cards=e.cards.filter(x=>x!==id))}
+const box=k=>typeof k==='string'?S.shelves.find(x=>x.key===k):S.eps[k-1];      // 화 번호 또는 보관 칸 키
+function place(id,epN,before){detach(id);const e=box(epN);let i=before?e.cards.indexOf(before):-1;if(i<0)i=e.cards.length;e.cards.splice(i,0,id);UI.just=id;render()}
 function unplace(id){detach(id);S.pool.unshift(id);if(UI.open===id)UI.open=null;render()}
 
 /* ---------- 끌어다 놓기 ---------- */
@@ -301,10 +313,14 @@ function epHead(e){
   return h('div',{class:'eph'},h('span',{class:'no'},e.n+'화'),tt,h('span',{class:'mm'},e.memo),h('span',{class:'ct'},e.cards.length+'장 · '+chars+'자'))}
 function lineView(){
   const out=[];let run=[];
-  const flush=()=>{if(!run.length)return;const key=run[0].n;const a=run[0].n,b=run[run.length-1].n;
+  const flush=()=>{if(!run.length)return;const key=run[0].n,run0=key;const a=run[0].n,b=run[run.length-1].n;
     const box=h('div',{class:'erun'+(UI.runs[key]?' open':'')},
       h('div',{class:'sum',onclick:()=>{UI.runs[key]=!UI.runs[key];render()}},(a===b?a+'화':a+'–'+b+'화')+' · 아직 비어 있어요 '+(UI.runs[key]?'▾':'▸')),
       run.map(e=>{const o=h('div',{class:'one','id':'ep'+e.n},h('b',{},e.n+'화'),'여기로 끌어다 놓기');dropZone(o,id=>place(id,e.n));return o}));
+    box.addEventListener('dragenter',()=>{if(drag)box.classList.add('hov')});
+    box.addEventListener('dragleave',e=>{if(!box.contains(e.relatedTarget))box.classList.remove('hov')});
+    box.addEventListener('dragover',e=>{if(drag)e.preventDefault()});      // 칸 사이 여백에 놓아도 묶음의 첫 빈 화로
+    box.addEventListener('drop',e=>{if(e.target.closest('.one'))return;e.preventDefault();const id=drag;clearInd();place(id,run0)});
     out.push(box);run=[]};
   for(const e of S.eps){
     if(!e.cards.length&&!e.title){run.push(e);continue}
@@ -312,7 +328,17 @@ function lineView(){
     const rows=h('div',{class:'rows'},e.cards.map(id=>row(id,e.n)));dropRows(rows,e.n);
     out.push(h('div',{class:'ep',id:'ep'+e.n},epHead(e),rows));
   }
-  flush();return out}
+  flush();
+  out.push(h('div',{class:'shdiv'},h('b',{},'보관'),h('span',{},'몇 화에 쓸지 아직 안 정한 장면')));
+  for(const sh of S.shelves){
+    const rows=h('div',{class:'rows'},sh.cards.map(id=>row(id,sh.key)));dropRows(rows,sh.key);
+    const send=sh.cards.length?h('select',{class:'send',onchange:ev=>{const n=+ev.target.value;if(!n)return;const ids=[...sh.cards];ids.forEach(id=>place(id,n));UI.just=ids[0];render();document.getElementById('ep'+n)?.scrollIntoView({behavior:'smooth',block:'nearest'})}},
+      h('option',{value:''},'화로 보내기 ▾'),S.eps.map(e=>h('option',{value:e.n},e.n+'화'+(e.title?' '+e.title:'')+(e.cards.length?'':' (빈 화)')))):null;
+    const nm=h('input',{class:'tt',placeholder:'칸 이름',style:'width:'+Math.max(3,sh.name.length*1.02+.4)+'em',oninput:ev=>{sh.name=ev.target.value;renderLeft()}});nm.value=sh.name;
+    out.push(h('div',{class:'ep shelf',id:'ep'+sh.key},h('div',{class:'eph'},h('span',{class:'no'},'보관'),nm,h('span',{class:'mm'}),h('span',{class:'ct'},sh.cards.length+'장'),send),rows));
+  }
+  out.push(h('div',{class:'ep'},h('button',{class:'shadd',onclick:()=>{S.shelves.push({key:'s'+Date.now(),name:'새 칸',cards:[]});render()}},'＋ 보관 칸')));
+  return out}
 function kanbanView(){
   return h('div',{class:'kb'},S.eps.map(e=>{
     if(!e.cards.length&&!e.title){const s=h('div',{class:'strip',id:'ep'+e.n,title:e.n+'화 · 비어 있음'},e.n+'화');dropZone(s,id=>place(id,e.n));return s}
@@ -349,13 +375,16 @@ function renderLeft(){
   [[1,10],[11,12]].forEach(([a,b])=>{const es=S.eps.slice(a-1,b);
     L.append(h('div',{class:'grp'},h('span',{},'▾ '+a+'–'+b+'화'),h('span',{},es.reduce((x,e)=>x+e.cards.length,0))));
     es.forEach(e=>L.append(h('div',{class:'epl'+(e.cards.length?'':' empty'),onclick:()=>document.getElementById('ep'+e.n)?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'})},
-      h('b',{},e.n+'화'),h('span',{class:'t'},e.title),h('span',{class:'c'},e.cards.length||''))))})}
+      h('b',{},e.n+'화'),h('span',{class:'t'},e.title),h('span',{class:'c'},e.cards.length||''))))});
+  L.append(h('div',{class:'grp'},h('span',{},'▾ 보관'),h('span',{},S.shelves.reduce((x,e)=>x+e.cards.length,0))));
+  S.shelves.forEach(sh=>L.append(h('div',{class:'epl'+(sh.cards.length?'':' empty'),onclick:()=>{if(UI.mode!=='line'){UI.mode='line';render()}document.getElementById('ep'+sh.key)?.scrollIntoView({behavior:'smooth',block:'nearest'})}},
+    h('span',{class:'t',style:'color:inherit'},sh.name),h('span',{class:'c'},sh.cards.length||''))))}
 function render(){
   const old=UI.ver==='old',kb=UI.mode==='kanban';
   $('#win').className='win'+(old?' old':'')+(kb?' mkb':'');
   document.querySelectorAll('#ver button').forEach(b=>b.classList.toggle('on',b.dataset.v===UI.ver));
   $('#vnote').textContent=old?'지금 앱 화면을 옮겨 그린 것 (비교용 · 끌기는 시안에서만 돼요)':'오른쪽 포스트잇을 가운데로 끌어 보세요';
-  const modeSeg=h('div',{class:'seg'},[['kanban','칸반'],['line','한 줄']].map(([k,n])=>h('button',{class:UI.mode===k?'on':'',onclick:()=>{UI.mode=k;render()}},n)),h('button',{disabled:''},'등장표'),h('button',{disabled:''},'보관'));
+  const modeSeg=h('div',{class:'seg'},[['kanban','칸반'],['line','한 줄']].map(([k,n])=>h('button',{class:UI.mode===k?'on':'',onclick:()=>{UI.mode=k;render()}},n)),h('button',{disabled:''},'등장표'),old?h('button',{disabled:''},'보관'):null);
   const bar=$('#bar');bar.innerHTML='';
   if(old)bar.append(...[h('h3',{},'타임라인'),modeSeg,h('button',{},'분류 ⌄'),kb?null:h('button',{class:'brold'},'⑂ 갈래'),h('span',{class:'sp'}),h('span',{class:'meta'},'전체 12화'),kb?h('span',{class:'meta'},'열 너비 ━━●━━━'):null,h('button',{class:'add'},'＋ 화')].filter(Boolean));
   else bar.append(h('h3',{},'타임라인'),modeSeg,h('span',{class:'sp'}),h('span',{class:'meta'},'12화 · '+placed()+'장'),h('button',{title:'분류 · 갈래 · 열 너비'},'보기 ⋯'),h('button',{class:'add'},'＋ 화'));
