@@ -41,7 +41,8 @@ function migrate(st){
   st.characters.forEach(c=>{c.aliases=c.aliases||[];c.kind=c.kind||'char';if(c.kind==='char'){c.longGoal=c.longGoal||'';c.goals=Array.isArray(c.goals)?c.goals:[]}c.fields=c.fields||(c.kind==='setting'?[]:defFields());if(c.kind==='setting'&&c.memo===undefined)c.memo='';c.relations=c.relations||[];c.board=c.board||{};c.color=c.color||PAL[0]});
   st.characters.forEach(c=>c.relations.forEach(r=>{if(r.type&&!Array.isArray(r.types))r.types=[r.type];delete r.type}));      // 관계: 하나(type) → 여러 개(types)
   st.relTags=Array.isArray(st.relTags)?st.relTags.filter(t=>t&&t.k&&t.l):[];      // 직접 만든 관계 종류
-  st.cards.forEach(c=>{c.chars=c.chars||[];c.autoChars=c.autoChars||[];c.offChars=c.offChars||[];c.stars=c.stars||0});
+  st.cards.forEach(c=>{c.chars=c.chars||[];c.autoChars=c.autoChars||[];c.offChars=c.offChars||[];c.stars=c.stars||0;
+    if(c.branches!==undefined){c.branches=(Array.isArray(c.branches)?c.branches:[]).filter(b=>b&&b.id).map(b=>Object.assign({text:'',stars:0,chars:[],offChars:[]},b));if(!c.branches.length)delete c.branches}});      // 갈래 (branches.js)
   return st;
 }
 let S,UIP={};

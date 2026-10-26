@@ -4,19 +4,19 @@ let GHOST=null;
 const AS={x:0,y:0,raf:0};
 function scrollerAt(x,y,axis){let el=document.elementFromPoint(x,y);while(el&&el!==document.body&&el!==document.documentElement){const cs=getComputedStyle(el);
   if(axis==='y'?(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+2):(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+2))return el;el=el.parentElement}return null}
-function asStep(){AS.raf=0;if(!DRAG)return;let moved=false;
+function asStep(){AS.raf=0;if(!DRAG&&!BRDRAG)return;let moved=false;
   const edge=(r0,r1,v)=>{const e=Math.min(90,(r1-r0)*.28);return v<r0+e?-Math.pow(1-(v-r0)/e,1.4):(v>r1-e?Math.pow(1-(r1-v)/e,1.4):0)};
   const sy=scrollerAt(AS.x,AS.y,'y');if(sy){const r=sy.getBoundingClientRect(),d=edge(r.top,r.bottom,AS.y);if(d){sy.scrollTop+=Math.round(d*26);moved=true}}
   const sx=scrollerAt(AS.x,AS.y,'x');if(sx){const r=sx.getBoundingClientRect(),d=edge(r.left,r.right,AS.x);if(d){sx.scrollLeft+=Math.round(d*26);moved=true}}
-  if(moved&&DRAG)AS.raf=requestAnimationFrame(asStep)}
-document.addEventListener('dragover',e=>{if(!DRAG)return;AS.x=e.clientX;AS.y=e.clientY;if(!AS.raf)AS.raf=requestAnimationFrame(asStep)},true);
-document.addEventListener('wheel',e=>{if(!DRAG)return;const sc=scrollerAt(e.clientX,e.clientY,'y');if(sc){sc.scrollTop+=e.deltaMode===1?e.deltaY*40:e.deltaY;e.preventDefault()}},{capture:true,passive:false});
+  if(moved&&(DRAG||BRDRAG))AS.raf=requestAnimationFrame(asStep)}
+document.addEventListener('dragover',e=>{if(!DRAG&&!BRDRAG)return;AS.x=e.clientX;AS.y=e.clientY;if(!AS.raf)AS.raf=requestAnimationFrame(asStep)},true);
+document.addEventListener('wheel',e=>{if(!DRAG&&!BRDRAG)return;const sc=scrollerAt(e.clientX,e.clientY,'y');if(sc){sc.scrollTop+=e.deltaMode===1?e.deltaY*40:e.deltaY;e.preventDefault()}},{capture:true,passive:false});
 /* 카드와 카드 사이 · 위쪽 여백에 놓을 때: 마우스 높이로 들어갈 자리를 정함 (빈칸이 밀어낸 만큼은 빼고 계산해서 안정적) */
 function ghostByY(body,y){
   const gh=GHOST&&GHOST.parentNode===body&&GHOST.classList.contains('on')?GHOST:null;
   const gs=gh?gh.offsetHeight+(parseFloat(getComputedStyle(gh).marginBottom)||0):0;
   let before=null;
-  for(const c of body.children){if(c===GHOST||!c.classList.contains('kcard')||c.classList.contains('dragging')||(DRAG&&c.dataset.id===DRAG.id))continue;
+  for(const c of body.children){if(c===GHOST||!(c.classList.contains('kcard')||c.classList.contains('brfork'))||c.classList.contains('dragging')||(DRAG&&c.dataset.id===DRAG.id))continue;
     const r=c.getBoundingClientRect(),shift=(gh&&(gh.compareDocumentPosition(c)&Node.DOCUMENT_POSITION_FOLLOWING))?gs:0;
     if(y<r.top-shift+r.height/2){before=c;break}}
   ghostPlace(body,before);

@@ -1,0 +1,64 @@
+/* 갈래 (src/features/branches.js): 보라 계열 — 테마 강조색과 겹치지 않게, 글자색을 섞어 어두운 테마에선 밝게 */
+:root{--br:color-mix(in oklab,#8e5bd8 80%,var(--ink));--br-soft:color-mix(in srgb,var(--br) 14%,transparent)}
+.brlbl{font-size:.74em;font-weight:650;color:var(--br);background:var(--br-soft);border-radius:99px;padding:0 8px;white-space:nowrap}
+.brlbl.main{color:var(--acc);background:var(--acc-soft)}
+.brbadge{font-size:.74em;font-weight:650;color:var(--br);background:var(--br-soft);border-radius:99px;padding:0 8px;min-height:0;line-height:1.6}
+.brbadge:hover,.brbadge.on{background:var(--br);color:#fff}
+.kcard:is(.pool,.tl) .brmk{color:var(--br);font-weight:700}
+.kcard:is(.pool,.tl):not(:hover):not(.editing):not(.selc) .khead .brmk{opacity:0}
+/* 위쪽 바 */
+.brtog{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--br);background:var(--br-soft)}
+.brtog small{font-size:.8em;background:var(--br-soft);border-radius:99px;padding:0 7px}
+.brtog.on{background:var(--br);color:#fff}
+.brtog.on small{background:rgba(255,255,255,.25)}
+.brnext{color:var(--br)}
+.brnext:hover{background:var(--br-soft)}
+/* 본선 | 갈래들: 본선 오른쪽 위 점에서 가지 선이 갈래마다 갈라짐 */
+.brfork{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;margin:0 -8px 9px;padding:8px 8px 0;border-radius:14px;background:color-mix(in srgb,var(--br) 6%,transparent)}
+.brfork.folded{display:block;margin:0;padding:0;background:none}
+.brmain{position:relative;min-width:0}
+.brfork:not(.folded)>.brmain::after{content:'';position:absolute;right:-5px;top:20px;width:10px;height:10px;border-radius:50%;background:var(--br);z-index:2}
+.brlanes{min-width:0}
+.brlane{position:relative;padding-left:40px}
+.brlane::before{content:'';position:absolute;left:18px;top:0;bottom:0;border-left:2px solid var(--br);opacity:.55}
+.brlane:first-child::before{top:25px}
+.brlane:last-child::before{bottom:auto;height:25px}
+.brlane:first-child:last-child::before{display:none}
+.brlane::after{content:'';position:absolute;left:18px;top:24px;width:22px;border-top:2px solid var(--br);opacity:.55}
+.brlane:first-child::after{left:0;width:40px}
+.brtools{display:flex;gap:4px;padding:0 10px 9px}
+.brtools button{font-size:.8em;padding:2px 9px}
+.brtools .brkeep{background:var(--br);color:#fff}
+.brtools .brkeep:hover{filter:brightness(1.08)}
+/* 카드 가운데에 놓으면 갈래로 */
+.kcard.brdrop{position:relative;box-shadow:0 0 0 2px var(--br)!important}
+.kcard.brdrop::after{content:'⑂ 이 카드의 갈래로 넣기';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:inherit;background:color-mix(in srgb,var(--panel) 80%,transparent);color:var(--br);font-weight:700;z-index:5;pointer-events:none}
+/* 갈래를 끄는 동안: 오른쪽 목록에 놓으면 떼어내기 */
+.brback{margin:4px 14px 8px;padding:14px;border:2px dashed var(--br);border-radius:12px;color:var(--br);background:var(--br-soft);font-weight:650;font-size:.86em;text-align:center}
+.brback.over,body.brdragging .plist.over~.brback{background:var(--br);color:#fff}
+body.brdragging .plist.over{box-shadow:inset 0 0 0 3px var(--br)}
+/* 합치기 창 */
+.brmbox{width:min(920px,94vw);max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.brmt0{font-weight:700;font-size:1.08em}
+.brmcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brmcol{background:var(--fill);border-radius:12px;padding:8px;min-width:0}
+.brmh{font-size:.84em;font-weight:650;margin:0 0 6px}
+.brms{display:block;width:100%;text-align:left;background:var(--panel);border:.5px solid var(--line);border-radius:8px;padding:6px 9px;margin:0 0 5px;font-size:.92em;white-space:normal}
+.brms::before{content:'＋ ';color:var(--br);font-weight:700}
+.brms:hover{background:var(--br-soft)}
+.brms.used{opacity:.45}
+.brmt{width:100%;min-height:130px;resize:vertical;font:inherit;line-height:1.6;border:1.5px solid var(--br)!important}
+.brmmeta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.brtools{flex-wrap:wrap}
+.brtools button{white-space:nowrap}
+/* 타임라인 칸이 좁으면 갈래를 본선 아래로: 왼쪽 세로 가지에서 갈래마다 갈라짐 */
+.tlline{container-type:inline-size}
+@container (max-width:640px){
+  .brfork{grid-template-columns:minmax(0,1fr)}
+  .brfork:not(.folded)>.brmain::after{right:auto;left:14px;top:auto;bottom:4px}
+  .brlane{padding-left:34px}
+  .brlane::before,.brlane:first-child::before{left:18px;top:-9px;bottom:0;height:auto}
+  .brlane:last-child::before{bottom:auto;height:34px}
+  .brlane:first-child:last-child::before{display:block}
+  .brlane::after,.brlane:first-child::after{left:18px;width:16px}
+}

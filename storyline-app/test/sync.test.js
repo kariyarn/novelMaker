@@ -103,6 +103,18 @@ test('양쪽에서 같은 작품을 고치면: 사본 작품 없이 카드 단�
   assert.deepEqual(names(A.store),['장편']);
 });
 
+test('같은 카드에 양쪽에서 갈래를 따로 만들면: 갈래 둘 다 남음', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  const withBr=brs=>{const w=JSON.parse(work([['k1','처음']]));w.cards[0].branches=brs.map(([id,text])=>({id,text,stars:0,chars:[],offChars:[]}));return JSON.stringify(w)};
+  A.store.save('storyline_v1',withBr([['b1','A의 갈래']]));await A.sync.sync();
+  B.store.save('storyline_v1',withBr([['b2','B의 갈래']]));
+  const r=await B.sync.sync();
+  assert.equal(r.ok,true,r.error);
+  assert.deepEqual(r.conflicts,[]);
+  assert.deepEqual(JSON.parse(B.store.load('storyline_v1').text).cards[0].branches.map(b=>b.text),['B의 갈래','A의 갈래']);
+});
+
 test('같은 카드 글을 양쪽에서 다르게 고치면: 이 기기 글을 두고, 다른 기기 글은 고를 수 있게 남김', async()=>{
   const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
   const B=device(gh);await B.sync.sync();

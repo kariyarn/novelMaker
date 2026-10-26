@@ -104,9 +104,9 @@ function renderPool0(){
   if(items.length>lim)list.append(h('button',{class:'quiet morebtn',style:'width:100%;margin-top:10px',onclick:()=>{const st=$('pool').scrollTop;UI.poolLimit=lim+80;renderPool();$('pool').scrollTop=st}},`＋ ${items.length-lim}장 더 보기`));
   if(!list.children.length)list.append(h('div',{class:'empty'},S.cards.length?'조건에 맞는 카드가 없어요.':'쓰고 싶은 장면이나 대사를 위에 한 줄씩 적어 보세요.',
     S.cards.length?h('div',{},h('button',{class:'quiet',style:'margin-top:8px',onclick:()=>{UI.pchar='';UI.pq='';UI.pused='all';UIP.pk=S.kinds.map(k=>k.id);UIP.pown={char:true,setting:true,none:true};saveUIP();renderAll()}},'필터 모두 풀기')):h('div',{},h('button',{class:'on',style:'margin-top:10px',onclick:()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()}},'첫 카드 쓰기'))));
-  list.addEventListener('dragover',e=>{if(DRAG&&(episodeOf(DRAG.id)||shelfOf(DRAG.id))){e.preventDefault();list.classList.add('over')}});
+  list.addEventListener('dragover',e=>{if(BRDRAG||DRAG&&(episodeOf(DRAG.id)||shelfOf(DRAG.id))){e.preventDefault();list.classList.add('over')}});
   list.addEventListener('dragleave',e=>{if(!list.contains(e.relatedTarget))list.classList.remove('over')});
-  list.addEventListener('drop',e=>{e.preventDefault();list.classList.remove('over');if(DRAG){const id=DRAG.id;DRAG=null;unplaceCard(id)}});
+  list.addEventListener('drop',e=>{e.preventDefault();list.classList.remove('over');if(BRDRAG)return brDropPool();if(DRAG){const id=DRAG.id;DRAG=null;unplaceCard(id)}});
   p.append(list);
   fitAll(p);markClips(list);masonry(list);hlLayoutAll(p);
   requestAnimationFrame(()=>{fitAll(p);markClips(list);masonry(list)});      // 레이아웃이 자리 잡은 뒤 한 번 더 (접힘 판단은 실제 높이가 필요)
