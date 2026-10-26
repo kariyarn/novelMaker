@@ -120,7 +120,7 @@ function clearDemo(){snap();const keep=S.settings,kinds=S.kinds;S=migrate({chara
 /* 패널 너비 / 접기 */
 const lineMode=()=>UI.mode==='tl'&&(UIP.tlMode||'kanban')==='line';
 function lineAvail(){const lw=document.body.classList.contains('focus')?0:(UIP.cl.left?0:240)+1;return innerWidth-lw-1}      // 한 줄 모드: 타임라인 33~50% · 목록 50~67%
-const lineR=()=>Math.min(.67,Math.max(.5,UIP.rwr||.67));
+const lineR=()=>Math.min(typeof brWide==='function'&&brWide()?.5:.67,Math.max(.5,UIP.rwr||.67));      // 갈래를 펼쳐 둔 동안은 타임라인을 절반까지 넓힘 (본선 · 갈래를 나란히)
 const LEFTW=300;      // 왼쪽 인물 · 설정 목록 기본 폭 (인물 시트 폭과는 따로)
 const MIDMIN=460;      // 구상 보드가 이보다 좁아지지 않게 인물 시트 폭을 줄여서 보여 줌 (저장된 폭은 그대로라 창을 넓히면 돌아옴)
 /* 오른쪽 목록 폭은 화면마다 따로 기억: 구상 · 타임라인 · 등장표 · 전체 (예전 하나짜리 값은 처음 값으로) */

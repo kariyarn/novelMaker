@@ -29,8 +29,9 @@ function kcard(card,mode,opt={}){
   const k=kindOf(card.kind),pl=episodeOf(card.id),isB=mode==='board';
   const el=h('div',{class:'kcard '+mode+(pl&&mode!=='tl'?' used':'')+(SELCARD===card.id?' selc':''),'data-id':card.id,'data-stars':card.stars||0,'data-sl':'★'.repeat(card.stars||0),style:`--kc0:${cardColor(card)}`});
   if(MSEL.has(card.id))el.classList.add('msel');
-  const bar=h('div',{class:isB?'kbar':'khead'},isB?null:h('span',{class:'grip',title:'카드 어디든 잡고 끌어서 옮길 수 있어요'},'⠿'),kindSelect(card),starsEl(card),h('span',{class:'sp'}),
+  const bar=h('div',{class:isB?'kbar':'khead'},isB?null:h('span',{class:'grip',title:'카드 어디든 잡고 끌어서 옮길 수 있어요'},'⠿'),kindSelect(card),starsEl(card),isB?null:brBadge(card,opt),h('span',{class:'sp'}),
     pl&&mode==='pool'?h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`):null,
+    mode==='tl'&&opt.epId?h('button',{class:'cbtn brmk',title:'갈래 만들기 — 지금 글을 복사해서 다르게 써 보기',onclick:()=>brMake(card.id)},'⑂'):null,
     h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>delCard(card.id)},'✕'));
   const ta=h('textarea',{class:'ktext autofit',rows:1,readonly:true,placeholder:'더블클릭해서 쓰기',
     oninput:e=>{edit(()=>{card.text=e.target.value;stamp(card)});fitOne(e.target);if(isB)syncOne(el)},
@@ -77,13 +78,15 @@ function kcard(card,mode,opt={}){
       const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
       msMenu(a,MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id]);a.remove()});
     if(mode==='tl'){
-      el.addEventListener('dragover',e=>{if(!DRAG||DRAG.id===card.id)return;e.preventDefault();e.stopPropagation();const r=el.getBoundingClientRect();
-        const gh=GHOST&&GHOST.parentNode===el.parentElement&&GHOST.classList.contains('on')?GHOST:null,shift=(gh&&(gh.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING))?gh.offsetHeight+9:0;      // 빈칸이 아래로 밀어낸 만큼 빼고, 원래 자리 기준으로 판단
-        const mid=r.top-shift+r.height/2,cur=gh?(gh.nextElementSibling===el?'b':(gh.previousElementSibling===el?'a':'')):'',dead=Math.min(14,r.height*.2);      // 경계 근처에서는 지금 자리를 유지 (히스테리시스)
+      const row=()=>el.closest('.brfork')||el;      // 갈래를 펼친 카드는 본선 · 갈래 묶음 전체가 한 줄
+      el.addEventListener('dragover',e=>{if(brDragOver(e,el,card,opt))return;if(!DRAG||DRAG.id===card.id)return;e.preventDefault();e.stopPropagation();const rw=row(),r=rw.getBoundingClientRect();
+        const gh=GHOST&&GHOST.parentNode===rw.parentElement&&GHOST.classList.contains('on')?GHOST:null,shift=(gh&&(gh.compareDocumentPosition(rw)&Node.DOCUMENT_POSITION_FOLLOWING))?gh.offsetHeight+9:0;      // 빈칸이 아래로 밀어낸 만큼 빼고, 원래 자리 기준으로 판단
+        const mid=r.top-shift+r.height/2,cur=gh?(gh.nextElementSibling===rw?'b':(gh.previousElementSibling===rw?'a':'')):'',dead=Math.min(14,r.height*.2);      // 경계 근처에서는 지금 자리를 유지 (히스테리시스)
         const b=cur==='b'?e.clientY<mid+dead:(cur==='a'?e.clientY<mid-dead:e.clientY<mid);el.classList.toggle('drop-before',b);el.classList.toggle('drop-after',!b);
-        let nx=b?el:el.nextElementSibling;if(nx&&nx===GHOST)nx=nx.nextElementSibling;ghostPlace(el.parentElement,nx)});
-      el.addEventListener('dragleave',()=>el.classList.remove('drop-before','drop-after'));
+        let nx=b?rw:rw.nextElementSibling;if(nx&&nx===GHOST)nx=nx.nextElementSibling;ghostPlace(rw.parentElement,nx)});
+      el.addEventListener('dragleave',()=>el.classList.remove('drop-before','drop-after','brdrop'));
       el.addEventListener('drop',e=>{
+        if(brDrop(e,el,card))return;
         if(!DRAG||DRAG.id===card.id)return;e.preventDefault();e.stopPropagation();
         const before=el.classList.contains('drop-before'),ep=opt.shelfId?S.shelves.find(x=>x.id===opt.shelfId):S.episodes.find(x=>x.id===opt.epId);
         let nextId=card.id;if(!before){const i=ep.cardIds.indexOf(card.id);nextId=ep.cardIds.slice(i+1).find(x=>x!==DRAG.id)||null}

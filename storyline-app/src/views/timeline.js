@@ -160,6 +160,7 @@ function renderTimeline(m){
     (U2()?tabs:seg)([['kanban','칸반'],['line','한 줄'],['matrix','등장표'],['shelf','보관']],mode,k=>{UIP.tlMode=k;saveUIP();renderAll()}),
     U2()?h('span',{class:'sp'}):null,
     kindFilterBtn(),
+    ...(mode==='line'?brBar():[]),
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
     U2()?null:h('span',{class:'sp'}),
     U2()?tlRangeSel():h('span',{class:'muted'},!sc?`전체 ${E.length}화`:(sc.e!==undefined?`${sc.e+1}화`:grpLab(lo,hi))),
@@ -181,11 +182,12 @@ function renderTimeline(m){
   // 한 화의 머리(제목·메모)와 카드 목록: 칸반과 한 줄 모드가 같이 씀
   const build=(ep,idx)=>{
     const body=h('div',{class:'tlbody'});
+    const one=c=>mode==='line'&&brOn()&&brs(c).length?brFork(c,{epId:ep.id}):kcard(c,'tl',{epId:ep.id});      // 한 줄 보기 + 갈래 켬: 본선 옆에 갈래를 펼침
     const cards=ep.cardIds.map(cardById).filter(Boolean).filter(kindOk).filter(c=>UI.tlChar==='all'||eff(c).includes(UI.tlChar));
     if(LAZY&&cards.length){      // 카드가 많으면 화면에 보일 때 채움
       body.style.minHeight=Math.min(cards.length*74,1600)+'px';
-      body._fill=()=>{body.style.minHeight='';cards.forEach(c=>body.append(kcard(c,'tl',{epId:ep.id})))};TLIO.observe(body);
-    }else cards.forEach(c=>body.append(kcard(c,'tl',{epId:ep.id})));
+      body._fill=()=>{body.style.minHeight='';cards.forEach(c=>body.append(one(c)))};TLIO.observe(body);
+    }else cards.forEach(c=>body.append(one(c)));
     if(!cards.length)body.append(h('div',{class:'tlhint'},UI.tlChar==='all'?'오른쪽 카드를 끌어다 놓기':'이 인물의 카드가 없어요'));
     body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
     body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});
