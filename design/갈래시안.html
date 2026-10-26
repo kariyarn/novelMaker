@@ -106,6 +106,9 @@ h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
 .pool .hint{color:var(--sub);font-size:.8em;padding:0 14px 10px}
 .pool .list{flex:1;overflow:auto;padding:4px 12px 20px;display:flex;flex-direction:column;gap:9px}
 .pool .kc{cursor:grab}
+.pool .back{display:none;margin:0 12px 8px;padding:14px;border:2px dashed var(--br);border-radius:10px;color:var(--br);font-weight:650;text-align:center;font-size:.86em;background:var(--br-soft)}
+body.dragbr .pool .back{display:block}
+body.dragbr .pool.over .back{background:var(--br);color:#fff}
 .pool .empty{color:var(--sub);font-size:.85em;text-align:center;padding:20px 0}
 
 /* 합치기 창 */
@@ -142,7 +145,7 @@ h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
   <ul class="how">
     <li><strong>① 갈래로 넣기</strong>오른쪽 목록의 카드를 타임라인 카드 위에 끌어다 놓아 보세요.</li>
     <li><strong>② 갈래 치기</strong>카드에 마우스를 올리면 오른쪽 아래에 <b>⑂ 갈래 만들기</b>가 나와요.</li>
-    <li><strong>③ 고르기</strong><b>이걸로</b>는 본선과 자리만 바꾸고, 원래 본선은 갈래로 남아요. <b>✕</b>를 눌러야만 지워져요.</li>
+    <li><strong>③ 고르기</strong><b>이걸로</b>는 본선과 자리만 바꾸고, 원래 본선은 갈래로 남아요. 잘못 넣었으면 <b>↩ 떼어내기</b>로 목록에 돌려놓고, <b>✕</b>를 눌러야만 지워져요.</li>
     <li><strong>④ 껐을 때</strong>위쪽 <b>⑂ 갈래</b>를 끄면 본선만 보이고, 갈래가 있는 카드에 <b>⑂2</b> 표시만 남아요.</li>
   </ul>
 
@@ -161,6 +164,7 @@ h1{font-size:1.6em;margin:0 0 6px;letter-spacing:-.03em}
     <aside class="pool">
       <h4>쓰고 싶은 장면 · 대사</h4>
       <div class="hint">타임라인 카드 위에 끌어다 놓으면 그 카드의 갈래가 돼요</div>
+      <div class="back">↩ 여기 놓으면 갈래를 떼어서 따로 된 카드로 돌려놔요</div>
       <div class="list" id="pool"></div>
     </aside>
   </div></div>
@@ -222,14 +226,21 @@ function cardEl(id,c,{branch,idx,main}={}){
     h('div',{class:'txt',contenteditable:'true',oninput:e=>{(branch||c).text=e.target.innerText}},(branch||c).text),
     chips((branch||c).chars),
     branch?h('div',{class:'tools'},
-      h('button',{class:'keep',title:'이 갈래를 본선으로 · 나머지 갈래는 휴지통',onclick:()=>keep(id,branch.id)},'이걸로'),
+      h('button',{class:'keep',title:'이 갈래를 본선으로 · 원래 본선은 갈래로 남음',onclick:()=>keep(id,branch.id)},'이걸로'),
       h('button',{title:'본선과 나란히 놓고 합치기',onclick:()=>openMerge(id,branch.id)},'합치기'),
+      h('button',{title:'잘못 넣은 갈래를 따로 된 카드로 오른쪽 목록에 돌려놓기 (끌어서 목록이나 다른 카드에 놓아도 돼요)',onclick:()=>detach(id,branch.id)},'↩ 떼어내기'),
       h('button',{class:'del',title:'이 갈래만 휴지통으로',onclick:()=>delBr(id,branch.id)},'✕')):null,
     !branch?h('button',{class:'mk',title:'지금 글을 복사해서 갈래를 따요',onclick:()=>makeBr(id)},'⑂ 갈래 만들기'):null);
-  if(!branch){      // 끌어다 넣기 받는 쪽
-    el.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();el.classList.add('drop')}});
+  const ok=()=>DRAG&&!(DRAG.from==='br'&&DRAG.card===id);
+  if(!branch&&S.pool.includes(id))return el;
+  if(!branch){      // 끌어다 넣기 받는 쪽: 목록 카드 · 다른 카드의 갈래
+    el.addEventListener('dragover',e=>{if(ok()){e.preventDefault();el.classList.add('drop')}});
     el.addEventListener('dragleave',()=>el.classList.remove('drop'));
-    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drop');if(DRAG)addAsBranch(id,DRAG)});
+    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drop');if(!ok())return;DRAG.from==='pool'?addAsBranch(id,DRAG.id):moveBr(DRAG.card,DRAG.bid,id)});
+  }else{      // 갈래도 끌 수 있음: 오른쪽 목록에 놓으면 떼어내기, 다른 카드에 놓으면 그 카드의 갈래로
+    el.draggable=true;
+    el.addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest('.txt:focus'))return e.preventDefault();DRAG={from:'br',card:id,bid:branch.id};e.dataTransfer.setData('text/plain',branch.id);document.body.classList.add('dragbr')});
+    el.addEventListener('dragend',()=>{DRAG=null;document.body.classList.remove('dragbr')});
   }
   return el;
 }
@@ -249,7 +260,7 @@ function render(){
   });
   const pl=$('pool');pl.textContent='';
   S.pool.forEach(id=>{const el=cardEl(id,S.cards[id]);el.querySelector('.mk').remove();el.querySelector('.txt').removeAttribute('contenteditable');el.draggable=true;
-    el.addEventListener('dragstart',e=>{DRAG=id;e.dataTransfer.setData('text/plain',id)});el.addEventListener('dragend',()=>{DRAG=null});pl.append(el)});
+    el.addEventListener('dragstart',e=>{DRAG={from:'pool',id};e.dataTransfer.setData('text/plain',id)});el.addEventListener('dragend',()=>{DRAG=null});pl.append(el)});
   if(!S.pool.length)pl.append(h('div',{class:'empty'},'목록이 비었어요'));
   $('eplist').replaceChildren(...S.eps.map(ep=>{const f=ep.cards.filter(id=>S.cards[id].br.length).length;return h('div',{class:'row'},h('b',{},ep.n+'화'),ep.title,f?h('span',{class:'fk',title:'갈래가 있는 카드'},'⑂'+f):null,h('span',{class:'c'},ep.cards.length))}));
   requestAnimationFrame(drawLines);
@@ -269,6 +280,10 @@ function drawLines(){
   });
 }
 addEventListener('resize',drawLines);
+{const P=document.querySelector('.pool');      // 오른쪽 목록: 갈래를 놓으면 떼어내기
+  P.addEventListener('dragover',e=>{if(DRAG&&DRAG.from==='br'){e.preventDefault();P.classList.add('over')}});
+  P.addEventListener('dragleave',e=>{if(!P.contains(e.relatedTarget))P.classList.remove('over')});
+  P.addEventListener('drop',e=>{P.classList.remove('over');if(DRAG&&DRAG.from==='br'){e.preventDefault();const d=DRAG;DRAG=null;document.body.classList.remove('dragbr');detach(d.card,d.bid)}})}
 function focusFork(id){requestAnimationFrame(()=>{const f=document.querySelector(`[data-fork="${id}"]`);if(!f)return;f.scrollIntoView({block:'center',behavior:'smooth'});f.querySelectorAll('.kc').forEach(k=>{k.classList.add('flash');setTimeout(()=>k.classList.remove('flash'),1400)})})}
 let nextI=0;
 $('next').onclick=()=>{const ids=S.eps.flatMap(e=>e.cards).filter(id=>S.cards[id].br.length);if(!ids.length)return;focusFork(ids[nextI++%ids.length])};
@@ -280,6 +295,11 @@ function makeBr(id){const c=S.cards[id];snap();const b={id:uid(),text:c.text,sta
 // 이걸로: 본선과 자리만 바꿈 — 원래 본선은 같은 자리의 갈래로 남음 (지우는 건 ✕ 뿐)
 const asBr=c=>({id:uid(),text:c.text,stars:c.stars,chars:[...c.chars],note:'이전 본선'});
 function keep(id,bid){const c=S.cards[id],i=c.br.findIndex(x=>x.id===bid),b=c.br[i];snap();c.br[i]=asBr(c);Object.assign(c,{text:b.text,stars:b.stars,chars:b.chars});render();focusFork(id);toast('이 갈래를 본선으로 올렸어요 · 원래 본선은 갈래로 남겨 뒀어요',true)}
+function takeBr(id,bid){const c=S.cards[id],b=c.br.find(x=>x.id===bid);c.br=c.br.filter(x=>x!==b);return b}
+// 떼어내기: 갈래를 따로 된 카드로 오른쪽 목록 맨 위에 돌려놓음
+function detach(id,bid){snap();const b=takeBr(id,bid),nid=uid();S.cards[nid]={text:b.text,stars:b.stars,chars:b.chars,br:[]};S.pool.unshift(nid);render();
+  requestAnimationFrame(()=>{const el=document.querySelector(`#pool .kc[data-id="${nid}"]`);if(el){el.scrollIntoView({block:'nearest'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1400)}});toast('갈래를 떼어서 오른쪽 목록에 돌려놨어요',true)}
+function moveBr(from,bid,to){snap();const b=takeBr(from,bid);delete b.note;S.cards[to].br.push(b);render();focusFork(to);toast('다른 카드의 갈래로 옮겼어요',true)}
 function delBr(id,bid){const c=S.cards[id];snap();c.br=c.br.filter(x=>x.id!==bid);render();if(c.br.length)focusFork(id);toast('갈래를 휴지통으로 보냈어요',true)}
 
 let M=null;
