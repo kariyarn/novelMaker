@@ -70,8 +70,8 @@ function frRenderLine(m,E,lo,hi,build){
   frPager(sheet);
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
   if(UIP.frshs){      // 보관함을 원고 옆에 나란히 (따로 스크롤)
-    const side=h('div',{class:'frshp'});frShelves(side,true);
-    m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),side));return}
+    const side=h('div',{class:'frsheet frshp'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
+    m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),h('div',{class:'frlcol'},side)));return}
   if(!UI.tlScope)frShelves(sheet);      // 한 화 · 한 묶음만 볼 때는 원고 아래에 보관을 붙이지 않음 (위쪽 보관함 아이콘으로 열기)
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
 }
