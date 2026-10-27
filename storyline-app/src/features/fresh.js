@@ -40,6 +40,7 @@ const frW=()=>UIP.frw||720,frFs=()=>UIP.frfs||16.5;
 function frSetW(w){UIP.frw=Math.max(520,Math.min(1100,Math.round(w/10)*10));const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frw',UIP.frw+'px');const r=document.querySelector('#frwr');if(r)r.value=UIP.frw}
 function frLineBar(){
   return [h('span',{class:'frscm',title:'장면 구분을 어떻게 보여줄지'},seg([['line','구분선'],['box','묶음']],UIP.frsc==='box'?'box':'line',k=>{UIP.frsc=k;saveUIP();renderMid()})),
+    h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox')),
     h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
     h('span',{class:'frfsz',title:'글자 크기'},
       h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>{UIP.frfs=Math.max(14,frFs()-1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'),
@@ -68,7 +69,10 @@ function frRenderLine(m,E,lo,hi,build){
   flush();
   frPager(sheet);
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
-  frShelves(sheet);
+  if(UIP.frshs){      // 보관함을 원고 옆에 나란히 (따로 스크롤)
+    const side=h('div',{class:'frshp'});frShelves(side,true);
+    m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),side));return}
+  if(!UI.tlScope)frShelves(sheet);      // 한 화 · 한 묶음만 볼 때는 원고 아래에 보관을 붙이지 않음 (위쪽 보관함 아이콘으로 열기)
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
 }
 
@@ -94,7 +98,8 @@ function frScenes(body,ep){
     els.forEach((el,i)=>{if(!i){el.classList.add('scfirst');return}
       if(seps.has(ids[i])){el.classList.add('scst');
         el.prepend(h('div',{class:'frsep',title:'장면 구분'},h('i',{}),h('button',{class:'frjoin',title:'구분 지우고 앞 장면과 잇기',onclick:e=>{e.stopPropagation();setSeps(a=>a.filter(x=>x!==ids[i]))}},'잇기')))}
-      else el.prepend(h('button',{class:'frcut',title:'여기서 장면 나누기 — 이어지지 않는 장면을 따로 묶어요',onclick:e=>{e.stopPropagation();setSeps(a=>[...a,ids[i]])}},'＋ 장면 나누기'));
+      else{const cut=h('div',{class:'frcut',title:'여기서 장면 나누기 — 이어지지 않는 장면을 따로 묶어요',onclick:e=>{e.stopPropagation();setSeps(a=>[...a,ids[i]])}},h('span',{},'＋ 장면 나누기'));
+        cut.addEventListener('pointerdown',e=>e.stopPropagation());cut.addEventListener('dblclick',e=>e.stopPropagation());el.prepend(cut)}
       if(i===els.length-1||seps.has(ids[i+1]))el.classList.add('sclast')});
     if(els.length&&!els.slice(1).some(e=>e.classList.contains('scst')))els[els.length-1].classList.add('sclast');
   };
@@ -102,14 +107,14 @@ function frScenes(body,ep){
 }
 
 /* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
-function frShelves(sheet){
+function frShelves(sheet,side){
   const shs=S.shelves||[],newShelf=async()=>{const name=((await askText('새 보관 칸 이름 (예: 30화 이후)','보관'))||'').trim();if(name)act(()=>S.shelves.push({id:uid(),name,cardIds:[]}))};
-  if(!shs.length){sheet.append(h('button',{class:'fradd frshadd',onclick:newShelf},'＋ 보관 칸 · 몇 화에 쓸지 안 정한 장면'));return}
-  sheet.append(h('div',{class:'frshdiv'},h('b',{},'보관'),h('span',{},'몇 화에 쓸지 아직 안 정한 장면')));
+  if(!shs.length&&!side){sheet.append(h('button',{class:'fradd frshadd',onclick:newShelf},'＋ 보관 칸 · 몇 화에 쓸지 안 정한 장면'));return}
+  sheet.append(h('div',{class:'frshdiv'},h('b',{},'보관'),h('span',{},'몇 화에 쓸지 아직 안 정한 장면'),side?h('button',{class:'cbtn frshx',title:'보관함 닫기',onclick:()=>{UIP.frshs=false;saveUIP();renderMid()}},'✕'):null));
   shs.forEach(sh=>{
     const cards=sh.cardIds.map(cardById).filter(Boolean).filter(kindOk);
     const body=h('div',{class:'tlbody'},...cards.map(c=>kcard(c,'tl',{shelfId:sh.id})));
-    if(!cards.length)body.append(h('div',{class:'tlhint'},'오른쪽 카드나 위 원고의 문단을 끌어다 놓기'));
+    if(!cards.length)body.append(h('div',{class:'tlhint'},'원고의 문단이나 오른쪽 카드를 끌어다 놓기'));
     body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
     body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});
     body.addEventListener('drop',e=>{e.preventDefault();body.classList.remove('over');if(DRAG){const id=DRAG.id,nb=ghostBeforeId(body);DRAG=null;shelfPlace(id,sh.id,nb)}});
@@ -124,7 +129,6 @@ function frShelves(sheet){
 function frProfile(c,n,hidden){
   const open=!UIP.cl.sheet,goal=(c.longGoal||'').trim(),isSet=c.kind==='setting';
   return h('div',{class:'bhead frprof'},
-    h('span',{class:'frav'+(isSet?' sq':''),style:`--c:${c.color}`},c.icon||frInitial(c.name)),
     h('div',{class:'frwho'},
       h('div',{class:'frnm'},h('b',{},c.name||'(이름 없음)'),c.role?h('small',{},c.role):null,
         h('span',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 숨김 ${hidden}`:''}`),
