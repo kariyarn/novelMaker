@@ -275,7 +275,17 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 @keyframes landp{0%,40%{background:var(--note)}100%{background:transparent}}
 .n .lane.over .stack,.n .lane.over .drop{outline:2px dashed var(--acc);outline-offset:4px;border-radius:8px}
 .n .ch.over{background:var(--acc-soft);border-radius:8px;box-shadow:0 0 0 12px var(--acc-soft)}
-.n .pi.drag{opacity:.4}
+.n .pi.drag,.n .ic.drag,.n .pa.drag{opacity:.35}
+.n .ic[draggable],.n .pa[draggable]{cursor:grab}
+/* 카드 → 포스트잇: 오른쪽 목록으로 돌려놓으면 하얀 카드가 다시 노란 종이로 */
+.n .pi.back{animation:back 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes back{0%{background:var(--paper);transform:rotate(0) scale(.97)}45%{background:var(--paper)}100%{background:var(--note);transform:rotate(var(--r))}}
+.n .pool.over .ls{outline:2px dashed var(--acc);outline-offset:-8px;border-radius:12px;background:var(--acc-soft)}
+.n .pool .backhint{display:none;margin:0 20px;padding:8px 12px;border-radius:9px;background:var(--acc-soft);color:var(--acc);font-size:12.5px}
+.n .pool.over .backhint,.n.carrying .pool .backhint{display:block}
+.n .ins{height:3px;border-radius:3px;background:var(--acc);margin:-1px 0}
+.n .tools .bk{cursor:pointer}
+.n .tools .bk:hover{color:var(--acc)}
 
 /* 한 줄 보기: 글 폭 · 글자 크기 */
 .n .bar .wctl{display:flex;align-items:center;gap:8px;padding-bottom:10px}
@@ -366,6 +376,7 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>한 줄 보기는 원고 한 장</b>화가 장(章)처럼 이어지고, 카드는 문단이 돼요. 장면도 대사도 한 칸 들여 써서 소설처럼 읽혀요.</li>
     <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요.</li>
     <li><b>포스트잇이 카드로 바뀌어요</b>오른쪽 포스트잇을 칸반의 화나 한 줄 보기의 장에 끌어다 놓아 보세요. 노란 종이가 하얀 카드로 바뀌며 자리를 잡아요.</li>
+    <li><b>언제든 다시 뺄 수 있어요</b>카드를 오른쪽 목록으로 끌어다 놓거나 카드의 <b>↩ 빼기</b>를 누르면 다시 노란 포스트잇으로 돌아가요. 카드를 다른 화나 같은 화의 다른 자리로 끌어 옮길 수도 있어요.</li>
     <li><b>한 줄 보기: 글 폭 · 글자 크기</b>위쪽 <b>글 폭</b> 슬라이드나 원고 양옆 손잡이를 끌어 폭을 바꾸고, <b>가 가</b>로 글자 크기를 바꿔요.</li>
     <li><b>읽다가 바로 집중</b>한 줄 보기에서 문단을 두 번 누르면 그 카드 한 장만 크게 열려요. Esc로 닫으면 고친 글이 그대로 남아요.</li>
     <li><b>화면 크기에 맞춰 저절로</b>위쪽 <b>13인치 / 27인치</b>를 바꿔 보세요. 넓은 화면에선 화 목록 · 인물 시트가 저절로 펼쳐지고, 좁은 화면에선 접혀요. 직접 열고 닫으면 그 선택이 우선이에요.</li>
@@ -394,7 +405,7 @@ const CARDS=[
 ];
 const EPS=[['새벽의 접촉사고','둘의 아비투스가 처음 충돌',[0,1,2,7]],['반지하','',[3]],['봉투','돈으로 선을 긋는 아버지',[6]],...Array.from({length:9},()=>['','',[]])];
 const POOL=[8,4,5,9,10,11];
-let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,REAL=false;
+let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,REAL=false;
 const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
 const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
 try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
@@ -407,13 +418,13 @@ const chars=ids=>ids.reduce((a,i)=>a+CARDS[i][1].length,0);
 
 /* ---------- 새단장 ---------- */
 function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
-  return `<div class="ic${k==='memo'?' memo':''}${JUST===i?' land':''}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+  return `<div class="ic${k==='memo'?' memo':''}${JUST===i?' land':''}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
     <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}</span>
-    <span class="tools"><span>${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span><span>✕</span></span></div></div>`}
+    <span class="tools"><span>${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div></div>`}
 function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   const cls=k==='memo'?'memo':s.who?'dlg':'';
-  return `<div class="pa ${cls}${JUST===i?' land':''}" data-i="${i}" title="두 번 누르면 집중 모드"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>두 번 눌러 집중</span><span>↩ 빼기</span></span></div>`}
+  return `<div class="pa ${cls}${JUST===i?' land':''}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>두 번 눌러 집중</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div>`}
 function renderNew(kb){
   const lanes=EPS.map((e,n)=>{const full=e[2].length;
     return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
@@ -437,10 +448,11 @@ function renderNew(kb){
 /* 오른쪽 목록: 평소엔 한 줄, 정리할 게 많을 때 넓히면 두 줄 */
 const poolW=()=>PW?'560px':'312px';
 function poolHTML(){
-  return `<aside class="pool${PW?' wide':''}"><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span><span class="wd" data-pw title="${PW?'한 줄로 좁히기':'두 줄로 넓히기'}">${PW?'→ 좁게':'← 넓게'}</span></div>
+  return `<aside class="pool${PW?' wide':''}" data-pool><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span><span class="wd" data-pw title="${PW?'한 줄로 좁히기':'두 줄로 넓히기'}">${PW?'→ 좁게':'← 넓게'}</span></div>
     <div class="in">한 줄 쓰고 Enter</div>
+    <div class="backhint">여기 놓으면 다시 포스트잇으로 돌아가요</div>
     <div class="tabs"><span class="on">미사용</span><span>사용</span><span>전체</span></div>
-    <div class="ls">${POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi" draggable="true" data-i="${i}" style="--r:${[-1.4,1,-.6,1.3,-1,.7][j%6]}deg">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
+    <div class="ls">${POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-1.4,1,-.6,1.3,-1,.7][j%6]}deg">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
   </aside>`}
 
 /* ---------- 지금 (비교용) ---------- */
@@ -522,15 +534,29 @@ function renderStoryNow(){
 
 /* ---------- 새단장: 끌어다 놓기 · 글 폭 · 집중 모드 ---------- */
 function wireNew(app){
-  let dragI=null;
-  app.querySelectorAll('.pi[draggable]').forEach(el=>{
-    el.addEventListener('dragstart',e=>{dragI=+el.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',el.dataset.i);el.classList.add('drag')});
-    el.addEventListener('dragend',()=>{el.classList.remove('drag');app.querySelectorAll('.over').forEach(x=>x.classList.remove('over'))})});
+  let dragI=null,ins=null;
+  const detach=i=>{const k=POOL.indexOf(i);if(k>=0)POOL.splice(k,1);EPS.forEach(e=>{const j=e[2].indexOf(i);if(j>=0)e[2].splice(j,1)})};
+  const clear=()=>{app.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));ins?.remove();ins=null};
+  app.querySelectorAll('.pi[draggable],.ic[draggable],.pa[draggable]').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.stopPropagation();dragI=+el.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',el.dataset.i);
+      requestAnimationFrame(()=>{el.classList.add('drag');if(!el.classList.contains('pi'))app.classList.add('carrying')})});
+    el.addEventListener('dragend',()=>{el.classList.remove('drag');app.classList.remove('carrying');clear()})});
+  // 화(칸반 레인 · 원고의 장)에 놓기: 마우스 높이에 맞는 자리로
   app.querySelectorAll('[data-ep]').forEach(t=>{
-    t.addEventListener('dragover',e=>{if(dragI==null)return;e.preventDefault();t.classList.add('over')});
-    t.addEventListener('dragleave',e=>{if(!t.contains(e.relatedTarget))t.classList.remove('over')});
-    t.addEventListener('drop',e=>{e.preventDefault();const i=dragI;dragI=null;if(i==null)return;
-      POOL.splice(POOL.indexOf(i),1);EPS[+t.dataset.ep][2].push(i);JUST=i;render()})});
+    t.addEventListener('dragover',e=>{if(dragI==null)return;e.preventDefault();t.classList.add('over');
+      const items=[...t.querySelectorAll('[data-i]:not(.drag)')],nx=items.find(c=>{const r=c.getBoundingClientRect();return e.clientY<r.top+r.height/2});
+      if(!ins){ins=document.createElement('div');ins.className='ins'}
+      if(nx)nx.before(ins);else if(items.length)items[items.length-1].after(ins);else ins.remove();ins.dataset.before=nx?nx.dataset.i:''});
+    t.addEventListener('dragleave',e=>{if(!t.contains(e.relatedTarget))clear()});
+    t.addEventListener('drop',e=>{e.preventDefault();const i=dragI,b=ins?.dataset.before;dragI=null;clear();if(i==null)return;
+      detach(i);const list=EPS[+t.dataset.ep][2],at=b?list.indexOf(+b):-1;at<0?list.push(i):list.splice(at,0,i);JUST=i;render()})});
+  // 오른쪽 목록에 놓기 · ↩ 빼기: 다시 포스트잇으로
+  const back=i=>{detach(i);POOL.unshift(i);BACK=i;render()};
+  const pool=app.querySelector('[data-pool]');
+  if(pool){pool.addEventListener('dragover',e=>{if(dragI==null||POOL.includes(dragI))return;e.preventDefault();pool.classList.add('over')});
+    pool.addEventListener('dragleave',e=>{if(!pool.contains(e.relatedTarget))pool.classList.remove('over')});
+    pool.addEventListener('drop',e=>{e.preventDefault();const i=dragI;dragI=null;clear();if(i==null||POOL.includes(i))return;back(i)})}
+  app.querySelectorAll('[data-back]').forEach(b=>b.onclick=e=>{e.stopPropagation();back(+b.dataset.back)});
   // 글 폭: 위쪽 슬라이드 또는 원고 양옆 손잡이
   const sh=app.querySelector('.sheet'),rng=app.querySelector('#swr');
   const setW=w=>{SWID=Math.max(520,Math.min(1100,Math.round(w/10)*10));if(sh)sh.style.setProperty('--sw',SWID+'px');if(rng)rng.value=SWID};
@@ -565,7 +591,7 @@ function render(){
   app.style.width=AW()+'px';app.style.height=AH()+'px';
   document.querySelectorAll('#size button').forEach(b=>b.classList.toggle('on',b.dataset.z===SZ));
   if(V==='new')wireNew(app);
-  JUST=null;
+  JUST=BACK=null;
   app.querySelectorAll('[data-nav]').forEach(t=>t.onclick=()=>{W=t.dataset.nav;save();render()});
   document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.w===W));
   document.querySelectorAll('#sht button').forEach(b=>b.classList.toggle('on',+b.dataset.s===+SHe()));
