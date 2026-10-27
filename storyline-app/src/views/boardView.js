@@ -6,7 +6,7 @@ function renderBoard(m){
   const full=document.body.classList.contains('full'),uf=useMode(),asList=uf==='used'&&!UI.usedAsBoard;      // 사용 카드는 정리 목록으로 (가볍고 한눈에)
   const trig=(label,items,title)=>{const b=h('button',{class:'menubtn','data-pop':'1',title,onclick:()=>popMenu(b,items())},label,h('span',{class:'caret'},'▾'));return b};
   if(c&&c.kind==='char'&&UI.mode==='story'&&!(U2()&&!UIP.cl.sheet&&!(c.longGoal||(c.goals||[]).some(g=>g.state==='active'))))m.append(goalStripEl(c));      // 새 디자인: 시트가 열려 있으면 빈 “목표 적기”는 시트의 목표 줄로 대신
-  const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')}),world=h('div',{class:'bworld'});
+  const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')+(U3()&&UI.bdef&&!asList?' bdef':'')}),world=h('div',{class:'bworld'});
   view.append(world);m.append(view);
   // 왼쪽 위: 보드 이름 · 장수 (목표 알약도 여기에)
   const RO=UI.mode==='all',on=kindsOn();

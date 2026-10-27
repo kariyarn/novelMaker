@@ -165,3 +165,96 @@ function frAutoLeft(){      // 직접 접거나 편 적이 없으면: 좁은 창
   const want=innerWidth<FR_NARROW;if(!!UIP.cl.left===want)return false;
   UIP.cl.left=want;return true;
 }
+
+/* ============ 작게 보기 (데포르메): 구상 보드를 줄여 글이 안 읽힐 만큼 작아지면 포스트잇을 모양만 ============
+   분류 색 종이 · 글 줄 · 인물 색 점 · 별(점 개수) · 핀 · 실은 그대로, 글만 지움.
+   올리면 원래 크기 미리보기, 누르면 또렷한 원본(바로 고침), 두 번 누르면 그 자리로 확대.
+   오른쪽 목록의 작은 아이콘도 같은 모양 (frIcon) */
+const frDefPx=()=>{const v=S.settings.defPx;return v===undefined||v===null?8:+v};      // 0 이면 끔
+const frBars=t=>Math.max(2,Math.min(4,Math.ceil(String(t||'').replace(/\s+/g,'').length/22)));
+const frRot=id=>{let x=0;for(const ch of String(id))x=(x*31+ch.charCodeAt(0))>>>0;return [-6,4,-2,7,-4,3][x%6]};
+function frDefLayer(card){      // 보드 포스트잇 안에 넣어 두는 모양 층 (작게 보기에서만 보임)
+  return h('div',{class:'kdf','aria-hidden':'true'},...Array.from({length:frBars(card.text)},()=>h('i')),
+    h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).map(c=>h('b',{style:`--c:${c.color}`}))),
+    h('span',{class:'ds'},...Array.from({length:card.stars||0},()=>h('b'))));
+}
+const frDefOn=()=>U3()&&onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
+function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준에서, 키울 땐 12% 더 커져야 돌아옴 (경계에서 깜빡이지 않게)
+  const T=frDefPx(),was=!!UI.bdef;
+  const px=(S.settings.font||14)*1.04*k,on=!!T&&(was?px<T*1.12:px<T);
+  UI.bdef=on;view.classList.toggle('bdef',on);if(was&&!on)frPeekHide();
+  if(FRFL)frFloatPlace();
+}
+
+/* ---------- 떠오르는 원본: 미리보기 (반투명 · 누를 수 없음) / 열기 (또렷 · 고침) ---------- */
+let FRFL=null;      // 열린 원본 {id, el}
+function frRectOf(id){const el=document.querySelector(`.bview .kcard.board[data-id="${id}"]`)||document.querySelector(`#pool .frico[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
+function frPlace(box,r,prefer){      // 카드 옆(오른쪽, 모자라면 왼쪽)에 원래 크기로
+  const W=box.offsetWidth||260,H=box.offsetHeight||160;let x=prefer==='left'?r.left-W-12:r.right+12;
+  if(x+W>innerWidth-8)x=r.left-W-12;if(x<8)x=Math.min(innerWidth-W-8,Math.max(8,r.left+(r.width-W)/2));
+  const y=Math.max(8,Math.min(innerHeight-H-8,r.top-8));box.style.left=x+'px';box.style.top=y+'px';
+}
+function frPeek(card,r,prefer){
+  if(FRFL)return;let p=document.querySelector('.frpk:not(.open)');
+  if(!p){p=h('div',{class:'frpk','aria-hidden':'true'});document.body.append(p)}
+  const k=kindOf(card.kind);p.style.setProperty('--bg',cardColor(card));p.innerHTML='';
+  p.append(h('small',{},h('span',{},k.name),h('span',{class:'s'},'★'.repeat(card.stars||0))),h('p',{},card.text||'(빈 포스트잇)'),
+    h('div',{class:'who'},...eff(card).map(charById).filter(Boolean).map(c=>h('span',{},h('i',{style:`--c:${c.color}`}),c.name))));
+  frPlace(p,r,prefer);requestAnimationFrame(()=>{frPlace(p,r,prefer);p.classList.add('on')});
+}
+function frPeekHide(){document.querySelectorAll('.frpk:not(.open)').forEach(p=>p.classList.remove('on'))}
+function frOpen(id,prefer){
+  const card=cardById(id);if(!card)return;
+  frClose(true);frPeekHide();
+  const ta=h('textarea',{class:'frpt',spellcheck:false,placeholder:'쓰고 싶은 장면 · 대사','aria-label':'포스트잇 글',oninput:e=>{edit(()=>{card.text=e.target.value;stamp(card)});fitOne(e.target)}},card.text||'');
+  const head=h('div',{class:'frph'}),foot=h('div',{class:'frpf'});
+  const el=h('div',{class:'frpk open',role:'dialog','aria-label':'포스트잇'},head,ta,foot,
+    h('div',{class:'frpn'},h('span',{},'Esc로 닫기'),UI.mode==='story'&&frDefOn()?h('span',{},'두 번 누르면 확대'):h('span')));
+  el.style.setProperty('--bg',cardColor(card));
+  FRFL={id,el,head,foot,prefer};frFloatFill();
+  el.addEventListener('dblclick',e=>{if(e.target===ta)return;const c=cardById(id);if(c&&UI.mode==='story')frZoomTo(c)});
+  document.body.append(el);fitOne(ta);frFloatPlace();
+  ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+  setTimeout(()=>{document.addEventListener('pointerdown',frOutside,true);document.addEventListener('keydown',frKey,true)},0);
+}
+function frFloatFill(){      // 분류 · 별 · 지우기 · 인물 줄 (데이터가 바뀌면 다시 채움, 글 칸은 그대로라 쓰던 자리 유지)
+  if(!FRFL)return;const card=cardById(FRFL.id);if(!card)return frClose(true);
+  FRFL.el.style.setProperty('--bg',cardColor(card));
+  FRFL.head.replaceChildren(kindSelect(card),starsEl(card),h('span',{class:'sp'}),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕'));
+  FRFL.foot.replaceChildren(footEl(card));
+}
+onStateChange(()=>{if(FRFL)frFloatFill()});
+function frFloatPlace(){if(!FRFL)return;const r=frRectOf(FRFL.id);if(r)frPlace(FRFL.el,r,FRFL.prefer)}
+function frOutside(e){if(!FRFL||FRFL.el.contains(e.target)||e.target.closest('.pop,.dlg,#modal'))return;frClose()}
+function frKey(e){if(e.key==='Escape'&&FRFL&&!e.isComposing){e.preventDefault();e.stopPropagation();frClose()}}
+function frClose(quiet){
+  if(!FRFL)return;const {id,el}=FRFL;FRFL=null;el.remove();
+  document.removeEventListener('pointerdown',frOutside,true);document.removeEventListener('keydown',frKey,true);
+  if(quiet)return;
+  const c=cardById(id);if(c&&autoLinkCard(c))save();
+  if(c&&!(c.text||'').trim()){S.cards=S.cards.filter(x=>x!==c);detach([id]);if(SELCARD===id)SELCARD=null;idxClear();commit();return}      // 빈 포스트잇은 저장하지 않고 지움
+  renderAll();
+}
+function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 가운데에 오게 100%로
+  frClose(true);frPeekHide();const v=getView(UI.sel),{W,H}=viewSize(),p=boardMap(UI.sel)[card.id];if(!p)return;
+  animateView(v,W/2-(p.x+p.w/2),H/2-(p.y+(p.h||CH)/2),1);
+}
+
+/* ---------- 오른쪽 목록: 같은 모양의 작은 포스트잇 아이콘 ---------- */
+const frIcons=()=>U3()&&UIP.pico!==false;
+function frIcon(card){
+  const used=episodeOf(card.id);
+  const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},
+    ...Array.from({length:Math.min(3,frBars(card.text))},()=>h('i')),
+    h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).slice(0,4).map(c=>h('b',{style:`--c:${c.color}`}))));
+  el.addEventListener('mouseenter',()=>{if(!DRAG)frPeek(card,el.getBoundingClientRect(),'left')});
+  el.addEventListener('mouseleave',frPeekHide);
+  el.addEventListener('click',()=>{selectCard(card.id);frOpen(card.id,'left')});
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();frOpen(card.id,'left')}});
+  el.addEventListener('contextmenu',e=>{e.preventDefault();const a=h('div',{style:`position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`});document.body.append(a);msMenu(a,MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id]);a.remove()});
+  el.addEventListener('dragstart',e=>{frPeekHide();DRAG={id:card.id};e.dataTransfer.setData('text/plain',card.id);e.dataTransfer.effectAllowed='move';
+    const g=h('div',{class:'frdragimg',style:`background:${cardColor(card)}`},(card.text||'').slice(0,160));document.body.append(g);e.dataTransfer.setDragImage(g,40,24);setTimeout(()=>g.remove(),0);      // 끌면 원래 크기 포스트잇이 따라옴
+    setTimeout(()=>el.classList.add('dragging'))});
+  el.addEventListener('dragend',()=>{DRAG=null;document.querySelectorAll('.dragging,.drop-before,.drop-after,.over').forEach(x=>x.classList.remove('dragging','drop-before','drop-after','over'))});
+  return el;
+}
