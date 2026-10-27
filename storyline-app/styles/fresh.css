@@ -221,7 +221,6 @@
 .frico.used{opacity:.45}
 .frico.dragging{opacity:.3}
 .frico.selc{outline:2px solid var(--acc);outline-offset:2px}
-.ui3 .frpico{font-size:.8em;padding:2px 8px;color:var(--sub)}
 .frdragimg{position:fixed;left:-3000px;top:0;width:250px;padding:16px;border-radius:2px;color:#2d2a1e;font:15px/1.75 var(--fr-story);word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5)}
 @media (prefers-reduced-motion:reduce){.frpk,.frico,.ui3 .kcard.board .kdf,.ui3 .bview .kcard.board :is(.kbar,.kwrap,.kfoot){transition:none}}
 
