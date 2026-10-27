@@ -165,6 +165,7 @@ function renderTimeline(m){
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
     U2()?null:h('span',{class:'sp'}),
     U2()?tlRangeSel():h('span',{class:'muted'},!sc?`전체 ${E.length}화`:(sc.e!==undefined?`${sc.e+1}화`:grpLab(lo,hi))),
+    mode==='kanban'&&U3()?h('label',{class:'frwctl',title:'화 칸 너비'},'칸 폭',h('input',{type:'range',min:200,max:480,step:10,value:UIP.tlw||250,oninput:e=>{UIP.tlw=+e.target.value;applyLayout()},onchange:saveUIP})):
     mode==='kanban'?(U2()?(()=>{const b=h('button',{class:'cbtn','data-pop':'1',title:'열 너비',onclick:()=>popMenu(b,[{title:'열 너비'},{node:h('div',{class:'popsl'},slider('tlw',200,480,''))}])},icon('xcol'));return b})():slider('tlw',200,480,'열 너비')):null,
     h('button',{class:'quiet',onclick:()=>addEpisode()},U2()?icon('plus'):null,U2()?'화':'＋ 화')));
   if(mode==='matrix')return renderMatrix(m,lo,hi);
@@ -189,6 +190,7 @@ function renderTimeline(m){
       body.style.minHeight=Math.min(cards.length*74,1600)+'px';
       body._fill=()=>{body.style.minHeight='';cards.forEach(c=>body.append(one(c)))};TLIO.observe(body);
     }else cards.forEach(c=>body.append(one(c)));
+    if(U3()&&cards.length>1)frScenes(body,ep);      // 새단장: 장면 나누기
     if(!cards.length)body.append(h('div',{class:'tlhint'},UI.tlChar==='all'?'오른쪽 카드를 끌어다 놓기':'이 인물의 카드가 없어요'));
     body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
     body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});

@@ -39,13 +39,14 @@ function frDiscard(id){
 const frW=()=>UIP.frw||720,frFs=()=>UIP.frfs||16.5;
 function frSetW(w){UIP.frw=Math.max(520,Math.min(1100,Math.round(w/10)*10));const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frw',UIP.frw+'px');const r=document.querySelector('#frwr');if(r)r.value=UIP.frw}
 function frLineBar(){
-  return [h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
+  return [h('span',{class:'frscm',title:'장면 구분을 어떻게 보여줄지'},seg([['line','구분선'],['box','묶음']],UIP.frsc==='box'?'box':'line',k=>{UIP.frsc=k;saveUIP();renderMid()})),
+    h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
     h('span',{class:'frfsz',title:'글자 크기'},
       h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>{UIP.frfs=Math.max(14,frFs()-1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'),
       h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'))];
 }
 function frRenderLine(m,E,lo,hi,build){
-  const sheet=h('div',{class:'frsheet',style:`--frw:${frW()}px;--frfs:${frFs()}px`});
+  const sheet=h('div',{class:'frsheet'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
   ['l','r'].forEach(side=>{const g=h('span',{class:'freg '+side,title:'끌어서 글 폭 조절'});sheet.append(g);
     g.addEventListener('pointerdown',e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');const x0=e.clientX,w0=frW(),dir=side==='r'?1:-1;
       const mv=ev=>frSetW(w0+dir*2*(ev.clientX-x0)),up=()=>{g.classList.remove('on');g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);saveUIP()};
@@ -65,9 +66,39 @@ function frRenderLine(m,E,lo,hi,build){
     if(!ep.cardIds.some(cardById)&&!(ep.title||'').trim()&&!(ep.memo||'').trim()){run.push(idx);continue}
     flush();sheet.append(chapter(idx))}
   flush();
+  frPager(sheet);
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
   frShelves(sheet);
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
+}
+
+/* 한 화 · 한 묶음만 볼 때: 원고 끝에 이전 · 다음 */
+function frPager(sheet){
+  const sc=UI.tlScope,E=S.episodes;if(!sc)return;
+  let prev=null,next=null;
+  if(sc.e!==undefined){const go=i=>()=>{UI.tlScope={e:i};renderAll()};
+    if(sc.e>0)prev=[`${sc.e}화`,go(sc.e-1)];if(sc.e<E.length-1)next=[`${sc.e+2}화`,go(sc.e+1)]}
+  else if(sc.g!==undefined){const gps=tlGroups(),go=gi=>()=>{gps.forEach((_,k)=>{UIP.tg[k]=true});UIP.tg[gi]=false;UI.tlScope={g:gi};saveUIP();renderAll()};
+    if(gps[sc.g-1])prev=[grpLab(...gps[sc.g-1]),go(sc.g-1)];if(gps[sc.g+1])next=[grpLab(...gps[sc.g+1]),go(sc.g+1)]}
+  if(!prev&&!next)return;
+  const b=(d,x)=>x?h('button',{class:'frpg '+d,onclick:x[1]},h('small',{},d==='prev'?'← 이전':'다음 →'),h('b',{},x[0])):h('span',{});
+  sheet.append(h('nav',{class:'frpager'},b('prev',prev),b('next',next)));
+}
+
+/* 한 화 안의 장면 나누기: 이어지는 글과 따로 떨어진 장면을 구분 (ep.seps = 새 장면이 시작되는 카드 id) */
+function frScenes(body,ep){
+  const deco=()=>{
+    const els=[...body.querySelectorAll(':scope>.kcard')],ids=els.map(e=>e.dataset.id),seps=new Set((ep.seps||[]).filter(id=>ids.indexOf(id)>0));
+    body.classList.toggle('frhassc',!!seps.size);
+    const setSeps=fn=>act(()=>{ep.seps=fn((ep.seps||[]).filter(id=>ep.cardIds.includes(id)));if(!ep.seps.length)delete ep.seps});
+    els.forEach((el,i)=>{if(!i){el.classList.add('scfirst');return}
+      if(seps.has(ids[i])){el.classList.add('scst');
+        el.prepend(h('div',{class:'frsep',title:'장면 구분'},h('i',{}),h('button',{class:'frjoin',title:'구분 지우고 앞 장면과 잇기',onclick:e=>{e.stopPropagation();setSeps(a=>a.filter(x=>x!==ids[i]))}},'잇기')))}
+      else el.prepend(h('button',{class:'frcut',title:'여기서 장면 나누기 — 이어지지 않는 장면을 따로 묶어요',onclick:e=>{e.stopPropagation();setSeps(a=>[...a,ids[i]])}},'＋ 장면 나누기'));
+      if(i===els.length-1||seps.has(ids[i+1]))el.classList.add('sclast')});
+    if(els.length&&!els.slice(1).some(e=>e.classList.contains('scst')))els[els.length-1].classList.add('sclast');
+  };
+  if(body._fill){const f=body._fill;body._fill=()=>{f();deco()}}else deco();
 }
 
 /* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
@@ -95,11 +126,11 @@ function frProfile(c,n,hidden){
   return h('div',{class:'bhead frprof'},
     h('span',{class:'frav'+(isSet?' sq':''),style:`--c:${c.color}`},c.icon||frInitial(c.name)),
     h('div',{class:'frwho'},
-      h('div',{class:'frnm'},h('b',{},c.name||'(이름 없음)'),c.role?h('small',{},c.role):null),
+      h('div',{class:'frnm'},h('b',{},c.name||'(이름 없음)'),c.role?h('small',{},c.role):null,
+        h('span',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 숨김 ${hidden}`:''}`),
+          h('button',{class:'quiet frsht'+(open?' on':''),title:open?'인물 시트 접기':'인물 시트 펼치기 — 별칭 · 소개 · 목표 · 칸 묶음',onclick:()=>toggleCl('sheet')},open?'시트 접기':'시트 펼치기'))),
       open||!c.summary?null:h('p',{class:'frsum'},c.summary),
-      open||isSet?null:h('p',{class:'frgoal',title:'눌러서 시트에서 목표 고치기',onclick:()=>slidePanel('sheet',false)},h('span',{},'목표'),goal||h('em',{},'아직 없어요 · 눌러서 적기'))),
-    h('div',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 숨김 ${hidden}`:''}`),
-      h('button',{class:'quiet frsht'+(open?' on':''),title:open?'인물 시트 접기':'인물 시트 펼치기 — 별칭 · 소개 · 목표 · 칸 묶음',onclick:()=>toggleCl('sheet')},open?'시트 접기':'시트 펼치기')));
+      open||isSet?null:h('p',{class:'frgoal',title:'눌러서 시트에서 목표 고치기',onclick:()=>slidePanel('sheet',false)},h('span',{},'목표'),goal||h('em',{},'아직 없어요 · 눌러서 적기'))));
 }
 
 /* ---------- 집중: 원고에서 문단을 두 번 누르면 그 카드 한 장만 크게 ---------- */
