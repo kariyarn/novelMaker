@@ -55,7 +55,7 @@ function applySettings(){
   else{r.style.removeProperty('--board');r.style.removeProperty('--dot')}
   applyView();
   const base='-apple-system,BlinkMacSystemFont,"SF Pro Text","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif',fam={'':base,serif:'"Noto Serif KR","Batang","AppleMyungjo",serif',sans:'"Noto Sans KR","Nanum Gothic","Apple SD Gothic Neo",sans-serif'};
-  const f=s.family||'';if(f)r.style.setProperty('--fr-story','var(--ff)');else r.style.removeProperty('--fr-story');      // 새단장 이야기 글꼴: 직접 고른 글꼴이 있으면 그 글꼴, 없으면 고운바탕
+  const f=s.family||'';
   r.style.setProperty('--ff',f.startsWith('u:')?`"UF_${f.slice(2)}",${base}`:(fam[f]||base));
 }
 function setSetting(k,v){if(k==='useFilter')UI.usedAsBoard=false;S.settings[k]=v;if(k==='hlStyle')S.settings.hlTouched=true;saveNow();applySettings();if($('modal').classList.contains('on'))showSettings();if(k==='showUsed'||k==='pinAlways'||k==='useFilter'||k==='showStrings'||k==='hlStyle'||k==='bubbleLv'||k==='bubbleShape'||k==='stringStyle'||k==='stringW'||k==='stringColor'||k==='pinColor')renderAll()}
