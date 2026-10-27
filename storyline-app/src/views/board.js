@@ -43,6 +43,10 @@ function applyView(){
   const view=document.querySelector('.bview');if(!view)return;
   const v=getView(UI.sel),pat=(S.settings&&S.settings.boardPat)||'dot',g=24*v.k;
   view.classList.add('moving');clearTimeout(applyView.mt);applyView.mt=setTimeout(()=>view.classList.remove('moving'),180);
+  // 움직이는 동안은 한 장의 그림으로 (base.css .layered). 멈추면 배율이 바뀐 때만 그림을 풀어 지금 배율로 또렷하게 다시 그림
+  //   휠을 툭툭 끊어 굴릴 때마다 풀었다 다시 만들면 그때마다 보드 전체를 새로 그려서 버벅이므로, 손을 확실히 뗀 뒤(0.45초) 한 번만
+  view.classList.add('layered');clearTimeout(applyView.lt);
+  applyView.lt=setTimeout(()=>{if(view._crispK!==v.k){view._crispK=v.k;view.classList.remove('layered')}},450);
   const dp=devicePixelRatio||1,px=n=>Math.round(n*dp)/dp;      // 화면 픽셀에 딱 맞춰야 글자가 번지지 않음
   view.firstChild.style.transform=`translate(${px(v.x)}px,${px(v.y)}px) scale(${v.k})`;
   let img='none',size='auto';
