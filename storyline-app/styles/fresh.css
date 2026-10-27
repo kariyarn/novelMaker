@@ -291,12 +291,6 @@
 .ui3 .frch .kcard.tl.fr:not(.frmemo) .kwrap .ktext:not([readonly]){color:var(--ink)!important;caret-color:var(--ink)}
 
 /* 장면 나누기 */
-.frcut{position:absolute;left:0;right:0;top:-9px;height:14px;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:flex-start;padding-left:24px}
-.frcut::before{content:"";position:absolute;left:16px;right:16px;top:50%;border-top:1px dashed var(--acc);opacity:0;transition:opacity .12s}
-.frcut span{position:relative;font-size:11px;line-height:1;padding:3px 9px;border-radius:999px;background:var(--card);color:var(--acc);box-shadow:0 0 0 1px var(--acc-soft);opacity:0;transition:opacity .12s;white-space:nowrap}
-.frcut:hover::before{opacity:.6}
-.frcut:hover span{opacity:1}
-body:has(.kcard.dragging) .frcut,.kcard.fr.editing>.frcut{display:none}
 .kcard.fr:is(.dragging,.editing)>.frsep{display:none}
 .ui3 .kcard.tl.fr.scst{margin-top:34px}
 .frsep{position:absolute;left:16px;right:16px;top:-34px;height:34px;display:flex;align-items:center}
