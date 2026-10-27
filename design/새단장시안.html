@@ -460,6 +460,13 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .toast2{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:50;display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--paper);border-radius:10px;padding:9px 16px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);white-space:nowrap}
 .n .toast2 button{color:var(--paper);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 
+/* 폐기한 갈래: 지우지 않고 지도에 남김 · 바탕에 붉은 X */
+.n .mn.alt.off{background:var(--paper);box-shadow:0 0 0 1px var(--hair)}
+.n .mn.alt.off::before{content:"";position:absolute;inset:8px;background:linear-gradient(45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6%,rgba(210,69,59,.22) 50.4%,transparent 50.6%),linear-gradient(-45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6%,rgba(210,69,59,.22) 50.4%,transparent 50.6%);pointer-events:none}
+.n .mn.alt.off p,.n .mn.alt.off .tag{opacity:.55}
+.n .mn.alt.off .tag{color:#d2453b}
+.n .mn.alt.off .aa .del{color:var(--acc)}
+
 /* ============ 지금: 구상 (비교용) ============ */
 .o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
 .o .slst h4{margin:0 0 10px 6px;font-size:12px}
@@ -520,7 +527,7 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>갈래는 원고에 펼치지 않아요</b>갈래가 있는 카드는 종이가 겹쳐 보이고 <b>⑂ 2</b> 표시만 붙어요. 원고와 칸반 흐름이 그대로라서 갈래가 몇 개든 화면이 흐트러지지 않아요.</li>
     <li><b>⑂ 표시를 누르면 갈래 지도</b>집중 모드처럼 창이 뜨고, 가운데 본선 둘레에 갈래가 마인드맵처럼 퍼져요. 여러 후보를 한눈에 보고 <b>이걸로 · 합치기 · ↩ 떼어내기 · ✕</b>로 정리해요.</li>
     <li><b>지도 모양 고르기</b>갈래 지도 위쪽에서 <b>양쪽 · 오른쪽 · 아래로 · 둘레</b> 중에 고르면 갈래들이 미끄러지듯 자리를 옮겨요. 고른 모양은 기억해요.</li>
-    <li><b>안 쓸 건 바로 폐기</b>갈래 지도의 갈래, 칸반 카드, 한 줄 문단에서 <b>폐기</b>를 누르면 붉은 X가 그어지며 치워져요. 지우는 게 아니라서 구상 보드의 <b>폐기</b> 보기(⌥4)에서 되살릴 수 있고, 바로 <b>되돌리기</b>도 돼요.</li>
+    <li><b>안 쓸 건 바로 폐기</b>갈래 지도에서 <b>폐기</b>를 누르면 갈래는 그 자리에 남고 바탕에 붉은 X만 그어져요. 나중에 <b>되살리기</b>로 다시 쓸 수 있어요. 칸반 카드 · 한 줄 문단의 <b>폐기</b>는 구상 보드의 폐기 보기(⌥4)로 치워 둬요.</li>
     <li><b>갈래 만들기</b>포스트잇을 카드나 문단 한가운데에 놓으면 그 카드 밑으로 겹쳐 들어가요. 문단의 <b>⑂ 갈래</b>를 누르면 지금 글을 복사해 새 갈래를 만들고 지도가 열려요.</li>
     <li><b>한 줄 보기에서 분류 바꾸기</b>문단에 마우스를 올리면 나오는 분류 이름(예: <b>메모 ⌄</b>)을 눌러 등록된 분류 중에서 고르세요. 메모로 바꾸면 회색 메모 상자가, 장면 · 대사로 바꾸면 원고 문단이 돼요. 칸반 카드도 같아요.</li>
     <li><b>오른쪽 목록은 작은 포스트잇 아이콘</b>평소엔 분류 색의 작은 포스트잇으로 모여 있다가, 마우스를 올리면 왼쪽에 반투명 미리보기가 떠요. 끌면 원래 크기 포스트잇이 떠서 따라와요. <b>크게</b>를 누르면 예전처럼 큰 포스트잇으로 보여요.</li>
@@ -557,7 +564,7 @@ const POOL=[8,4,5,9,10,11];
 const BRS={      // 갈래: 카드 번호 → 다른 버전들
   0:[{t:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 도윤은 고개 숙이는 대신 보험 처리부터 묻는다. 하린은 그런 사람을 처음 본다.',ago:'어제'}],
   1:[{t:'"사과는 공짜고 수리비는 아니잖아요. 사과만 받으세요." — 도윤',ago:'3일 전'},{t:'"죄송합니다. 그런데 돈은 없어요. 둘 중 뭘 원하세요?" — 도윤',ago:'지난주'}]};
-const brs=i=>BRS[i]||[];
+const brs=i=>BRS[i]||[],live=i=>brs(i).filter(b=>!b.disc).length;      // 폐기한 갈래는 개수에서 뺌
 let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,DISC=[],MAP=null,ML='both',PT='unused',PI=true,STKIN=null,REAL=false;
 const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
 const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
@@ -575,12 +582,12 @@ const kn=k=>k==='line'?'scene':k,kname=k=>(KINDS.find(x=>x[0]===kn(k))||KINDS[0]
 const stk=i=>{const n=brs(i).length;return (n?' stk'+Math.min(n,2):'')+(STKIN===i?' stkin':'')};      // 갈래가 있으면 종이가 겹쳐 보임
 function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   return `<div class="ic${k==='memo'?' memo':''}${k==='fore'?' fore':''}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</span>
+    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${live(i)||'·'}</span>`:''}</span>
     <span class="tools"><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span></div></div>`}
 function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   const cls=(k==='memo'?'memo':s.who?'dlg':'')+(k==='fore'?' fore':'');
   return `<div class="pa ${cls}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</div>`}
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${live(i)||'·'}</span>`:''}</div>`}
 function renderNew(kb){
   const lanes=EPS.map((e,n)=>{const full=e[2].length;
     return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
@@ -788,8 +795,8 @@ function openMap(app,i,quiet){
     <div class="mn main" style="left:${cx}px;top:${cy}px"><div class="tag">본선 <span class="stars">${'★'.repeat(st)}</span></div><p>${txt(t)}</p>
       <div class="cast">${ch.map(c=>`<i style="--c:${CH[c][2]}">${CH[c][1]}</i>`).join('')}</div></div>
     ${nodes.map(n=>n.add?`<div class="mn add" data-new style="left:${n.x}px;top:${n.y}px">＋ 지금 본선을 복사해<br>새 갈래 쓰기</div>`
-      :`<div class="mn alt" style="left:${n.x}px;top:${n.y}px"><div class="tag">갈래 ${n.j+1} <small>${n.b.ago||'방금'}</small></div><p>${txt(n.b.t)}</p>
-        <div class="aa"><button class="pick" data-pick="${n.j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${n.j}">합치기</button><button data-detach="${n.j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button><button class="del" data-disc="${n.j}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</button></div></div>`).join('')}
+      :`<div class="mn alt${n.b.disc?' off':''}" style="left:${n.x}px;top:${n.y}px"><div class="tag">갈래 ${n.j+1} <small>${n.b.disc?'폐기 · ':''}${n.b.ago||'방금'}</small></div><p>${txt(n.b.t)}</p>
+        <div class="aa"><button class="pick" data-pick="${n.j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${n.j}">합치기</button><button data-detach="${n.j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button>${n.b.disc?`<button class="del" data-disc="${n.j}" title="폐기 취소">되살리기</button>`:`<button class="del" data-disc="${n.j}" title="폐기 · 갈래로 남겨 두고 X만 표시해요">폐기</button>`}</div></div>`).join('')}
     <footer>이걸로 · 합치기 해도 원래 본선은 갈래로 남아요 · 원고 복사는 본선만 써요</footer>`;
   const close=()=>{MAP=null;z.remove();removeEventListener('keydown',key)};
   const key=e=>{if(e.key==='Escape'&&!app.querySelector('.mg'))close()};
@@ -798,9 +805,8 @@ function openMap(app,i,quiet){
   const re=()=>{removeEventListener('keydown',key);render()};
   z.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const br=bs[+b.dataset.pick],old=CARDS[i][1];CARDS[i][1]=br.t;br.t=old;br.ago='방금 전 본선';re()});
   z.querySelectorAll('[data-ml]').forEach(b=>b.onclick=()=>{ML=b.dataset.ml;save();openMap(app,i,true)});
-  z.querySelectorAll('[data-disc]').forEach(b=>b.onclick=()=>{const node=b.closest('.mn');node.classList.add('discarding');
-    setTimeout(()=>{const br=bs.splice(+b.dataset.disc,1)[0];const j=+b.dataset.disc;DISC.push({t:br.t,from:'갈래'});if(!bs.length)MAP=null;re();
-      toast(app,'갈래를 폐기했어요 · 구상 보드 ▸ 폐기에서 되살릴 수 있어요',()=>{DISC.pop();bs.splice(j,0,br);BRS[i]=bs;MAP=i;render()})},420)});
+  z.querySelectorAll('[data-disc]').forEach(b=>b.onclick=()=>{const br=bs[+b.dataset.disc];br.disc=!br.disc;re();      // 폐기해도 갈래로 남음 (나중에 쓸 수도 있으니까)
+    if(br.disc)toast(app,'갈래를 폐기했어요 · 지도에 X로 남아 있어요',()=>{br.disc=false;MAP=i;render()})});
   z.querySelectorAll('[data-detach]').forEach(b=>b.onclick=()=>{const br=bs.splice(+b.dataset.detach,1)[0],c=CARDS[i];CARDS.push([c[0],br.t,c[2],c[3].slice()]);POOL.unshift(CARDS.length-1);BACK=CARDS.length-1;if(!bs.length)MAP=null;re()});
   z.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>openMerge(app,i,+b.dataset.merge));
   z.querySelector('[data-new]').onclick=()=>{bs.push({t:CARDS[i][1],ago:'방금'});BRS[i]=bs;re()};
