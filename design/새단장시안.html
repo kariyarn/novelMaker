@@ -235,14 +235,16 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .prof .av{width:48px;height:48px;font-size:19px;box-shadow:0 0 0 3px var(--paper)}
 .n .prof .who{min-width:0;flex:1}
 .n .prof h2{margin:0;font:700 26px/1.2 var(--story);display:flex;align-items:baseline;gap:10px}
-.n .prof h2 small{font:500 12px var(--ui);color:var(--sub);background:var(--paper);border-radius:99px;padding:2px 10px;box-shadow:0 0 0 1px var(--hair)}
+.n .prof h2 small{font:500 12.5px var(--ui);color:var(--sub)}
 .n .prof .sum{margin:6px 0 0;color:var(--sub);font-size:13.5px;max-width:34em}
 .n .prof .goal{margin:6px 0 0;font-size:12.5px;color:var(--ink)}
 .n .prof .goal span{color:var(--acc);font-weight:600;margin-right:8px;letter-spacing:.06em;font-size:11px}
 .n .prof .acts{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--sub)}
-.n .prof .acts span{padding:6px 12px;border-radius:9px;background:var(--paper);box-shadow:0 0 0 1px var(--hair);cursor:pointer}
-.n .prof .acts span.on{color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
-.n .prof .cnt{font-size:12px;color:var(--faint);margin-right:6px}
+.n .prof .acts span{padding:4px 6px;border-radius:6px;color:var(--faint);cursor:pointer}
+.n .prof .acts span:hover{color:var(--acc)}
+.n .prof .acts span.on{color:var(--acc)}
+.n .prof .acts .cnt{font-size:12px;color:var(--faint);cursor:default}
+.n .prof .acts .cnt:hover{color:var(--faint)}
 
 .n .pn{position:absolute;width:230px;padding:18px 18px 14px;border-radius:2px;background:var(--bgc);color:var(--note-ink);font:15px/1.75 var(--story);word-break:keep-all;transform:rotate(var(--r));box-shadow:0 1px 0 var(--note-edge),0 10px 18px -10px rgba(60,40,0,.45);z-index:1}
 .n .pn.y{--bgc:var(--note)}.n .pn.g{--bgc:var(--note2)}.n .pn.p{--bgc:var(--note3)}
@@ -413,6 +415,28 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .peek small{display:block;font:600 10.5px var(--ui);letter-spacing:.08em;opacity:.6;margin-bottom:4px}
 .dragimg{position:fixed;left:-3000px;top:0;width:260px;padding:16px 16px 13px;border-radius:2px;color:#4a3d12;font:15px/1.75 "Gowun Batang",serif;word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5);transform:rotate(-2deg)}
 
+/* 구상 왼쪽: 이름만 · 묶음으로 나눔 · 아이콘은 글자처럼 조용히 */
+.n .lst2{background:var(--paper);border-right:1px solid var(--hair);padding:18px 18px 24px;overflow:auto;display:flex;flex-direction:column;gap:18px}
+.n .find2{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--hair);padding:2px 2px 7px;color:var(--faint)}
+.n .find2 input{border:0;outline:0;background:none;font:inherit;font-size:13px;color:var(--ink);width:100%}
+.n .find2 input::placeholder{color:var(--faint)}
+.n .find2:focus-within{border-color:var(--acc);color:var(--acc)}
+.n .note2{font:700 14px var(--story);cursor:pointer}
+.n .note2:hover{color:var(--acc)}
+.n .sg h5{display:flex;align-items:baseline;gap:6px;margin:0 0 8px;font:600 11px var(--ui);letter-spacing:.16em;color:var(--faint)}
+.n .sg h5 small{font-weight:400;letter-spacing:0}
+.n .sg .plus{margin-left:auto;font-weight:400;letter-spacing:0;opacity:0;cursor:pointer;transition:opacity .15s}
+.n .sg:hover .plus{opacity:1}
+.n .sg .plus:hover{color:var(--acc)}
+.n .fd{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 13px;margin:0 0 9px;line-height:1.5}
+.n .fd em{flex-basis:100%;font-style:normal;font-size:11px;color:var(--faint);margin-bottom:-1px}
+.n .nm2{font:14px var(--story);color:var(--ink);cursor:pointer;white-space:nowrap;border-bottom:1.5px solid transparent;padding-bottom:1px}
+.n .nm2[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);margin:0 5px 2px 0;vertical-align:middle}
+.n .nm2:hover{color:var(--acc)}
+.n .nm2.on{font-weight:700;border-color:var(--c,var(--ink))}
+.n .loose{font-size:12.5px;color:var(--faint);margin-top:auto}
+.n .loose small{margin-left:4px}
+
 /* ============ 지금: 구상 (비교용) ============ */
 .o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
 .o .slst h4{margin:0 0 10px 6px;font-size:12px}
@@ -461,7 +485,7 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>보드에 자리를 돌려줬어요</b>13인치에서 목록 · 인물 시트 · 보드 · 오른쪽 목록 네 칸이 나란히 서면 보드가 430px밖에 안 남아요. 인물 시트를 기본으로 접고, 이름 · 역할 · 소개 · 목표만 보드 머리에 한 줄로 올렸어요.</li>
     <li><b>보드는 마구 붙여 두는 자리</b>포스트잇은 노랑 · 민트 · 분홍 종이에 바탕체 글씨로, 살짝 비뚤게 붙어요. 핀과 실도 그대로예요. 두꺼운 노란 테두리와 굵은 글씨는 뺐어요.</li>
     <li><b>시트는 필요할 때만</b>13인치에선 접혀 있고 27인치에선 저절로 펼쳐져요. “시트 펼치기”를 누르면 보드 옆에 인물 시트가 열려요. 입력 상자 대신 이름표와 바탕체 글로 읽히고, 칸 묶음은 접힌 채 개수만 보여요.</li>
-    <li><b>목록은 얼굴로</b>인물은 색 동그라미와 이름 · 역할로, 작품 노트 · 설정 · 미분류는 아래에 조용히.</li>
+    <li><b>왼쪽은 이름만</b>웹소설은 인물 · 설정이 많아서 한 줄에 하나씩 두지 않고, 이름을 흐르듯 늘어놓고 묶음(주요 · 조연 · 장소 …)으로만 나눴어요. 인물은 색 점, 설정은 점 없이. 역할 · 개수 같은 글자는 빼고, ＋는 묶음에 마우스를 올릴 때만 보여요.</li>
     <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, 정리할 포스트잇이 많을 때 <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요. 가운데는 그만큼 좁아져요.</li>
     <li><b>그대로 둔 것</b>인물마다 자기 보드 · 포스트잇 · 핀과 실 · 집중 · 새 포스트잇 · 미사용 · 배치 · 확대 · 오른쪽 쓰고 싶은 장면 목록.</li>
   </ul>
@@ -592,14 +616,18 @@ function pnote([i,col,x,y,r,pin]){const [k,t,st,ch]=CARDS[i],s=split(t);
     <div class="ft">${ch.map(c=>`<span class="av" style="--c:${CH[c][2]}">${CH[c][1]}</span>`).join('')}</div></div>${pin?`<span class="pin" style="left:${x+108}px;top:${y-6}px"></span>`:''}`}
 function renderStoryNew(){
   const a=BOARD[0],b=BOARD[4],x1=a[2]+115,y1=a[3+0]+1,x2=b[2]+115,y2=b[3]+1;
-  const list=`<aside class="lst"><div class="find">이름으로 찾기</div>
-    <div class="it"><span class="bk">≡</span><span class="nm" style="font-size:13.5px">작품 노트</span><span class="rl">12화</span></div>
-    <div class="gh"><span>인물</span><span>2</span></div>
-    <div class="it on"><span class="av" style="--c:${CH.d[2]}">도</span><span class="nm">이도윤</span><span class="rl">주인공</span></div>
-    <div class="it"><span class="av" style="--c:${CH.h[2]}">하</span><span class="nm">서하린</span><span class="rl">상대역</span></div>
-    <div class="add">＋ 인물</div>
-    <div class="gh"><span>설정</span><span>0</span></div><div class="add">＋ 설정</div>
-    <div class="gh"><span>미분류</span><span>1</span></div></aside>`;
+  // 왼쪽: 이름만 흐르듯 늘어놓고, 묶음(폴더)으로만 나눔 · 인물은 색 점, 설정은 점 없이
+  const names=(arr,dot)=>arr.map(([n,c,on])=>`<span class="nm2${on?' on':''}"${dot?` style="--c:${c}"`:''}>${n}</span>`).join('');
+  const grp=(t,cnt,folders,dot)=>`<section class="sg"><h5>${t}<small>${cnt}</small><span class="plus" title="${t} 추가">＋</span></h5>
+    ${folders.map(([f,arr])=>`<div class="fd">${f?`<em>${f}</em>`:''}${names(arr,dot)}</div>`).join('')}</section>`;
+  const list=`<aside class="lst2">
+    <label class="find2"><span aria-hidden="true">⌕</span><input placeholder="찾기" aria-label="이름으로 찾기"></label>
+    <div class="note2">작품 노트</div>
+    ${grp('인물',12,[['주요',[['이도윤',CH.d[2],1],['서하린',CH.h[2]],['서회장','#a2845e'],['강민재','#e0784a']]],
+      ['조연',[['윤소라','#4fae7b'],['박 기사','#7a8aa3'],['한 실장','#c45b8a'],['최 집사','#8f7bd1'],['도윤 엄마','#d9a441'],['지훈','#3fa3a0']]],
+      ['단역',[['편의점 사장','#9aa1ad'],['경비원','#9aa1ad']]]],true)}
+    ${grp('설정',7,[['장소',[['반지하 원룸'],['한남동 저택'],['배달 대행 사무실'],['서진그룹 본사']]],['물건',[['흰 봉투'],['오토바이'],['우산']]]],false)}
+    <div class="loose">미분류 <small>1</small></div></aside>`;
   const dos=SHe()?`<aside class="dos"><div class="lb">별칭</div><p class="val">도윤</p>
     <div class="lb">소개</div><p class="val">반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.</p>
     <div class="lb">목표</div><p class="val">빚에서 벗어나 내 가게를 갖는다</p>
