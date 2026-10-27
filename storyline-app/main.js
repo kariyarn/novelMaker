@@ -140,10 +140,13 @@ if(!isMac)app.setAppUserModelId('local.character.storyline');
 app.whenReady().then(()=>{
   store=create(app.getPath('userData'));
   sync=createSync({store,fetch:(u,o)=>net.fetch(u,o),getConfig:syncConfig,statePath:userFile('sync-state.json')});      // net.fetch: 회사 프록시 설정을 따름
-  const saved=r=>{if(r&&r.ok)syncSoon();return r};
+  // 글이 정말 바뀐 저장만 올리기를 예약. 올리기 직전에 쓰던 걸 파일로 내리는 저장(flushForSync)은 같은 글이라 건너뜀
+  //   (안 그러면 저장 → 5초 뒤 올리기 → 또 저장 → … 이 끝없이 돌아서 가만히 있어도 5초마다 작품 전체를 다시 저장함)
+  const lastSaved=new Map();
+  const saved=(k,t,r)=>{if(r&&r.ok&&(r.merged||lastSaved.get(k)!==t)){lastSaved.set(k,t);syncSoon()}return r};
   ipcMain.on('store:load',(e,k)=>{e.returnValue=store.load(k)});
-  ipcMain.on('store:save',(e,k,t)=>{e.returnValue=saved(store.save(k,t))});
-  ipcMain.handle('store:saveAsync',(e,k,t)=>saved(store.save(k,t)));
+  ipcMain.on('store:save',(e,k,t)=>{e.returnValue=saved(k,t,store.save(k,t))});
+  ipcMain.handle('store:saveAsync',(e,k,t)=>saved(k,t,store.save(k,t)));
   ipcMain.on('store:info',e=>{e.returnValue=store.dirs});
   ipcMain.on('store:backups',e=>{e.returnValue=store.listBackups()});
   ipcMain.on('store:readBackup',(e,n)=>{e.returnValue=store.readBackup(n)});
