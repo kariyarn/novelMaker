@@ -33,7 +33,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none}
 .pfbtn .fdot{position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:var(--acc)}
 .psum{display:flex;align-items:center;gap:6px;font-size:.84em;color:var(--acc);padding:0 2px}
 .psum .quiet{padding:0 6px;font-size:.95em;margin-left:auto}
-.psearch,.psel{width:calc(100% - 12px);margin:3px 6px;padding:5px 9px}
+.psel{width:calc(100% - 12px);margin:3px 6px;padding:5px 9px}
 /* 카드: 분류 칸 · 별(0개) · 핀 · ✕ · 끌기 손잡이 · “+ 인물”은 마우스를 올렸을 때만 */
 .kcard:is(.pool,.tl) .khead>*,.kcard .kfoot .kadd{transition:opacity .15s}
 .kcard:is(.pool,.tl):not(:hover):not(.editing):not(.selc) .khead :is(.grip,.pinx:not(.isp),.x),.kcard:is(.pool,.tl)[data-stars="0"]:not(:hover):not(.selc) .khead .stars{opacity:0}
