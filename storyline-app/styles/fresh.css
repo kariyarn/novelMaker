@@ -175,3 +175,51 @@
 .frn.add:hover{color:var(--br);border-color:var(--br);background:transparent}
 .frmap footer{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:var(--sub);opacity:.7;font-size:12px}
 @media (prefers-reduced-motion:reduce){.ui3 .kcard.tl.fr:is(.land,.stkin,.frout),.frfocus,.frmap{animation:none}.frn{transition:none}}
+
+/* ---------- 작게 보기 (데포르메): 구상 보드를 줄여 글이 안 읽히면 모양만 ---------- */
+.ui3 .kcard.board .kdf{position:absolute;inset:18px 16px 14px;z-index:2;display:flex;flex-direction:column;gap:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+.ui3 .kcard.board .kdf i{display:block;height:10px;border-radius:10px;background:rgba(0,0,0,.24)}
+.ui3 .kcard.board .kdf i:last-of-type{width:58%}
+.ui3 .kcard.board .kdf .dd{position:absolute;left:0;bottom:0;display:flex;gap:7px}
+.ui3 .kcard.board .kdf .dd b{width:18px;height:18px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(255,255,255,.6)}
+.ui3 .kcard.board .kdf .ds{position:absolute;right:-4px;top:-10px;display:flex;gap:5px}
+.ui3 .kcard.board .kdf .ds b{width:10px;height:10px;border-radius:50%;background:#e3a008}
+.ui3 .bview .kcard.board :is(.kbar,.kwrap,.kfoot){transition:opacity .25s}
+.ui3 .bview.bdef .kcard.board :is(.kbar,.kwrap,.kfoot){opacity:0;pointer-events:none}
+.ui3 .bview.bdef .kcard.board .kdf{opacity:1}
+.ui3 .bview.bdef .kcard.board :is(.rz,.rzb,.rzc){display:none}
+.ui3 .bview.bdef .kcard.board{cursor:pointer}
+.ui3 .bview.bdef .kcard.board:hover{filter:brightness(1.05) saturate(1.05)}
+/* 떠오르는 원본: 원래 크기 · 미리보기는 반투명, 열면 또렷하게 고침 */
+.frpk{position:fixed;z-index:90;width:270px;padding:16px 18px 12px;border-radius:3px;background:var(--bg,#fff1a6);color:#2d2a1e;box-shadow:0 18px 40px -12px rgba(40,30,0,.45);opacity:0;transform:translateY(6px) scale(.98);transition:opacity .14s,transform .14s;pointer-events:none}
+.frpk.on{opacity:.92;transform:none}
+.frpk.open{opacity:1;transform:none;pointer-events:auto;box-shadow:0 0 0 2px var(--acc),0 22px 50px -12px rgba(40,30,0,.5)}
+.frpk small{display:flex;gap:8px;font-size:10.5px;font-weight:600;letter-spacing:.06em;opacity:.6;margin-bottom:6px}
+.frpk small .s{color:#c08600;letter-spacing:1px;margin-left:auto}
+.frpk p{margin:0;font:15px/1.75 var(--fr-story);word-break:keep-all;white-space:pre-wrap;max-height:16em;overflow:hidden}
+.frpk .who{display:flex;gap:8px;margin-top:10px;font-size:11.5px;opacity:.8;flex-wrap:wrap}
+.frpk .who span{display:inline-flex;align-items:center;gap:4px}
+.frpk .who i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.frph{display:flex;align-items:center;gap:6px;margin:-4px 0 6px}
+.frph .sp{flex:1}
+.frph .x{opacity:.6}
+.frpt{display:block;width:100%;min-height:96px;max-height:50vh;border:0;outline:0;resize:none;background:transparent;padding:0;margin:0;color:inherit;font:15px/1.75 var(--fr-story);word-break:keep-all}
+.frpt:focus{box-shadow:none;background:transparent}
+.frpf .kfoot{padding:8px 0 0}
+.frpn{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;opacity:.55}
+/* 오른쪽 목록: 같은 모양의 작은 포스트잇 아이콘 */
+.ui3 #pool .plist.frics{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:16px 14px;align-content:start;padding:10px 6px 30px}
+.ui3 #pool .frics :is(.morebtn,.empty){grid-column:1/-1}
+.frico{position:relative;width:48px;height:48px;background:var(--bg);border-radius:2px 2px 10px 2px;transform:rotate(var(--r));box-shadow:0 1px 0 rgba(120,95,0,.15),0 5px 8px -4px rgba(90,70,0,.35);padding:9px 8px;display:flex;flex-direction:column;gap:5px;cursor:grab;transition:transform .15s}
+.frico i{display:block;height:2.5px;border-radius:2px;background:rgba(0,0,0,.28)}
+.frico i:last-of-type{width:60%}
+.frico .dd{position:absolute;left:7px;bottom:6px;display:flex;gap:2px}
+.frico .dd b{width:5px;height:5px;border-radius:50%;background:var(--c)}
+.frico:is(:hover,:focus-visible){transform:rotate(0) scale(1.12);z-index:2}
+.frico:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.frico.used{opacity:.45}
+.frico.dragging{opacity:.3}
+.frico.selc{outline:2px solid var(--acc);outline-offset:2px}
+.ui3 .frpico{font-size:.8em;padding:2px 8px;color:var(--sub)}
+.frdragimg{position:fixed;left:-3000px;top:0;width:250px;padding:16px;border-radius:2px;color:#2d2a1e;font:15px/1.75 var(--fr-story);word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5)}
+@media (prefers-reduced-motion:reduce){.frpk,.frico,.ui3 .kcard.board .kdf,.ui3 .bview .kcard.board :is(.kbar,.kwrap,.kfoot){transition:none}}

@@ -84,6 +84,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
     look:[
       row('이름 목록 모양','왼쪽 인물 · 설정 목록',segOld([['text','글자 (｜로 구분)'],['chip','이름표']],s.leftStyle||'text',k=>{setSetting('leftStyle',k);renderLeft()})),
       row('화면 디자인',null,segOld([['old','기존'],['new','새 디자인'],['fresh','새단장']],s.uiStyle==='new'||s.uiStyle==='fresh'?s.uiStyle:'old',k=>{setSetting('uiStyle',k);if(k==='fresh'){UIP.frLeftUser=false;frAutoLeft();saveUIP()}applyLayout();renderAll();showSettings()})),
+      ...(U3()?[row('작게 보기','구상 보드를 줄여 글자가 이보다 작아지면 포스트잇을 모양만',segOld([['0','끄기'],['6','6px'],['8','8px'],['10','10px']],String(frDefPx()),k=>{setSetting('defPx',+k);applyView()}))]:[]),
       row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0]),U2()?null:h('span',{class:'muted',style:'font-size:.82em'},'기기의 밝게 · 어둡게 설정을 따라요')),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
       row('포스트잇 모양','기본',h('div',{class:'swgrid'},...SHAPES.map(([k,n])=>h('button',{class:'swb'+((s.noteShape||'')===k?' on':''),onclick:()=>setSetting('noteShape',k)},h('span',{class:'shp '+k},h('b'),k==='tape'||k==='bubble'?h('i'):null),n))),
         h('div',{class:'kshape'},h('span',{class:'muted'},'분류별로 다르게'),...S.kinds.map(k=>h('label',{class:'kshr'},h('i',{style:`background:${k.colorMode==='random'?RANDOM_BG:k.color}`}),k.name,

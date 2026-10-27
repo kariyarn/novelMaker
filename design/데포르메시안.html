@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데포르메 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* 개념: 축소해서 글이 안 읽힐 만큼 작아지면, 포스트잇은 글을 지우고 "모양"만 남김 (분류 색 · 글 줄 · 인물 점 · 별 · 핀 · 실).
+   읽고 싶을 때만 원본이 떠오름 — 올리면 반투명 미리보기, 누르면 또렷한 원본, 두 번 누르면 그 자리로 확대.
+   오른쪽 목록의 작은 아이콘도 같은 모양이라 앱 전체에서 "작은 포스트잇"은 하나로 통일 */
+:root{
+  --ground:#e9ecf1;--paper:#fff;--ink:#1c2230;--sub:#687083;--faint:#a9b0be;--hair:rgba(28,34,48,.10);
+  --acc:#2b5fd9;--acc-soft:rgba(43,95,217,.10);--side:#f1f3f6;--page:#f6f7f9;
+  --k-scene:#fff1a6;--k-memo:#c9efdc;--k-fore:#fde2e4;--note-ink:#3d3412;--thread:#d2453b;
+  --lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.07);
+  --story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  --ui:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--side:#1a1d22;--page:#101216;
+  --k-scene:#4a4224;--k-memo:#22433a;--k-fore:#4a2c33;--note-ink:#f1e7c8;--thread:#ff7a6e;
+  --lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--side:#1a1d22;--page:#101216;
+  --k-scene:#4a4224;--k-memo:#22433a;--k-fore:#4a2c33;--note-ink:#f1e7c8;--thread:#ff7a6e;
+  --lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 var(--ui);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+main{max-width:1280px;margin:0 auto;padding-block:32px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px}
+.lead{color:var(--sub);margin:0 0 16px;max-width:48em}
+.lead b{color:var(--ink);font-weight:600}
+.ctl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.pill{display:inline-flex;gap:2px;background:var(--hair);border-radius:10px;padding:3px}
+.pill button{padding:5px 12px;border-radius:8px;color:var(--sub)}
+.pill button.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.ctl label{display:flex;gap:8px;align-items:center;color:var(--sub);font-size:.92em}
+.ctl input[type=range]{accent-color:var(--acc);width:120px}
+.ctl .sp{flex:1}
+.stat{font-size:.88em;color:var(--sub);font-variant-numeric:tabular-nums}
+.stat b{color:var(--ink)}
+.stat .mode{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--acc-soft);color:var(--acc);font-weight:600;margin-left:6px}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px 28px;margin:20px 0 0;padding:0;list-style:none;color:var(--sub);font-size:.92em}
+.notes b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+
+/* ---------- 앱 창 ---------- */
+.win{display:grid;grid-template-columns:180px minmax(0,1fr) 280px;height:760px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--hair),0 18px 40px rgba(0,0,0,.14);background:var(--paper)}
+.lst{background:var(--paper);border-right:1px solid var(--hair);padding:18px 16px;overflow:auto;font-size:13px}
+.lst h5{margin:14px 0 6px;font:600 11px var(--ui);letter-spacing:.16em;color:var(--faint)}
+.lst .nlw{overflow:hidden}
+.lst .nl{font:14px/1.9 var(--story);margin-left:-17px}      /* 줄 맨 앞의 | 는 왼쪽으로 밀어 잘라 냄 */
+.lst .nl span{cursor:pointer;white-space:nowrap;display:inline-block}
+.lst .nl span::before{content:"|";display:inline-block;width:17px;text-align:center;color:var(--faint);opacity:.6}
+.lst .nl .on{font-weight:700;color:#3a9fd8}
+
+/* 보드 */
+.brd{position:relative;overflow:hidden;background-color:var(--ground);cursor:grab;touch-action:none}
+.brd.pan{cursor:grabbing}
+.brd .dotbg{position:absolute;inset:0;background-image:radial-gradient(var(--hair) 1.1px,transparent 1.3px);pointer-events:none}
+.prof{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;align-items:baseline;gap:10px;padding:14px 20px;background:linear-gradient(var(--ground) 65%,transparent);pointer-events:none}
+.prof b{font:700 20px var(--story)}
+.prof span{color:var(--sub);font-size:12.5px}
+.cv{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.cv.anim{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.cv svg.th{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.cv svg.th path{fill:none;stroke:var(--thread);stroke-width:1.6;vector-effect:non-scaling-stroke;opacity:.75}
+
+/* 포스트잇 (원본) */
+.cd{position:absolute;width:230px;padding:18px 18px 14px;border-radius:2px;background:var(--bg);color:var(--note-ink);transform:rotate(var(--r));box-shadow:0 1px 0 rgba(120,95,0,.15),0 10px 18px -10px rgba(60,40,0,.45);cursor:pointer;user-select:none}
+.cd .tx{margin:0;font:15px/1.75 var(--story);word-break:keep-all;white-space:pre-wrap;transition:opacity .25s}
+.cd .ft{display:flex;margin-top:10px;transition:opacity .25s}
+.av{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font:600 10.5px var(--ui);color:#fff;background:var(--c);box-shadow:0 0 0 2px var(--bg,var(--paper));margin-right:-4px}
+.cd .st{position:absolute;right:12px;top:6px;font-size:11px;color:#d89a00;letter-spacing:1px;transition:opacity .25s}
+.cd.sel{outline:2px solid var(--acc);outline-offset:3px}
+/* 데포르메 층: 평소엔 숨어 있다가, 작게 보기에서 글 대신 나타남 */
+.cd .df{position:absolute;inset:18px 18px 14px;display:flex;flex-direction:column;gap:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+.cd .df i{display:block;height:9px;border-radius:9px;background:var(--note-ink);opacity:.26}
+.cd .df i:last-of-type{width:58%}
+.cd .df .dd{position:absolute;left:0;bottom:0;display:flex;gap:6px}
+.cd .df .dd b{width:16px;height:16px;border-radius:50%;background:var(--c)}
+.cd .df .ds{position:absolute;right:-6px;top:-10px;display:flex;gap:4px}
+.cd .df .ds b{width:9px;height:9px;border-radius:50%;background:#e3a008}
+.cv.def .cd :is(.tx,.ft,.st){opacity:0}
+.cv.def .cd .df{opacity:1}
+.cv.def .cd:hover{filter:brightness(1.04);box-shadow:0 0 0 calc(3px / var(--k)) var(--acc-soft),0 10px 18px -10px rgba(60,40,0,.45)}
+.pin{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a8c,var(--thread) 60%);box-shadow:0 2px 3px rgba(0,0,0,.35);transform:scale(calc(.6 / var(--k)));pointer-events:none}
+.cv:not(.def) .pin{transform:none}
+.cd.pop{animation:pop .5s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{0%{transform:rotate(var(--r)) scale(1.25)}100%{transform:rotate(var(--r))}}
+
+/* 떠오르는 원본: 올리면 반투명 미리보기 · 누르면 또렷하게 (고칠 수 있음) */
+.fl{position:absolute;z-index:8;width:260px;padding:18px 18px 14px;border-radius:2px;background:var(--bg);color:var(--note-ink);box-shadow:0 18px 40px -12px rgba(40,30,0,.45);opacity:0;transform:translateY(6px) scale(.98);transition:opacity .14s,transform .14s;pointer-events:none}
+.fl.on{opacity:.9;transform:none}
+.fl.open{opacity:1;transform:none;pointer-events:auto;box-shadow:0 0 0 2px var(--acc),0 22px 50px -12px rgba(40,30,0,.5)}
+.fl small{display:flex;gap:8px;font:600 10.5px var(--ui);letter-spacing:.06em;opacity:.65;margin-bottom:6px}
+.fl small .s{color:#d89a00;letter-spacing:1px;margin-left:auto}
+.fl p,.fl textarea{margin:0;font:15px/1.75 var(--story);word-break:keep-all;white-space:pre-wrap}
+.fl textarea{display:block;width:100%;min-height:110px;border:0;outline:0;resize:none;background:transparent;padding:0;color:inherit}
+.fl .who{display:flex;gap:6px;margin-top:10px;font:500 11.5px var(--ui);opacity:.8;flex-wrap:wrap}
+.fl .who span{display:inline-flex;align-items:center;gap:4px}
+.fl .who i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.fl .hint{display:none;justify-content:space-between;margin-top:10px;font:11px var(--ui);opacity:.6}
+.fl.open .hint{display:flex}
+
+/* 아래 도구 막대 */
+.tool{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:2px;background:var(--paper);border-radius:14px;padding:5px;box-shadow:0 0 0 1px var(--hair),0 8px 24px rgba(0,0,0,.12);font-size:13px;color:var(--sub);white-space:nowrap}
+.tool button{padding:6px 11px;border-radius:9px;color:var(--sub)}
+.tool button:hover{background:var(--hair);color:var(--ink)}
+.tool .new{background:var(--acc);color:var(--paper);font-weight:600}
+.tool .new:hover{background:var(--acc);color:var(--paper);filter:brightness(1.1)}
+.tool .pct{min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.tool i{width:1px;height:18px;background:var(--hair);margin:0 4px}
+
+/* 오른쪽 목록: 같은 데포르메 모양의 작은 아이콘 */
+.pool{background:var(--side);border-left:1px solid var(--hair);display:flex;flex-direction:column;min-width:0;position:relative}
+.pool .hd{display:flex;align-items:baseline;gap:8px;padding:16px 18px 8px}
+.pool .hd b{font:700 15px var(--story)}
+.pool .hd span{color:var(--sub);font-size:12px;margin-right:auto}
+.pool .hd button{font-size:12px;color:var(--sub);padding:2px 8px;border-radius:7px;box-shadow:0 0 0 1px var(--hair)}
+.pool .in{margin:0 18px 10px;padding:9px 12px;border-radius:10px;background:var(--paper);color:var(--faint);font-size:13px;box-shadow:inset 0 0 0 1px var(--hair)}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:16px 14px;padding:10px 20px;align-content:start;overflow:auto;flex:1}
+.ico{position:relative;width:48px;height:48px;background:var(--bg);border-radius:2px 2px 10px 2px;transform:rotate(var(--r));box-shadow:0 1px 0 rgba(120,95,0,.15),0 5px 8px -4px rgba(90,70,0,.35);padding:9px 8px;display:flex;flex-direction:column;gap:5px;cursor:grab;transition:transform .15s}
+.ico i{display:block;height:2.5px;border-radius:2px;background:var(--note-ink);opacity:.28}
+.ico i:last-of-type{width:60%}
+.ico .dd{position:absolute;left:7px;bottom:6px;display:flex;gap:2px}
+.ico .dd b{width:5px;height:5px;border-radius:50%;background:var(--c)}
+.ico:hover{transform:rotate(0) scale(1.12);z-index:2}
+.ico.drag{opacity:.3}
+.big{display:flex;flex-direction:column;gap:14px;padding:10px 18px;overflow:auto;flex:1}
+.big .cd{position:relative;width:auto;transform:rotate(var(--r));cursor:grab}
+.peek{position:absolute;z-index:9;right:290px;width:250px;padding:14px 15px 12px;border-radius:2px;background:var(--bg);color:var(--note-ink);font:14px/1.7 var(--story);opacity:0;transform:translateX(8px);transition:opacity .12s,transform .12s;pointer-events:none;box-shadow:0 14px 30px -10px rgba(40,30,0,.4)}
+.peek.on{opacity:.9;transform:none}
+.peek small{display:block;font:600 10.5px var(--ui);opacity:.6;margin-bottom:4px}
+.brd.dropok{box-shadow:inset 0 0 0 3px var(--acc-soft)}
+.dragimg{position:fixed;left:-3000px;top:0;width:250px;padding:16px;border-radius:2px;color:#3d3412;font:15px/1.75 "Gowun Batang",serif;box-shadow:0 16px 30px -10px rgba(60,40,0,.5);transform:rotate(-2deg)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>데포르메 시안</h1>
+  <p class="lead">구상 보드를 축소해서 <b>글이 안 읽힐 만큼 작아지면</b>, 포스트잇은 글을 지우고 <b>모양만</b> 남겨요. 읽고 싶을 때만 원본이 떠올라요. 오른쪽 목록의 작은 아이콘도 같은 모양이에요.</p>
+  <div class="ctl">
+    <label>작게 보기 시작 · 글자가 <input id="th" type="range" min="6" max="12" step="0.5" value="8"> <b id="thv">8px</b> 보다 작아지면</label>
+    <span class="stat" id="stat"></span>
+    <span class="sp"></span>
+    <div class="pill" id="thm"><button data-t="">자동</button><button data-t="light">밝게</button><button data-t="dark">어둡게</button></div>
+  </div>
+  <div class="win">
+    <aside class="lst">
+      <h5>인물</h5><div class="nlw"><div class="nl"><span class="on">이도윤</span><span>서하린</span><span>서회장</span><span>강민재</span><span>윤소라</span></div></div>
+      <h5>설정</h5><div class="nlw"><div class="nl"><span>반지하 원룸</span><span>한남동 저택</span><span>흰 봉투</span></div></div>
+    </aside>
+    <section class="brd" id="brd">
+      <div class="dotbg" id="dotbg"></div>
+      <div class="prof"><b>이도윤</b><span>주인공 · 포스트잇 <span id="cnt"></span>장</span></div>
+      <div class="cv" id="cv"></div>
+      <div class="fl" id="fl"></div>
+      <div class="tool"><button id="newb" class="new">＋ 새 포스트잇</button><i></i><button id="zo" aria-label="축소">−</button><span class="pct" id="pct"></span><button id="zi" aria-label="확대">＋</button><button id="fit">전체 맞춤</button><button id="z100">100%</button></div>
+    </section>
+    <aside class="pool" id="pool">
+      <div class="hd"><b>쓰고 싶은 장면</b><span id="pcnt"></span><button id="pbig">크게</button></div>
+      <div class="in">한 줄 쓰고 Enter</div>
+      <div id="plist" class="icons"></div>
+      <div class="peek" id="peek"></div>
+    </aside>
+  </div>
+  <ul class="notes">
+    <li><b>글이 안 보일 때쯤 저절로</b>정해진 %가 아니라 <b>실제 글자 크기</b>로 정해요. 위의 슬라이드로 바꿀 수 있고, 줄일 땐 기준에서, 키울 땐 조금 더 커져야 돌아와서 경계에서 깜빡이지 않아요.</li>
+    <li><b>모양으로 보이는 것</b>분류 색 종이 · 글 줄 · 인물 색 점 · 별(점 개수) · 핀과 실. 글은 지우고 구조만 남겨요. 바뀔 때는 스르르 겹쳐 바뀌어요.</li>
+    <li><b>올리면 · 누르면 · 두 번 누르면</b>올리면 원래 크기의 반투명 미리보기, 누르면 또렷한 원본이 떠서 바로 고칠 수 있어요(Esc · 바깥 누르면 닫힘). 두 번 누르면 그 카드 자리로 확대돼요.</li>
+    <li><b>작게 보기에서도 그대로</b>끌어서 옮기기, 빈 곳 끌어 화면 이동, 휠로 확대 · 축소. 새 포스트잇은 원본으로 떠서 바로 쓰고, 다 쓰면 모양으로 돌아가요.</li>
+    <li><b>오른쪽 목록도 같은 모양</b>작은 아이콘에 올리면 미리보기, 보드로 끌면 원래 크기 포스트잇이 따라와서 놓은 자리에 붙어요. <b>크게</b>를 누르면 큰 포스트잇으로 봐요.</li>
+  </ul>
+</main>
+
+<script>
+const CH={d:['이도윤','도','#3a9fd8'],h:['서하린','하','#a865d6'],f:['서회장','회','#a2845e'],m:['강민재','민','#e0784a']};
+const KIND={scene:['장면 · 대사','var(--k-scene)'],memo:['메모','var(--k-memo)'],fore:['복선','var(--k-fore)']};
+let uid=100;
+const C=[      // [분류, 글, 별, 인물, x, y, 기울기, 핀]
+  ['scene','도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.',3,['d','h'],80,120,-1.6,1],
+  ['scene','"배고픈 사람한테 코스요리는 고문이에요." — 도윤',2,['d'],380,90,1.2,0],
+  ['memo','도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.',1,['d'],680,140,-.8,0],
+  ['scene','새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는다.',3,['d','h'],140,420,.9,0],
+  ['scene','하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.',3,['d','f'],470,400,-1.1,1],
+  ['fore','도윤의 낡은 헬멧 안쪽에 적힌 전화번호 — 나중에 누구 번호인지 드러남',2,['d'],800,420,1.4,1],
+  ['scene','"사과는 공짜고 수리비는 아니잖아요." — 도윤',2,['d'],1080,120,-.6,0],
+  ['memo','도윤의 하루: 새벽 배달 → 낮 아르바이트 → 밤에 동생 숙제 봐 주기',1,['d'],1120,400,.7,0],
+  ['scene','강민재가 도윤에게 배달 구역을 바꿔 달라고 한다. 이유는 말하지 않는다.',2,['d','m'],1380,220,-1.3,0],
+  ['scene','비 오는 밤, 도윤은 우산을 하린 쪽으로 기울이고 자기 어깨는 다 젖는다.',3,['d','h'],300,700,1.1,1],
+  ['memo','도윤은 "괜찮다"를 말할 때 늘 손을 주머니에 넣는다 — 거짓말 버릇',1,['d'],650,720,-.9,0],
+  ['scene','서회장이 도윤의 이름을 처음으로 제대로 부른다. 도윤은 대답하지 않는다.',2,['d','f'],980,700,.5,0],
+  ['fore','하린이 버린 영수증을 도윤이 주워 접어 둔다',1,['d','h'],1300,640,-1.2,0],
+].map(([k,t,st,ch,x,y,r,pin])=>({id:'c'+(uid++),k,t,st,ch,x,y,r,pin:!!pin}));
+const LINKS=[[0,4],[4,5],[5,9]];      // 실로 이은 카드 (번호)
+const P=[      // 오른쪽 목록
+  ['scene','하린이 처음으로 버스를 탄다. 교통카드를 찍는 법을 몰라 뒤에 선 사람에게 묻는다.',2,['h']],
+  ['memo','중반부 갈등: 도윤의 동생 학비 문제 — 서회장이 이걸 알고 있어야 함',1,[]],
+  ['scene','"당신 세계에선 미안하다는 말도 돈이 들어요?" — 하린',3,['h','d']],
+  ['scene','서회장의 서재. 벽에 걸린 가족사진 속에 하린만 웃지 않는다.',2,['f','h']],
+  ['fore','도윤의 배달 앱 별점이 갑자기 오르기 시작한다',1,['d']],
+  ['scene','"우산은 같이 쓰는 거예요. 반반씩 젖는 거고요." — 도윤',2,['d']],
+  ['memo','하린은 아버지 앞에서만 존댓말이 짧아진다',1,['h']],
+].map(([k,t,st,ch])=>({id:'p'+(uid++),k,t,st,ch}));
+
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const av=k=>`<span class="av" style="--c:${CH[k][2]}">${CH[k][1]}</span>`;
+const bars=t=>Math.max(2,Math.min(4,Math.ceil(t.length/22)));
+let V={k:1,x:0,y:0},DEF=false,TH=8,OPEN=null,SEL=null,BIG=false;
+const brd=$('#brd'),cv=$('#cv'),fl=$('#fl');
+const FS=15;      // 포스트잇 글자 크기
+
+/* ---------- 그리기 ---------- */
+function cardEl(c){
+  const el=document.createElement('div');el.className='cd';el.dataset.id=c.id;
+  el.style.cssText=`left:${c.x}px;top:${c.y}px;--r:${c.r||0}deg;--bg:${KIND[c.k][1]}`;
+  el.innerHTML=`<span class="st">${'★'.repeat(c.st)}</span><p class="tx">${esc(c.t)}</p><div class="ft">${c.ch.map(av).join('')}</div>
+    <div class="df" aria-hidden="true">${'<i></i>'.repeat(bars(c.t))}<span class="dd">${c.ch.map(k=>`<b style="--c:${CH[k][2]}"></b>`).join('')}</span><span class="ds">${'<b></b>'.repeat(c.st)}</span></div>`;
+  return el}
+function drawBoard(){
+  cv.innerHTML='';
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','th');svg.setAttribute('width','1');svg.setAttribute('height','1');cv.append(svg);
+  C.forEach(c=>{const el=cardEl(c);if(c.id===SEL)el.classList.add('sel');if(c.just){el.classList.add('pop');delete c.just}cv.append(el)});
+  drawThreads();
+  $('#cnt').textContent=C.length;bindCards()}
+function pinAt(c){const el=cv.querySelector(`[data-id="${c.id}"]`);return {x:c.x+(el?el.offsetWidth:230)/2,y:c.y+4}}
+function drawThreads(){
+  const svg=cv.querySelector('svg.th');
+  svg.innerHTML=LINKS.map(([a,b])=>{const p=pinAt(C[a]),q=pinAt(C[b]),mx=(p.x+q.x)/2,my=Math.max(p.y,q.y)+60;return `<path d="M${p.x} ${p.y} Q ${mx} ${my} ${q.x} ${q.y}"/>`}).join('');
+  cv.querySelectorAll('.pin').forEach(x=>x.remove());
+  C.filter(c=>c.pin).forEach(c=>{const p=pinAt(c),d=document.createElement('span');d.className='pin';d.style.left=p.x+'px';d.style.top=p.y+'px';cv.append(d)})}
+
+/* ---------- 보기 (확대 · 이동) ---------- */
+function apply(anim){
+  cv.classList.toggle('anim',!!anim);
+  cv.style.transform=`translate(${V.x}px,${V.y}px) scale(${V.k})`;cv.style.setProperty('--k',V.k);
+  $('#dotbg').style.backgroundSize=`${22*V.k}px ${22*V.k}px`;$('#dotbg').style.backgroundPosition=`${V.x}px ${V.y}px`;
+  // 작게 보기: 줄일 땐 기준에서, 키울 땐 12% 더 커져야 돌아옴 (경계에서 깜빡이지 않게)
+  const px=FS*V.k,was=DEF;DEF=DEF?px<TH*1.12:px<TH;
+  cv.classList.toggle('def',DEF);if(was!==DEF&&!DEF)hidePeek();
+  $('#pct').textContent=Math.round(V.k*100)+'%';
+  $('#stat').innerHTML=`보드 <b>${Math.round(V.k*100)}%</b> · 글자 <b>${px.toFixed(1)}px</b><span class="mode">${DEF?'작게 보기':'원본'}</span>`;
+  if(OPEN)placeFloat(OPEN)}
+function zoomAt(f,sx,sy,anim){const k=Math.max(.15,Math.min(2,V.k*f)),r=k/V.k;V.x=sx-(sx-V.x)*r;V.y=sy-(sy-V.y)*r;V.k=k;apply(anim)}
+function fitAll(anim){const W=brd.clientWidth,H=brd.clientHeight,minx=Math.min(...C.map(c=>c.x))-40,miny=Math.min(...C.map(c=>c.y))-40,
+  maxx=Math.max(...C.map(c=>c.x+260))+40,maxy=Math.max(...C.map(c=>c.y+220))+40;
+  V.k=Math.min(1,Math.min(W/(maxx-minx),(H-120)/(maxy-miny)));V.x=(W-(maxx-minx)*V.k)/2-minx*V.k;V.y=60+(H-120-(maxy-miny)*V.k)/2-miny*V.k;apply(anim)}
+function focusCard(c){const el=cv.querySelector(`[data-id="${c.id}"]`),W=brd.clientWidth,H=brd.clientHeight;V.k=1;V.x=W/2-(c.x+el.offsetWidth/2);V.y=H/2-(c.y+el.offsetHeight/2);closeFloat();apply(true)}
+brd.addEventListener('wheel',e=>{e.preventDefault();const r=brd.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+$('#zi').onclick=()=>zoomAt(1.25,brd.clientWidth/2,brd.clientHeight/2,true);
+$('#zo').onclick=()=>zoomAt(.8,brd.clientWidth/2,brd.clientHeight/2,true);
+$('#fit').onclick=()=>fitAll(true);
+$('#z100').onclick=()=>{zoomAt(1/V.k,brd.clientWidth/2,brd.clientHeight/2,true)};
+// 빈 곳 끌어 이동
+brd.addEventListener('pointerdown',e=>{if(e.target.closest('.cd,.tool,.fl'))return;closeFloat();select(null);
+  const x0=e.clientX,y0=e.clientY,vx=V.x,vy=V.y;brd.classList.add('pan');brd.setPointerCapture(e.pointerId);
+  const mv=ev=>{V.x=vx+ev.clientX-x0;V.y=vy+ev.clientY-y0;apply()},up=()=>{brd.classList.remove('pan');brd.removeEventListener('pointermove',mv);brd.removeEventListener('pointerup',up)};
+  brd.addEventListener('pointermove',mv);brd.addEventListener('pointerup',up)});
+
+/* ---------- 카드: 올리기 · 누르기 · 두 번 누르기 · 끌기 ---------- */
+function select(id){SEL=id;cv.querySelectorAll('.cd').forEach(x=>x.classList.toggle('sel',x.dataset.id===id))}
+function bindCards(){
+  cv.querySelectorAll('.cd').forEach(el=>{const c=C.find(x=>x.id===el.dataset.id);
+    el.addEventListener('mouseenter',()=>{if(DEF&&!OPEN)showFloat(c,false)});
+    el.addEventListener('mouseleave',()=>{if(!OPEN)hidePeek()});
+    el.addEventListener('dblclick',e=>{e.stopPropagation();focusCard(c)});
+    el.addEventListener('pointerdown',e=>{e.stopPropagation();const x0=e.clientX,y0=e.clientY,cx=c.x,cy=c.y;let moved=false;el.setPointerCapture(e.pointerId);
+      const mv=ev=>{const dx=(ev.clientX-x0)/V.k,dy=(ev.clientY-y0)/V.k;if(!moved&&Math.hypot(ev.clientX-x0,ev.clientY-y0)<4)return;
+        if(!moved){moved=true;hidePeek();closeFloat()}c.x=cx+dx;c.y=cy+dy;el.style.left=c.x+'px';el.style.top=c.y+'px';drawThreads()};
+      const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);
+        if(!moved){select(c.id);if(DEF){OPEN===c.id?closeFloat():showFloat(c,true)}}};
+      el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up)})})}
+/* 떠오르는 원본: 화면 좌표에서 원래 크기로 (보드 축소와 상관없이 늘 읽을 수 있게) */
+function showFloat(c,open){
+  fl.style.setProperty('--bg',KIND[c.k][1]);fl.dataset.id=c.id;
+  fl.innerHTML=`<small><span>${KIND[c.k][0]}</span><span class="s">${'★'.repeat(c.st)}</span></small>${open?`<textarea id="flt" aria-label="포스트잇 글">${esc(c.t)}</textarea>`:`<p>${esc(c.t)}</p>`}
+    <div class="who">${c.ch.map(k=>`<span><i style="--c:${CH[k][2]}"></i>${CH[k][0]}</span>`).join('')}</div>
+    <div class="hint"><span>Esc로 닫기</span><span>두 번 누르면 그 자리로 확대</span></div>`;
+  fl.classList.toggle('open',!!open);fl.classList.add('on');placeFloat(c.id);
+  if(open){OPEN=c.id;const ta=$('#flt');ta.addEventListener('input',()=>{c.t=ta.value});ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}}
+function placeFloat(id){const el=cv.querySelector(`[data-id="${id}"]`);if(!el)return;const r=el.getBoundingClientRect(),b=brd.getBoundingClientRect(),W=260;
+  let x=r.right-b.left+12;if(x+W>b.width-8)x=r.left-b.left-W-12;if(x<8)x=Math.max(8,(b.width-W)/2);
+  const y=Math.max(56,Math.min(b.height-260,r.top-b.top-8));fl.style.left=x+'px';fl.style.top=y+'px'}
+function hidePeek(){if(!OPEN)fl.classList.remove('on')}
+function closeFloat(){if(!OPEN)return;const c=C.find(x=>x.id===OPEN);OPEN=null;fl.classList.remove('on','open');
+  if(c&&!c.t.trim()){C.splice(C.indexOf(c),1)}drawBoard();apply()}      // 빈 새 포스트잇은 지움
+addEventListener('keydown',e=>{if(e.key==='Escape'&&OPEN){e.preventDefault();closeFloat()}});
+fl.addEventListener('dblclick',()=>{const c=C.find(x=>x.id===fl.dataset.id);if(c)focusCard(c)});
+/* 새 포스트잇: 지금 보는 곳 한가운데에 붙이고, 원본으로 떠서 바로 쓰기 */
+$('#newb').onclick=()=>{const W=brd.clientWidth,H=brd.clientHeight,c={id:'c'+(uid++),k:'scene',t:'',st:0,ch:['d'],x:(W/2-V.x)/V.k-115,y:(H/2-V.y)/V.k-60,r:+(Math.random()*3-1.5).toFixed(1),just:1};
+  C.push(c);drawBoard();apply();select(c.id);if(DEF)showFloat(c,true);else{showFloat(c,true)}};
+
+/* ---------- 오른쪽 목록: 같은 모양의 작은 아이콘 ---------- */
+const peek=$('#peek');
+function drawPool(){
+  const L=$('#plist');L.className=BIG?'big':'icons';$('#pbig').textContent=BIG?'작게':'크게';$('#pcnt').textContent=P.length+'장';
+  L.innerHTML=P.map((p,j)=>BIG?`<div class="cd" draggable="true" data-p="${p.id}" style="--r:${[-1,.8,-.5,1.1][j%4]}deg;--bg:${KIND[p.k][1]}"><span class="st">${'★'.repeat(p.st)}</span><p class="tx">${esc(p.t)}</p><div class="ft">${p.ch.map(av).join('')}</div></div>`
+    :`<div class="ico" draggable="true" data-p="${p.id}" style="--r:${[-6,4,-2,7,-4,3][j%6]}deg;--bg:${KIND[p.k][1]}" aria-label="${esc(p.t)}">${'<i></i>'.repeat(Math.min(3,bars(p.t)))}<span class="dd">${p.ch.map(k=>`<b style="--c:${CH[k][2]}"></b>`).join('')}</span></div>`).join('');
+  L.querySelectorAll('[data-p]').forEach(el=>{const p=P.find(x=>x.id===el.dataset.p);
+    if(!BIG){el.addEventListener('mouseenter',()=>{const r=el.getBoundingClientRect(),b=$('#pool').getBoundingClientRect();peek.style.setProperty('--bg',KIND[p.k][1]);
+        peek.innerHTML=`<small>${KIND[p.k][0]}${p.st?' · '+'★'.repeat(p.st):''}</small>${esc(p.t)}`;peek.style.top=Math.max(50,r.top-b.top-10)+'px';peek.classList.add('on')});
+      el.addEventListener('mouseleave',()=>peek.classList.remove('on'))}
+    el.addEventListener('dragstart',e=>{peek.classList.remove('on');e.dataTransfer.setData('text/plain',p.id);e.dataTransfer.effectAllowed='move';el.classList.add('drag');
+      const g=document.createElement('div');g.className='dragimg';g.style.background=getComputedStyle(el).backgroundColor;g.textContent=p.t;document.body.append(g);e.dataTransfer.setDragImage(g,40,24);setTimeout(()=>g.remove(),0)});
+    el.addEventListener('dragend',()=>{el.classList.remove('drag');brd.classList.remove('dropok')})})}
+$('#pbig').onclick=()=>{BIG=!BIG;drawPool()};
+brd.addEventListener('dragover',e=>{e.preventDefault();brd.classList.add('dropok')});
+brd.addEventListener('dragleave',e=>{if(!brd.contains(e.relatedTarget))brd.classList.remove('dropok')});
+brd.addEventListener('drop',e=>{e.preventDefault();brd.classList.remove('dropok');const id=e.dataTransfer.getData('text/plain'),p=P.find(x=>x.id===id);if(!p)return;
+  const r=brd.getBoundingClientRect();P.splice(P.indexOf(p),1);
+  C.push({id:p.id,k:p.k,t:p.t,st:p.st,ch:p.ch,x:(e.clientX-r.left-V.x)/V.k-30,y:(e.clientY-r.top-V.y)/V.k-20,r:+(Math.random()*3-1.5).toFixed(1),just:1});
+  drawBoard();drawPool();apply()});
+
+/* ---------- 설정 · 테마 ---------- */
+$('#th').oninput=e=>{TH=+e.target.value;$('#thv').textContent=TH+'px';DEF=FS*V.k<TH;apply()};
+const thm=t=>{t?document.documentElement.setAttribute('data-theme',t):document.documentElement.removeAttribute('data-theme');document.querySelectorAll('#thm button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));try{localStorage.setItem('dfsian-theme',t)}catch(e){}};
+document.querySelectorAll('#thm button').forEach(b=>b.onclick=()=>thm(b.dataset.t));
+let t0='';try{t0=localStorage.getItem('dfsian-theme')||''}catch(e){}thm(t0);
+drawBoard();drawPool();fitAll();
+addEventListener('resize',()=>apply());
+</script>
+</body>
+</html>

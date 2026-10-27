@@ -84,7 +84,8 @@ function renderPool0(){
       'sep',{title:'노트 크기'},...[['x','요약 (긴 글은 3줄까지)'],['s','소'],['m','중'],['l','대']].map(([k,n])=>({label:n,on:(UIP.ps||'m')===k,keep:true,fn:()=>{UIP.ps=k;saveUIP();renderPool()}})),
       ...((UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])]);
     setTimeout(()=>{if(UI.pq)si.focus()},0)}},icon('filter'),fOn?h('i',{class:'fdot'}):null);
-  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),fb,ptog('pool')));
+  const icoB=U3()?h('button',{class:'cbtn frpico',title:frIcons()?'포스트잇을 크게 보기':'작은 포스트잇 아이콘으로 보기',onclick:()=>{UIP.pico=!frIcons();saveUIP();renderPool()}},frIcons()?'크게':'작게'):null;
+  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),icoB,fb,ptog('pool')));
   else p.append(h('div',{class:'phead'},h('b',{},'쓰고 싶은 장면 · 대사'),h('span',{class:'sp'}),h('span',{class:'muted'},`${S.cards.length}장`),fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
@@ -95,13 +96,14 @@ function renderPool0(){
   const list=h('div',{class:'plist'});
   const q=UI.pq.trim().toLowerCase();
   const sig=`${poolKinds().join()}|${JSON.stringify(poolOwn())}|${poolSort().by}${poolSort().dir}|${UI.pchar}|${UI.pused}|${UI.pq}`;if(renderPool.sig!==sig){UI.poolLimit=60;renderPool.sig=sig}      // 필터가 바뀌면 처음부터
-  const lim=UI.poolLimit||60;
+  const ICON=frIcons(),lim=ICON?Math.max(UI.poolLimit||60,300):UI.poolLimit||60;      // 새단장 아이콘은 가벼워서 한 번에 더 많이
   const ps=poolSort(),pv=c=>ps.by==='updated'?(c.updated||c.created||0):(c.created||0),pd=ps.dir==='asc'?1:-1;
   const items=S.cards.filter(c=>{const u=!!episodeOf(c.id);return poolPass(c)&&(!UI.pchar||eff(c).includes(UI.pchar))&&(UI.pused==='all'||(UI.pused==='used'?u:!u))&&(!q||c.text.toLowerCase().includes(q))})
     .map((c,i)=>[c,i]).sort((a,b)=>(pv(a[0])-pv(b[0]))*pd||(a[1]-b[1])*(ps.dir==='asc'?-1:1)).map(x=>x[0]);
-  const mrow=h('div',{class:'mrow'});list._cards=items.slice(0,lim).map(c=>kcard(c,'pool'));      // 많을 때는 나눠서 그림 (스크롤하면 더 불러옴)
-  if(list._cards.length)list.append(mrow);
-  if(items.length>lim)list.append(h('button',{class:'quiet morebtn',style:'width:100%;margin-top:10px',onclick:()=>{const st=$('pool').scrollTop;UI.poolLimit=lim+80;renderPool();$('pool').scrollTop=st}},`＋ ${items.length-lim}장 더 보기`));
+  if(ICON){list.classList.add('frics');items.slice(0,lim).forEach(c=>list.append(frIcon(c)))}      // 새단장: 작은 포스트잇 아이콘 (features/fresh.js)
+  else{const mrow=h('div',{class:'mrow'});list._cards=items.slice(0,lim).map(c=>kcard(c,'pool'));      // 많을 때는 나눠서 그림 (스크롤하면 더 불러옴)
+  if(list._cards.length)list.append(mrow)}
+  if(items.length>lim)list.append(h('button',{class:'quiet morebtn',style:'width:100%;margin-top:10px',onclick:()=>{const st=$('pool').scrollTop;UI.poolLimit=lim+(ICON?300:80);renderPool();$('pool').scrollTop=st}},`＋ ${items.length-lim}장 더 보기`));
   if(!list.children.length)list.append(h('div',{class:'empty'},S.cards.length?'조건에 맞는 카드가 없어요.':'쓰고 싶은 장면이나 대사를 위에 한 줄씩 적어 보세요.',
     S.cards.length?h('div',{},h('button',{class:'quiet',style:'margin-top:8px',onclick:()=>{UI.pchar='';UI.pq='';UI.pused='all';UIP.pk=S.kinds.map(k=>k.id);UIP.pown={char:true,setting:true,none:true};saveUIP();renderAll()}},'필터 모두 풀기')):h('div',{},h('button',{class:'on',style:'margin-top:10px',onclick:()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()}},'첫 카드 쓰기'))));
   list.addEventListener('dragover',e=>{if(BRDRAG||DRAG&&(episodeOf(DRAG.id)||shelfOf(DRAG.id))){e.preventDefault();list.classList.add('over')}});

@@ -45,6 +45,7 @@ function kcard(card,mode,opt={}){
   if(isB){
     {const sh=cardShape(card);if(sh)el.setAttribute('data-shp',sh)}
     el.append(bar,wrap,footEl(card));
+    if(U3())el.append(frDefLayer(card));      // 작게 보기에서만 보이는 모양 층
     if(card.discarded){el.classList.add('disc');el.prepend(h('i',{class:'kx','aria-hidden':'true'}))}      // 폐기: 바탕에 붉은 X (글자 아래)
     if(pl)el.querySelector('.kfoot').append(h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`));
     el.append(h('div',{class:'rz',title:'좌우로 끌어서 너비 조절'}),h('div',{class:'rzb',title:'위아래로 끌어서 높이 조절 · 더블클릭하면 내용에 맞춤'}),h('div',{class:'rzc',title:'끌어서 가로·세로 조절 · 더블클릭하면 높이를 내용에 맞춤'}));
