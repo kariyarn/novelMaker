@@ -14,6 +14,13 @@ function placeCard(cardId,epId,beforeId){
     const ep=S.episodes.find(e=>e.id===epId);let i=beforeId?ep.cardIds.indexOf(beforeId):-1;if(i<0)i=ep.cardIds.length;ep.cardIds.splice(i,0,cardId)});
 }
 const unplaceCard=id=>act(()=>detach([id]));
+function tlRecount(opt){      // 글을 고치고 나왔을 때 화 · 보관 칸 머리의 카드 수 · 글자 수만 새로 (전체를 다시 그리지 않음)
+  const tc=c=>UI.tlChar==='all'||eff(c).includes(UI.tlChar);
+  if(opt.epId){const i=S.episodes.findIndex(e=>e.id===opt.epId);if(i<0)return;const cs=S.episodes[i].cardIds.map(cardById).filter(Boolean).filter(kindOk).filter(tc);
+    document.querySelectorAll(`#mid [data-ep="${i}"] .tlhead .epcnt`).forEach(x=>x.textContent=cntLabel(cs.map(c=>c.id),cs.length))}
+  else if(opt.shelfId){const sh=(S.shelves||[]).find(x=>x.id===opt.shelfId);if(!sh)return;const cs=sh.cardIds.map(cardById).filter(Boolean).filter(kindOk);
+    document.querySelectorAll(`#mid [data-sh="${sh.id}"] .tlhead .epcnt`).forEach(x=>x.textContent=cntLabel(cs.map(c=>c.id),cs.length))}
+}
 function shelfPlace(cardId,shelfId,beforeId){      // 보관 칸에 넣기 (칸 안 순서도 지정)
   act(()=>{detach([cardId]);const sh=S.shelves.find(x=>x.id===shelfId);if(!sh)return;let i=beforeId?sh.cardIds.indexOf(beforeId):-1;if(i<0)i=sh.cardIds.length;sh.cardIds.splice(i,0,cardId)});
 }
