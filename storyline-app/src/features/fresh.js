@@ -94,16 +94,31 @@ function frScenes(body,ep){
   const deco=()=>{
     const els=[...body.querySelectorAll(':scope>.kcard')],ids=els.map(e=>e.dataset.id),seps=new Set((ep.seps||[]).filter(id=>ids.indexOf(id)>0));
     body.classList.toggle('frhassc',!!seps.size);
-    const setSeps=fn=>act(()=>{ep.seps=fn((ep.seps||[]).filter(id=>ep.cardIds.includes(id)));if(!ep.seps.length)delete ep.seps});
+    const setSeps=fn=>frSetSeps(ep,fn);
     els.forEach((el,i)=>{if(!i){el.classList.add('scfirst');return}
       if(seps.has(ids[i])){el.classList.add('scst');
         el.prepend(h('div',{class:'frsep',title:'장면 구분'},h('i',{}),h('button',{class:'frjoin',title:'구분 지우고 앞 장면과 잇기',onclick:e=>{e.stopPropagation();setSeps(a=>a.filter(x=>x!==ids[i]))}},'잇기')))}
-      else{const cut=h('div',{class:'frcut',title:'여기서 장면 나누기 — 이어지지 않는 장면을 따로 묶어요',onclick:e=>{e.stopPropagation();setSeps(a=>[...a,ids[i]])}},h('span',{},'＋ 장면 나누기'));
-        cut.addEventListener('pointerdown',e=>e.stopPropagation());cut.addEventListener('dblclick',e=>e.stopPropagation());el.prepend(cut)}
       if(i===els.length-1||seps.has(ids[i+1]))el.classList.add('sclast')});
     if(els.length&&!els.slice(1).some(e=>e.classList.contains('scst')))els[els.length-1].classList.add('sclast');
   };
   if(body._fill){const f=body._fill;body._fill=()=>{f();deco()}}else deco();
+}
+
+function frSetSeps(ep,fn){act(()=>{ep.seps=fn((ep.seps||[]).filter(id=>ep.cardIds.includes(id)));if(!ep.seps.length)delete ep.seps})}
+
+/* 문단 우클릭: 위 · 아래에 새 문단 / 장면 구분 넣기 · 지우기 / 다른 화로 */
+function frCtx(ev,card,epId){
+  const ep=S.episodes.find(e=>e.id===epId);if(!ep)return;
+  const ids=ep.cardIds.filter(cardById),i=ids.indexOf(card.id),up=ids[i],down=ids[i+1],has=id=>(ep.seps||[]).includes(id);
+  const add=at=>{const c=newCard(card.kind,'');
+    act(()=>{S.cards.push(c);idxClear();ep.cardIds.splice(at,0,c.id)});
+    requestAnimationFrame(()=>{const el=document.querySelector(`#mid .kcard[data-id="${c.id}"]`);if(el){el.scrollIntoView({block:'nearest'});enterEditList(el)}})};      // 비워 두고 나가면 저절로 지워짐
+  const sepItem=(id,where)=>id&&ids.indexOf(id)>0?(has(id)?{label:`${where} 장면 구분 지우기`,fn:()=>frSetSeps(ep,a=>a.filter(x=>x!==id))}:{label:`${where}에 장면 구분 넣기`,fn:()=>frSetSeps(ep,a=>[...a,id])}):null;
+  const items=[{label:'위에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id))},{label:'아래에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id)+1)},'sep',
+    sepItem(up,'위'),sepItem(down,'아래'),'sep',
+    {label:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,[card.id]);b.remove()},0)}].filter(Boolean);
+  const cx=ev.clientX,cy=ev.clientY,a=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(a);
+  popMenu(a,items.filter((x,k,arr)=>!(x==='sep'&&(k===0||arr[k-1]==='sep'))));a.remove();
 }
 
 /* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
