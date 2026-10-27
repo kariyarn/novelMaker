@@ -1,7 +1,8 @@
 /* ============ 새단장 (설정 → 겉모습 → 화면 디자인 → 새단장 · body.ui3) ============
    정리 전(오른쪽 목록 · 구상 보드)은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고.
    색은 테마 값(--card · --ink · --sub · --line …)을 그대로 따라서 모든 테마에서 같이 바뀜 */
-:root{--fr-story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;--fr-note:#fff3b8;--fr-x:rgba(210,69,59,.75);
+:root{--fr-story:var(--ff,-apple-system,BlinkMacSystemFont,"SF Pro Text","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif);      /* 글꼴은 앱 기본 글꼴 하나로 (설정 → 글자에서 고른 글꼴) */
+--fr-note:#fff3b8;--fr-x:rgba(210,69,59,.75);
   --fr-lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.07)}
 :root.dk{--fr-note:#3a3420;--fr-lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3)}
 .ui3 #app.m-tl2 #mid{background:color-mix(in srgb,var(--bg) 88%,var(--acc) 3%)}
