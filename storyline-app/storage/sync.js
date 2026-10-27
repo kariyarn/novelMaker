@@ -3,6 +3,7 @@
 //   파일마다 '마지막으로 맞춘 버전(sha)'을 기억해 두고, 어느 쪽이 바뀌었는지 보고 정함
 //     한쪽만 바뀜 → 그쪽으로 맞춤
 //     둘 다 바뀜   → 작품 목록은 합침 · 취향과 보기 상태는 이 기기 것 · 작품 글은 카드 단위로 합침 (storage/merge.js, 같은 글을 둘 다 고친 곳만 사용자가 고름)
+//   평소에는 올리기만 자동(push) · 받기는 사용자가 누를 때만(sync). 다른 기기에서 고친 게 있는지는 check 로 확인만 함
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {atomicWrite}=require('./files');
 
@@ -44,12 +45,12 @@ function createSync({store,fetch,getConfig,statePath}){
   }
   const getBlob=async(cfg,sha)=>unb64((await api(cfg,'GET',`/git/blobs/${sha}`)).content);
   async function put(cfg,rel,text,sha,empty){
-    const body={message:`동기화: ${rel}`,content:b64(text),...(sha?{sha}:{}),...(empty?{}:{branch:cfg.branch})};
+    const body={message:`동기화${cfg.device?` (${cfg.device})`:''}: ${rel}`,content:b64(text),...(sha?{sha}:{}),...(empty?{}:{branch:cfg.branch})};
     const r=await api(cfg,'PUT',`/contents/${ROOT}${rel.split('/').map(encodeURIComponent).join('/')}`,body);
     return r.content.sha;
   }
 
-  async function pass(cfg,st,res,trust){
+  async function pass(cfg,st,res,trust,pushOnly){
     const {files:remote,empty}=await remoteTree(cfg);
     const base=st.files,hist=st.hist=st.hist||{};let changed=false;
     const setBase=(rel,sha)=>{base[rel]=sha;const h=(hist[rel]||[]).filter(x=>x!==sha);h.push(sha);hist[rel]=h.slice(-40)};      // 지나간 버전 지문도 기억
@@ -63,6 +64,11 @@ function createSync({store,fetch,getConfig,statePath}){
       const R0=remote[rel]||null,Rs=!trust&&R0&&B&&R0!==B&&(hist[rel]||[]).includes(R0)?B:R0;
       if(Ls===Rs){if(Rs)setBase(rel,Rs);continue}
       const localCh=Ls!==B,remoteCh=Rs!==B;
+      if(pushOnly){      // 올리기만: 다른 기기가 고친 파일은 받기 전까지 건드리지 않음 (덮어쓰면 그쪽 글이 사라짐) · 취향은 이 기기 것
+        if(L==null||!localCh)continue;
+        if(remoteCh&&Rs&&rel!=='prefs.json'){res.blocked.push(rel);continue}
+        setBase(rel,await put(cfg,rel,L,Rs,empty));res.pushed.push(rel);continue;
+      }
       if(remoteCh&&Rs&&(!localCh||Ls==null)){      // 받기
         const text=await getBlob(cfg,Rs);store.syncWrite(rel,text);setBase(rel,Rs);res.pulled.push(rel);changed=true;
         const after=store.syncRead(rel);      // 작품 목록처럼 합친 결과가 다르면 바로 올림
@@ -89,29 +95,61 @@ function createSync({store,fetch,getConfig,statePath}){
     return changed;
   }
 
-  async function run(){
+  function begin(){
     const cfg=getConfig();
-    if(!cfg||!cfg.repo||!cfg.token)return {ok:false,error:'동기화 설정이 없어요',skipped:true};
+    if(!cfg||!cfg.repo||!cfg.token)return null;
     cfg.branch=cfg.branch||'main';
     let st=readState();
     if(st.repo!==cfg.repo||st.branch!==cfg.branch)st={repo:cfg.repo,branch:cfg.branch,files:{}};      // 저장소를 바꾸면 처음부터
     st.files=st.files||{};
-    const res={ok:true,pulled:[],pushed:[],merged:[],conflicts:[]};
+    return {cfg,st};
+  }
+  const NOCFG={ok:false,error:'동기화 설정이 없어요',skipped:true};
+  async function run(pushOnly){      // pushOnly: 올리기만 · 아니면 받기까지 (사용자가 누를 때)
+    const b=begin();if(!b)return {...NOCFG};
+    const {cfg,st}=b,res={ok:true,pulled:[],pushed:[],merged:[],conflicts:[],blocked:[]};
     try{
       let trust=false;
       for(let i=0;i<4;i++){      // 합치면 한 번 더 (새로 생긴 파일까지 올림)
-        let again;
-        try{again=await pass(cfg,st,res,trust)}
+        let again;res.blocked=[];
+        try{again=await pass(cfg,st,res,trust,pushOnly)}
         catch(e){if(e.status===409||e.status===422){again=true;trust=true;continue}throw e}      // 그사이 다른 기기가 올림: 목록을 그대로 믿고 다시 비교
-        if(!again)break;
+        if(!again||pushOnly)break;
       }
       st.last=Date.now();writeState(st);
     }catch(e){writeState(st);return {...res,ok:false,error:e.message||String(e)}}
     return res;
   }
-  // 동시에 두 번 돌지 않게
-  const now=()=>running||(running=run().finally(()=>{running=null}));
+  /* 다른 기기에서 고친 작품 글이 있는지 확인만 (받지 않음): 어느 기기에서 · 언제 */
+  async function check(){
+    const b=begin();if(!b)return {...NOCFG};
+    const {cfg,st}=b;
+    try{
+      const {files:remote}=await remoteTree(cfg),hist=st.hist||{},local=new Set(store.syncPaths());
+      const pending=Object.keys(remote).filter(rel=>{
+        if(!/^works\/[\w-]+\/storyline\.json$/.test(rel))return false;      // 작품 글만 (보기 상태 · 취향 · 목록 순서는 알릴 거리 아님)
+        const Rs=remote[rel],B=st.files[rel]||null;
+        if(Rs===B||(B&&(hist[rel]||[]).includes(Rs)))return false;      // 이미 맞춘 버전 · 지나간 버전
+        const L=local.has(rel)?store.syncRead(rel):null;return !(L!=null&&gitSha(L)===Rs);      // 이미 같은 글
+      }).sort();
+      st.checked=Date.now();writeState(st);
+      if(!pending.length)return {ok:true,pending:[]};
+      const sig=pending.map(r=>r+':'+remote[r]).join('|');
+      let at=null,from=null;
+      try{const cs=await api(cfg,'GET',`/commits?sha=${encodeURIComponent(cfg.branch)}&path=${encodeURIComponent(ROOT+pending[0])}&per_page=1`);
+        const c=Array.isArray(cs)&&cs[0]&&cs[0].commit;if(c){at=Date.parse(c.author&&c.author.date||c.committer&&c.committer.date)||null;const m=/^동기화 \((.+?)\):/.exec(c.message||'');from=m?m[1]:null}}catch(e){}
+      const ids=pending.map(r=>r.split('/')[1]);
+      return {ok:true,pending,ids,sig,at,from,dismissed:st.dismissed===sig};
+    }catch(e){return {ok:false,error:e.message||String(e)}}
+  }
+  const dismiss=sig=>{const st=readState();st.dismissed=sig;writeState(st)};      // '나중에': 같은 내용으로는 다시 묻지 않음
+  // 동시에 두 번 돌지 않게: 차례로
+  let chain=Promise.resolve();
+  const serial=fn=>{const p=chain.then(fn,fn);chain=p.catch(()=>{});return p};
+  const now=()=>running||(running=serial(()=>run(false)).finally(()=>{running=null}));
+  const push=()=>serial(()=>run(true));
+  const checkNow=()=>serial(check);
   const lastSync=()=>readState().last||0;
-  return {sync:now,lastSync};
+  return {sync:now,push,check:checkNow,dismiss,lastSync};
 }
 module.exports={createSync,gitSha};

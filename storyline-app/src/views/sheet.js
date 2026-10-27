@@ -12,6 +12,7 @@ function renderSheet0(){
   const p=$('sheet');p.innerHTML='';
   const c=charById(UI.sel),isSet=!!c&&c.kind==='setting';
   p.classList.toggle('cl',!!UIP.cl.sheet&&UI.peek!=='sheet');
+  if(UIP.cl.sheet&&UI.peek!=='sheet'&&U3()&&UI.mode==='story'&&c)return;      // 새단장: 보드 머리말의 '시트 펼치기'와 같은 일이라 접힌 시트 아이콘은 두지 않음
   if(UIP.cl.sheet&&UI.peek!=='sheet'){p.append(h('button',{class:'ctab ctab-s'+(UIP.cl.left?' low':''),onmouseenter:()=>peekSoon('sheet'),onfocus:()=>startPeek('sheet',true),title:(isSet?'설정 노트':'인물 시트')+' 펴기',onclick:()=>toggleCl('sheet')},icon('people')));return}
   const allKeys=c&&!isSet?[...new Set(c.fields.map(f=>f.group)),'__goal'].map(g=>c.id+':'+g):[];
   const isCl=k=>/:__goal$/.test(k)?(U2()?UIP.gc[k]!==false:!!UIP.gc[k]):UIP.gc[k]!==false;

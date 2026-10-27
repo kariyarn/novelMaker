@@ -1,5 +1,5 @@
 const {app,BrowserWindow,shell,Menu,Tray,nativeImage,ipcMain,globalShortcut,safeStorage,screen,net,nativeTheme}=require('electron');
-const path=require('path'),fs=require('fs');
+const path=require('path'),fs=require('fs'),os=require('os');
 const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
@@ -20,8 +20,8 @@ function createWindow({hidden=false}={}){
     autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
   win.loadFile(path.join(__dirname,'index.html'));
   win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
-  win.webContents.once('did-finish-load',()=>{setTimeout(()=>runSync(),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js)
-  win.on('focus',()=>{if(Date.now()-sync.lastSync()>60*1000)runSync()});      // 다른 컴퓨터에서 쓰다 왔을 때
+  win.webContents.once('did-finish-load',()=>{setTimeout(()=>runPush().then(()=>runCheck()),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js) · 지난번에 못 올린 것 올리고 새 내용 확인
+  win.on('focus',()=>{if(Date.now()-lastCheck>60*1000)runCheck()});      // 다른 컴퓨터에서 쓰다 왔을 때: 확인만 (받기는 사용자가)
   win.on('closed',()=>{win=null;app.quit()});      // 큰 창을 닫으면 끔 (숨은 포스트잇 창이 남아 있어도)
 }
 
@@ -31,14 +31,14 @@ const CFG=()=>userFile('sync-config.json');
 function syncConfig(){
   const c=readJson(CFG(),null);if(!c||!c.repo)return null;
   let token=null;try{token=c.enc?safeStorage.decryptString(Buffer.from(c.token,'base64')):c.token}catch(e){}
-  return {repo:c.repo,branch:c.branch||'main',token};
+  return {repo:c.repo,branch:c.branch||'main',token,device:(c.device||'').trim()||os.hostname()};      // device: 커밋 메시지에 남겨 '어느 기기에서' 알려 줌
 }
 function setSyncConfig(c){
   if(!c){try{fs.rmSync(CFG(),{force:true})}catch(e){}return {ok:true}}
   const old=readJson(CFG(),{});let token=old.token,enc=old.enc;
   if(c.token){enc=safeStorage.isEncryptionAvailable();token=enc?safeStorage.encryptString(c.token).toString('base64'):c.token}
   if(!token)return {ok:false,error:'토큰을 넣어 주세요'};
-  writeJson(CFG(),{repo:c.repo,branch:c.branch||'main',token,enc});return {ok:true};
+  writeJson(CFG(),{repo:c.repo,branch:c.branch||'main',token,enc,device:(c.device||'').trim()});return {ok:true};
 }
 let syncTimer=0;
 async function runSync({notify=true}={}){
@@ -50,7 +50,27 @@ async function runSync({notify=true}={}){
   if(noteWin&&noteWin.isVisible())noteWin.webContents.send('note:shown');
   return r;
 }
-const syncSoon=()=>{if(!syncTimer&&syncConfig())syncTimer=setTimeout(()=>runSync(),30*1000)};      // 고친 뒤 30초쯤 모아서 올림
+// 평소: 고친 걸 올리기만 자동 · 다른 기기에서 고친 건 확인만 하고 화면에 알림 (받기는 사용자가 눌러서 runSync)
+async function runPush(){
+  clearTimeout(syncTimer);syncTimer=0;syncFirst=0;
+  if(!syncConfig())return {ok:false,skipped:true};
+  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(()=>{});
+  const r=await sync.push();
+  callMain(`typeof onSyncPush==="function"&&onSyncPush(${JSON.stringify(r)})`).catch(()=>{});
+  if(r.ok&&r.blocked&&r.blocked.length)runCheck();      // 다른 기기가 먼저 고친 작품이 있어서 못 올림: 받기를 권함
+  return r;
+}
+let lastCheck=0;
+async function runCheck(){
+  if(!syncConfig())return {ok:false,skipped:true};
+  lastCheck=Date.now();
+  const r=await sync.check();
+  callMain(`typeof onSyncCheck==="function"&&onSyncCheck(${JSON.stringify(r)})`).catch(()=>{});
+  return r;
+}
+let syncFirst=0;
+const syncSoon=()=>{if(!syncConfig())return;clearTimeout(syncTimer);if(!syncFirst)syncFirst=Date.now();      // 마지막으로 고친 뒤 5초쯤 지나면 올림 (쉬지 않고 써도 1분에 한 번은)
+  syncTimer=setTimeout(()=>{syncFirst=0;runPush()},Date.now()-syncFirst>60*1000?0:5*1000)};
 
 /* ---------- 앱 자동 업데이트: 새 앱 코드를 받아 두고, 다시 켜면 적용 (updater.js · launcher.js) ---------- */
 let updNotified=0;
@@ -141,10 +161,12 @@ app.whenReady().then(()=>{
   ipcMain.on('store:savePrefs',(e,t)=>{e.returnValue=store.savePrefs(t)});
   ipcMain.handle('store:savePrefsAsync',(e,t)=>store.savePrefs(t));
   /* 동기화 */
-  ipcMain.on('sync:getConfig',e=>{const c=syncConfig();e.returnValue=c?{repo:c.repo,branch:c.branch,hasToken:!!c.token,last:sync.lastSync(),secure:safeStorage.isEncryptionAvailable()}:null});
+  ipcMain.on('sync:getConfig',e=>{const c=syncConfig(),raw=readJson(CFG(),{});e.returnValue=c?{repo:c.repo,branch:c.branch,hasToken:!!c.token,last:sync.lastSync(),secure:safeStorage.isEncryptionAvailable(),device:raw.device||'',host:os.hostname()}:null});
   ipcMain.on('sync:setConfig',(e,c)=>{e.returnValue=setSyncConfig(c)});
-  ipcMain.handle('sync:now',()=>runSync({notify:false}));
-  setInterval(()=>runSync(),5*60*1000);
+  ipcMain.handle('sync:now',()=>runSync({notify:false}));      // 받기 (+ 올리기)
+  ipcMain.handle('sync:check',()=>runCheck());
+  ipcMain.on('sync:dismiss',(e,sig)=>{sync.dismiss(sig);e.returnValue=true});
+  setInterval(()=>runCheck(),5*60*1000);
   /* 앱 업데이트 */
   const AU=global.appUpdate||{bundled:require('./package.json').version,running:require('./package.json').version,dir:null};      // launcher.js 없이 켰을 때(개발용)
   updater=createUpdater({fetch:(u,o)=>net.fetch(u,o),dir:userFile('app-update'),bundled:AU.bundled,running:AU.running,electron:process.versions.electron,keep:AU.dir});
@@ -171,7 +193,7 @@ app.whenReady().then(()=>{
   const openBak={label:'백업 폴더 열기 (현재 작품)',click:()=>shell.openPath(store.backupsDir())};
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     ...(isMac?[{role:'appMenu'}]:[]),
-    {label:'파일',submenu:[openData,openBak,{type:'separator'},{label:'지금 동기화',click:()=>runSync()},{type:'separator'},isMac?{role:'close'}:{role:'quit',label:'끝내기'}]},
+    {label:'파일',submenu:[openData,openBak,{type:'separator'},{label:'다른 기기 내용 받기',click:()=>runSync()},{type:'separator'},isMac?{role:'close'}:{role:'quit',label:'끝내기'}]},
     {label:'편집',submenu:[
       {label:'되돌리기',accelerator:'CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('undo()')},     // 메뉴 기본 동작이 앱의 되돌리기를 가로채지 않게 직접 연결
       {label:'다시 하기',accelerator:'Shift+CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('redo()')},
@@ -197,7 +219,7 @@ app.on('before-quit',e=>{
   quitting=true;
   if(finalSynced||!syncConfig()||!sync)return;
   e.preventDefault();finalSynced=true;
-  Promise.race([runSync({notify:false}),new Promise(r=>setTimeout(r,6000))]).finally(()=>app.quit());
+  Promise.race([runPush(),new Promise(r=>setTimeout(r,6000))]).finally(()=>app.quit());      // 올리기만 (끄는 중에 받아서 바꾸지 않음)
 });
 app.on('will-quit',()=>globalShortcut.unregisterAll());
 app.on('window-all-closed',()=>app.quit());

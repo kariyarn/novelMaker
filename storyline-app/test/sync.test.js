@@ -7,7 +7,7 @@ const {createSync,gitSha}=require('../storage/sync');
 
 /* 가짜 GitHub: 이 앱이 쓰는 API 만 (트리 목록 · blob 읽기 · 파일 올리기) */
 function fakeGitHub({emptyRepo=false}={}){
-  const files=new Map(),blobs=new Map();let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
+  const files=new Map(),blobs=new Map(),log=[];let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
   const json=(status,o)=>({ok:status<300,status,text:async()=>JSON.stringify(o)});
   async function fetch(url,{method,headers,body}){
     calls++;
@@ -23,8 +23,13 @@ function fakeGitHub({emptyRepo=false}={}){
       const t=blobs.get(p.slice(11));      // 진짜 GitHub 처럼 지나간 버전도 읽힘
       return t!=null?json(200,{content:Buffer.from(t).toString('base64')}):json(404,{});
     }
+    if(method==='GET'&&p==='/commits'){      // 그 파일을 마지막으로 올린 기록 (메시지 · 시각)
+      const l=log.filter(x=>x.path===u.searchParams.get('path')).slice(-1);
+      return json(200,l.map(x=>({commit:{message:x.message,author:{date:x.date}}})));
+    }
     if(method==='PUT'&&p.startsWith('/contents/')){
       const fp=p.slice(10),b=JSON.parse(body),cur=files.get(fp);
+      log.push({path:fp,message:b.message,date:new Date().toISOString()});
       if(cur&&b.sha!==cur.sha)return json(409,{message:'sha mismatch'});
       if(!cur&&b.sha)return json(422,{message:'sha given for new file'});
       const text=Buffer.from(b.content,'base64').toString('utf8'),sha=gitSha(text);
@@ -37,10 +42,10 @@ function fakeGitHub({emptyRepo=false}={}){
   return {fetch,files,get calls(){return calls},freeze(){stale=snapshot()},thaw(){stale=null}};
 }
 const tmp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'storyline-sync-'));
-function device(gh,token='good'){
+function device(gh,token='good',name){
   const d=tmp();process.env.STORYLINE_DATA_DIR=d;
   const store=create(path.join(d,'userData'));
-  const sync=createSync({store,fetch:gh.fetch,getConfig:()=>({repo:'me/novel',branch:'main',token}),statePath:path.join(d,'sync-state.json')});
+  const sync=createSync({store,fetch:gh.fetch,getConfig:()=>({repo:'me/novel',branch:'main',token,device:name}),statePath:path.join(d,'sync-state.json')});
   return {store,sync,dir:d};
 }
 const doc=(...names)=>JSON.stringify({characters:names.map((n,i)=>({id:'c'+i,name:n})),cards:[],episodes:[]});
@@ -207,4 +212,44 @@ test('올린 직후 GitHub 가 예전 목록을 줘도 가짜 충돌 · 사본 �
   gh.thaw();
   r=await A.sync.sync();assert.equal(r.ok,true,r.error);assert.deepEqual(r.conflicts,[]);
   const id=A.store.current();assert.equal(gh.files.get(`storyline/works/${id}/storyline.json`).text,doc('메모 하나','메모 둘'));
+});
+
+test('올리기만: 다른 기기 글은 받지 않고, 다른 기기가 고친 작품은 덮어쓰지 않음', async()=>{
+  const gh=fakeGitHub(),A=device(gh,'good','집 맥');A.store.save('storyline_v1',doc('가'));await A.sync.sync();
+  const B=device(gh,'good','회사 PC');await B.sync.sync();
+  B.store.save('storyline_v1',doc('가','B'));
+  const pb=await B.sync.push();
+  assert.equal(pb.ok,true,pb.error);assert.ok(pb.pushed.some(r=>r.endsWith('/storyline.json')));
+  A.store.save('storyline_v1',doc('가','A'));
+  const pa=await A.sync.push();
+  assert.equal(pa.ok,true,pa.error);
+  assert.deepEqual(pa.pulled,[]);
+  assert.ok(pa.blocked.some(r=>r.endsWith('/storyline.json')));      // 받기 전까지 안 올림
+  assert.equal(A.store.load('storyline_v1').text,doc('가','A'));      // 이 기기 글 그대로
+  const id=A.store.current();
+  assert.equal(gh.files.get(`storyline/works/${id}/storyline.json`).text,doc('가','B'));      // 저장소는 B 글 그대로
+});
+
+test('확인만: 어느 기기에서 · 언제 고쳤는지 알려 주고, 나중에를 누르면 같은 내용은 다시 안 물음', async()=>{
+  const gh=fakeGitHub(),A=device(gh,'good','집 맥');A.store.save('storyline_v1',doc('가'));await A.sync.sync();
+  const B=device(gh,'good','회사 PC');await B.sync.sync();
+  assert.deepEqual((await A.sync.check()).pending,[]);
+  B.store.save('storyline_v1',doc('가','나'));await B.sync.push();
+  const c=await A.sync.check();
+  assert.equal(c.ok,true,c.error);
+  assert.equal(c.pending.length,1);assert.equal(c.from,'회사 PC');assert.ok(c.at>0);assert.equal(c.dismissed,false);
+  assert.equal(A.store.load('storyline_v1').text,doc('가'));      // 확인만 했으니 그대로
+  A.sync.dismiss(c.sig);
+  assert.equal((await A.sync.check()).dismissed,true);
+  const r=await A.sync.sync();      // 받기
+  assert.equal(r.ok,true,r.error);
+  assert.equal(A.store.load('storyline_v1').text,doc('가','나'));
+  assert.deepEqual((await A.sync.check()).pending,[]);
+});
+
+test('확인만: 보기 상태 · 취향만 바뀐 건 알리지 않음', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',doc('가'));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  B.store.save('storyline_ui_v1',JSON.stringify({zoom:2}));B.store.savePrefs(JSON.stringify({theme:'dark'}));await B.sync.push();
+  assert.deepEqual((await A.sync.check()).pending,[]);
 });
