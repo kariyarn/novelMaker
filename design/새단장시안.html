@@ -14,7 +14,7 @@
   --ground:#e9ecf1; --paper:#ffffff; --ink:#1c2230; --sub:#687083; --faint:#a9b0be; --hair:rgba(28,34,48,.10);
   --acc:#2b5fd9; --acc-soft:rgba(43,95,217,.10);
   --note:#fff3b8; --note-ink:#4a3d12; --note-edge:rgba(120,95,0,.18);
-  --memo:#f4f6f9; --note2:#d9f2e6; --note3:#fde2e4; --thread:#d2453b; --lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.06);
+  --memo:#f4f6f9; --note2:#d9f2e6; --note3:#fde2e4; --thread:#d2453b; --br:#7b55c7; --br-soft:rgba(123,85,199,.08); --lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.06);
   --page:#f6f7f9; --side:#f1f3f6;
   --story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
   --ui:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -24,13 +24,13 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
   --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
-  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--br:#b896ff;--br-soft:rgba(184,150,255,.1);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
   --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
   --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
-  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--br:#b896ff;--br-soft:rgba(184,150,255,.1);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
   --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
   color-scheme:dark}
 *{box-sizing:border-box}
@@ -319,6 +319,41 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .lst .hdx span:hover{background:var(--side)}
 .n .rail span[data-ls]{cursor:pointer}
 
+/* ============ 갈래: 같은 장면의 다른 버전 ============ */
+/* 본선은 원고 그대로, 갈래는 옆에 보랏빛 초고 종이로. 끄거나 접으면 원고 왼쪽 여백에 ⑂2 표시만 */
+.n .fork{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;margin:10px -16px;padding:10px 16px 12px;border-radius:8px;background:linear-gradient(90deg,transparent 50%,var(--br-soft) 50%)}
+.n .fork .pa{margin:0 -8px;padding:4px 8px}
+.n .fork .tag{font:600 10.5px var(--ui);letter-spacing:.14em;color:var(--faint);margin:0 0 4px}
+.n .fork .tag.b{color:var(--br)}
+.n .alts{display:flex;flex-direction:column;gap:14px;min-width:0}
+.n .alt p{margin:0;font:var(--fs,16.5px)/2 var(--story);text-indent:1em;word-break:keep-all;color:var(--ink)}
+.n .alt .ah{display:flex;gap:8px;align-items:baseline}
+.n .alt .ah small{color:var(--faint);font-size:11px}
+.n .alt .ah .fd{margin-left:auto;color:var(--faint);font-size:11.5px;cursor:pointer}
+.n .alt .ah .fd:hover{color:var(--br)}
+.n .alt .aa{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.n .alt .aa button{font-size:12px;color:var(--sub);padding:3px 9px;border-radius:7px;box-shadow:0 0 0 1px var(--hair);background:var(--paper)}
+.n .alt .aa button:hover{color:var(--br);box-shadow:0 0 0 1px var(--br)}
+.n .alt .aa .pick{color:var(--br);font-weight:600}
+.n .alt .aa .del{margin-left:auto;box-shadow:none;background:none}
+.n .brm{position:absolute;left:-46px;top:9px;font:600 11.5px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 8px;cursor:pointer}
+.n .brm:hover{background:var(--br);color:var(--paper)}
+.n .ic .brc{font:600 11px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 7px;margin-left:8px}
+.n .pa.brin{background:var(--br-soft);box-shadow:inset 0 0 0 2px var(--br)}
+.n .bar .q.bron{color:var(--br);font-weight:600}
+.n .bar .q[data-br]{cursor:pointer}
+/* 합치기 */
+.n .mg .zp{width:min(980px,90%)}
+.n .mg .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px}
+.n .mg .cols div{font:15px/1.9 var(--story);padding:12px 14px;border-radius:8px;background:var(--side)}
+.n .mg .cols .b{background:var(--br-soft)}
+.n .mg .cols span{cursor:pointer;border-radius:4px}
+.n .mg .cols span:hover{background:var(--acc-soft)}
+.n .mg textarea{min-height:120px;font-size:17px;border-top:1px solid var(--hair);padding-top:10px}
+.n .mg .ok{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.n .mg .ok button{padding:6px 14px;border-radius:9px;box-shadow:0 0 0 1px var(--hair);color:var(--sub)}
+.n .mg .ok button.go{background:var(--br);color:var(--paper);box-shadow:none;font-weight:600}
+
 /* ============ 지금: 구상 (비교용) ============ */
 .o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
 .o .slst h4{margin:0 0 10px 6px;font-size:12px}
@@ -376,6 +411,8 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>한 줄 보기는 원고 한 장</b>화가 장(章)처럼 이어지고, 카드는 문단이 돼요. 장면도 대사도 한 칸 들여 써서 소설처럼 읽혀요.</li>
     <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요.</li>
     <li><b>포스트잇이 카드로 바뀌어요</b>오른쪽 포스트잇을 칸반의 화나 한 줄 보기의 장에 끌어다 놓아 보세요. 노란 종이가 하얀 카드로 바뀌며 자리를 잡아요.</li>
+    <li><b>갈래는 원고 옆 초고 종이로</b>한 줄 보기에서 <b>⑂ 갈래</b>가 켜져 있으면 본선 문단 옆에 보랏빛 갈래가 나란히 펼쳐지고, 원고 폭이 저절로 넓어져요. 갈래를 끄거나 <b>접기</b>를 누르면 원고 왼쪽 여백에 <b>⑂ 2</b> 표시만 남아요. 칸반 카드에도 같은 표시가 붙어요.</li>
+    <li><b>갈래 정리는 지금처럼</b><b>이걸로</b>(본선과 자리 바꾸기) · <b>합치기</b>(문장을 골라 합친 글을 본선으로) · <b>↩ 떼어내기</b>(오른쪽 포스트잇으로) · <b>✕</b>. 포스트잇을 문단 한가운데에 놓거나 문단의 <b>⑂ 갈래 만들기</b>로 새 갈래를 만들어요.</li>
     <li><b>언제든 다시 뺄 수 있어요</b>카드를 오른쪽 목록으로 끌어다 놓거나 카드의 <b>↩ 빼기</b>를 누르면 다시 노란 포스트잇으로 돌아가요. 카드를 다른 화나 같은 화의 다른 자리로 끌어 옮길 수도 있어요.</li>
     <li><b>한 줄 보기: 글 폭 · 글자 크기</b>위쪽 <b>글 폭</b> 슬라이드나 원고 양옆 손잡이를 끌어 폭을 바꾸고, <b>가 가</b>로 글자 크기를 바꿔요.</li>
     <li><b>읽다가 바로 집중</b>한 줄 보기에서 문단을 두 번 누르면 그 카드 한 장만 크게 열려요. Esc로 닫으면 고친 글이 그대로 남아요.</li>
@@ -405,7 +442,11 @@ const CARDS=[
 ];
 const EPS=[['새벽의 접촉사고','둘의 아비투스가 처음 충돌',[0,1,2,7]],['반지하','',[3]],['봉투','돈으로 선을 긋는 아버지',[6]],...Array.from({length:9},()=>['','',[]])];
 const POOL=[8,4,5,9,10,11];
-let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,REAL=false;
+const BRS={      // 갈래: 카드 번호 → 다른 버전들
+  0:[{t:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 도윤은 고개 숙이는 대신 보험 처리부터 묻는다. 하린은 그런 사람을 처음 본다.',ago:'어제'}],
+  1:[{t:'"사과는 공짜고 수리비는 아니잖아요. 사과만 받으세요." — 도윤',ago:'3일 전'},{t:'"죄송합니다. 그런데 돈은 없어요. 둘 중 뭘 원하세요?" — 도윤',ago:'지난주'}]};
+const brs=i=>BRS[i]||[];
+let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,BRON=true,REAL=false;const FOLD=new Set();
 const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
 const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
 try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
@@ -419,18 +460,25 @@ const chars=ids=>ids.reduce((a,i)=>a+CARDS[i][1].length,0);
 /* ---------- 새단장 ---------- */
 function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   return `<div class="ic${k==='memo'?' memo':''}${JUST===i?' land':''}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}</span>
+    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" title="갈래 ${brs(i).length}개 · 한 줄 보기에서 펼쳐져요">⑂ ${brs(i).length}</span>`:''}</span>
     <span class="tools"><span>${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div></div>`}
 function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   const cls=k==='memo'?'memo':s.who?'dlg':'';
   return `<div class="pa ${cls}${JUST===i?' land':''}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>두 번 눌러 집중</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div>`}
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래 만들기</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span>${brs(i).length&&!(BRON&&!FOLD.has(i))?`<span class="brm" data-unfold="${i}" title="갈래 펼치기">⑂ ${brs(i).length}</span>`:''}</div>`}
+function block(i){      // 갈래를 켜고 접지 않았으면 본선 옆에 갈래를 나란히
+  if(!(BRON&&brs(i).length&&!FOLD.has(i)))return para(i);
+  return `<div class="fork"><div><div class="tag">본선</div>${para(i)}</div><div class="alts">${brs(i).map((b,j)=>{const s=split(b.t);
+    return `<div class="alt"><div class="ah"><span class="tag b">갈래 ${j+1}</span><small>${b.ago||'방금'}</small>${j?'':`<span class="fd" data-fold="${i}">접기</span>`}</div>
+      <p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)};font:500 12px var(--ui);margin-left:8px">${s.who}</span>`:''}</p>
+      <div class="aa"><button class="pick" data-pick="${i}:${j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${i}:${j}" title="문장을 골라 합친 글을 본선으로">합치기</button><button data-detach="${i}:${j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button><button class="del" data-del="${i}:${j}" title="휴지통으로">✕</button></div></div>`}).join('')}</div></div>`}
 function renderNew(kb){
   const lanes=EPS.map((e,n)=>{const full=e[2].length;
     return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
       ${full?`<div class="stack">${e[2].map(ic).join('')}</div>`:'<div class="drop">여기로 끌어다 놓기</div>'}</section>`}).join('');
   const shown=EPS.map((e,n)=>[e,n]).filter(([e])=>e[2].length),empty=EPS.length-shown.length;
-  const sheet=`<article class="sheet" style="--sw:${SWID}px;--fs:${FS}px"><span class="eg l" data-eg="-1"></span><span class="eg r" data-eg="1"></span>${shown.map(([e,n],j)=>`${j?'<div class="orn">· · ·</div>':''}<section class="ch" data-ep="${n}"><div class="lb">${n+1}화</div><h2>${e[0]}</h2>${e[1]?`<p class="me">${e[1]}</p>`:'<p class="me"></p>'}${e[2].map(para).join('')}</section>`).join('')}
+  const forkOpen=BRON&&shown.some(([e])=>e[2].some(i=>brs(i).length&&!FOLD.has(i)));
+  const sheet=`<article class="sheet" style="--sw:${forkOpen?Math.max(SWID,1000):SWID}px;--fs:${FS}px"><span class="eg l" data-eg="-1"></span><span class="eg r" data-eg="1"></span>${shown.map(([e,n],j)=>`${j?'<div class="orn">· · ·</div>':''}<section class="ch" data-ep="${n}"><div class="lb">${n+1}화</div><h2>${e[0]}</h2>${e[1]?`<p class="me">${e[1]}</p>`:'<p class="me"></p>'}${e[2].map(block).join('')}</section>`).join('')}
     <div class="rest">${empty}개 화가 아직 비어 있어요 · 칸반에서 빈 화에 놓을 수 있어요</div></article>`;
   return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="ex">예시</span><nav><span data-nav="story" style="cursor:pointer">구상</span><span class="on">타임라인</span><span>관계망</span></nav><span class="r">⌕ ⋯</span></div>
   <div class="body" style="grid-template-columns:${LSe()?'230px':'52px'} minmax(0,1fr) ${poolW()}">
@@ -438,7 +486,7 @@ function renderNew(kb){
       :`<aside class="rail" aria-label="화 목록"><span title="화 목록 펴기" data-ls>☰</span><span title="전체 보기">⤢</span></aside>`}
     <section class="mid">
       <div class="bar">${[['kanban','칸반'],['line','한 줄'],['m','등장표'],['s','보관']].map(([k,t])=>`<span class="tab${M===k?' on':''}" data-go="${k}">${t}</span>`).join('')}
-        ${kb?'':'<span class="q">⑂ 갈래</span>'}<span class="sp"></span>${kb?'':`<label class="wctl q" title="글 폭 (원고 양옆을 끌어도 돼요)">글 폭 <input type="range" id="swr" min="520" max="1100" step="10" value="${SWID}"></label><span class="fsz" title="글자 크기"><button data-fs="-1" aria-label="글자 작게">가</button><button data-fs="1" aria-label="글자 크게">가</button></span>`}<span class="q">전체 12화 ⌄</span><span class="q">보기 ⌄</span><span class="add">＋ 화</span></div>
+        ${kb?'':`<span class="q${BRON?' bron':''}" data-br title="갈래 펼치기 · 접기">⑂ 갈래 ${BRON?'켬':'끔'}</span>`}<span class="sp"></span>${kb?'':`<label class="wctl q" title="글 폭 (원고 양옆을 끌어도 돼요)">글 폭 <input type="range" id="swr" min="520" max="1100" step="10" value="${SWID}"></label><span class="fsz" title="글자 크기"><button data-fs="-1" aria-label="글자 작게">가</button><button data-fs="1" aria-label="글자 크게">가</button></span>`}<span class="q">전체 12화 ⌄</span><span class="q">보기 ⌄</span><span class="add">＋ 화</span></div>
       <div class="rule"></div>
       <div class="sc">${kb?`<div class="kb">${lanes}</div>`:sheet}</div>
     </section>
@@ -544,11 +592,17 @@ function wireNew(app){
   // 화(칸반 레인 · 원고의 장)에 놓기: 마우스 높이에 맞는 자리로
   app.querySelectorAll('[data-ep]').forEach(t=>{
     t.addEventListener('dragover',e=>{if(dragI==null)return;e.preventDefault();t.classList.add('over');
+      app.querySelectorAll('.brin').forEach(x=>x.classList.remove('brin'));
+      const hit=BRON&&e.target.closest?.('.pa[data-i]:not(.drag)');      // 한 줄 보기 · 갈래 켬: 문단 한가운데에 놓으면 그 카드의 갈래로
+      if(hit&&+hit.dataset.i!==dragI){const r=hit.getBoundingClientRect();if(e.clientY>r.top+r.height*.25&&e.clientY<r.bottom-r.height*.25){hit.classList.add('brin');ins?.remove();ins=null;t.dataset.brto=hit.dataset.i;return}}
+      delete t.dataset.brto;
       const items=[...t.querySelectorAll('[data-i]:not(.drag)')],nx=items.find(c=>{const r=c.getBoundingClientRect();return e.clientY<r.top+r.height/2});
       if(!ins){ins=document.createElement('div');ins.className='ins'}
-      if(nx)nx.before(ins);else if(items.length)items[items.length-1].after(ins);else ins.remove();ins.dataset.before=nx?nx.dataset.i:''});
+      const at=el=>el.closest('.fork')||el;
+      if(nx)at(nx).before(ins);else if(items.length)at(items[items.length-1]).after(ins);else ins.remove();ins.dataset.before=nx?nx.dataset.i:''});
     t.addEventListener('dragleave',e=>{if(!t.contains(e.relatedTarget))clear()});
-    t.addEventListener('drop',e=>{e.preventDefault();const i=dragI,b=ins?.dataset.before;dragI=null;clear();if(i==null)return;
+    t.addEventListener('drop',e=>{e.preventDefault();const i=dragI,b=ins?.dataset.before,to=t.dataset.brto;dragI=null;clear();delete t.dataset.brto;app.querySelectorAll('.brin').forEach(x=>x.classList.remove('brin'));if(i==null)return;
+      if(to!=null){detach(i);(BRS[to]=BRS[to]||[]).push({t:CARDS[i][1],ago:'방금'});FOLD.delete(+to);render();return}
       detach(i);const list=EPS[+t.dataset.ep][2],at=b?list.indexOf(+b):-1;at<0?list.push(i):list.splice(at,0,i);JUST=i;render()})});
   // 오른쪽 목록에 놓기 · ↩ 빼기: 다시 포스트잇으로
   const back=i=>{detach(i);POOL.unshift(i);BACK=i;render()};
@@ -557,6 +611,16 @@ function wireNew(app){
     pool.addEventListener('dragleave',e=>{if(!pool.contains(e.relatedTarget))pool.classList.remove('over')});
     pool.addEventListener('drop',e=>{e.preventDefault();const i=dragI;dragI=null;clear();if(i==null||POOL.includes(i))return;back(i)})}
   app.querySelectorAll('[data-back]').forEach(b=>b.onclick=e=>{e.stopPropagation();back(+b.dataset.back)});
+  // 갈래: 켜고 끄기 · 접고 펴기 · 이걸로 · 합치기 · 떼어내기 · 지우기 · 만들기
+  const ij=v=>v.split(':').map(Number);
+  app.querySelectorAll('[data-br]').forEach(b=>b.onclick=()=>{BRON=!BRON;render()});
+  app.querySelectorAll('[data-fold]').forEach(b=>b.onclick=()=>{FOLD.add(+b.dataset.fold);render()});
+  app.querySelectorAll('[data-unfold]').forEach(b=>b.onclick=e=>{e.stopPropagation();BRON=true;FOLD.delete(+b.dataset.unfold);render()});
+  app.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [i,j]=ij(b.dataset.pick),br=BRS[i][j],old=CARDS[i][1];CARDS[i][1]=br.t;br.t=old;br.ago='방금 전 본선';JUST=i;render()});
+  app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const [i,j]=ij(b.dataset.del);BRS[i].splice(j,1);render()});
+  app.querySelectorAll('[data-detach]').forEach(b=>b.onclick=()=>{const [i,j]=ij(b.dataset.detach),br=BRS[i].splice(j,1)[0],c=CARDS[i];CARDS.push([c[0],br.t,c[2],c[3].slice()]);POOL.unshift(CARDS.length-1);BACK=CARDS.length-1;render()});
+  app.querySelectorAll('[data-mk]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.mk;(BRS[i]=BRS[i]||[]).push({t:CARDS[i][1],ago:'방금'});BRON=true;FOLD.delete(i);render()});
+  app.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>openMerge(app,...ij(b.dataset.merge)));
   // 글 폭: 위쪽 슬라이드 또는 원고 양옆 손잡이
   const sh=app.querySelector('.sheet'),rng=app.querySelector('#swr');
   const setW=w=>{SWID=Math.max(520,Math.min(1100,Math.round(w/10)*10));if(sh)sh.style.setProperty('--sw',SWID+'px');if(rng)rng.value=SWID};
@@ -571,6 +635,20 @@ function wireNew(app){
   // 집중 모드
   app.querySelectorAll('.pa[data-i]').forEach(pa=>pa.addEventListener('dblclick',()=>openZen(app,+pa.dataset.i)));
 }
+function openMerge(app,i,j){      // 합치기: 문장을 누르면 아래 합친 글에 들어감 · 합친 글이 본선, 원래 본선은 갈래로 남음
+  const inner=t=>{const m=t.match(/^"(.+)"\s*—/);return m?m[1]:t};      // 대사는 따옴표 안 글만
+  const sent=t=>inner(t).split(/(?<=[.?!。”])\s+/).map(x=>`<span>${esc(x)}</span>`).join(' ');
+  const z=document.createElement('div');z.className='zen mg';
+  z.innerHTML=`<div class="zp"><div class="lb">갈래 합치기 · 문장을 누르면 아래에 들어가요</div>
+    <div class="cols"><div>${sent(CARDS[i][1])}</div><div class="b">${sent(BRS[i][j].t)}</div></div>
+    <textarea aria-label="합친 글">${esc(inner(CARDS[i][1]))}</textarea>
+    <div class="ok"><button data-x>취소</button><button class="go" data-go>합쳐서 본선으로</button></div></div>`;
+  const ta=z.querySelector('textarea');
+  z.querySelectorAll('.cols span').forEach(sp=>sp.onclick=()=>{const p=ta.selectionStart;ta.setRangeText((p&&!/\s$/.test(ta.value.slice(0,p))?' ':'')+sp.textContent,p,ta.selectionEnd,'end');ta.focus()});
+  const close=()=>{z.remove();removeEventListener('keydown',key)};const key=e=>{if(e.key==='Escape')close()};
+  z.querySelector('[data-x]').onclick=close;z.addEventListener('click',e=>{if(e.target===z)close()});addEventListener('keydown',key);
+  z.querySelector('[data-go]').onclick=()=>{const who=split(CARDS[i][1]).who,v=ta.value.trim();BRS[i].push({t:CARDS[i][1],ago:'합치기 전 본선'});CARDS[i][1]=who?`"${v}" — ${who}`:v;JUST=i;close();render()};
+  app.append(z);ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}
 function openZen(app,i){
   const ep=EPS.findIndex(e=>e[2].includes(i)),s=split(CARDS[i][1]);
   const z=document.createElement('div');z.className='zen';
