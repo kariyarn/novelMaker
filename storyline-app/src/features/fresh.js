@@ -66,7 +66,40 @@ function frRenderLine(m,E,lo,hi,build){
     flush();sheet.append(chapter(idx))}
   flush();
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
+  frShelves(sheet);
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
+}
+
+/* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
+function frShelves(sheet){
+  const shs=S.shelves||[],newShelf=async()=>{const name=((await askText('새 보관 칸 이름 (예: 30화 이후)','보관'))||'').trim();if(name)act(()=>S.shelves.push({id:uid(),name,cardIds:[]}))};
+  if(!shs.length){sheet.append(h('button',{class:'fradd frshadd',onclick:newShelf},'＋ 보관 칸 · 몇 화에 쓸지 안 정한 장면'));return}
+  sheet.append(h('div',{class:'frshdiv'},h('b',{},'보관'),h('span',{},'몇 화에 쓸지 아직 안 정한 장면')));
+  shs.forEach(sh=>{
+    const cards=sh.cardIds.map(cardById).filter(Boolean).filter(kindOk);
+    const body=h('div',{class:'tlbody'},...cards.map(c=>kcard(c,'tl',{shelfId:sh.id})));
+    if(!cards.length)body.append(h('div',{class:'tlhint'},'오른쪽 카드나 위 원고의 문단을 끌어다 놓기'));
+    body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
+    body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});
+    body.addEventListener('drop',e=>{e.preventDefault();body.classList.remove('over');if(DRAG){const id=DRAG.id,nb=ghostBeforeId(body);DRAG=null;shelfPlace(id,sh.id,nb)}});
+    const send=cards.length?(()=>{const b=h('button',{class:'quiet frsend','data-pop':'1',title:'이 칸의 카드를 순서 그대로 한 화로 보내기',onclick:()=>shelfSendMenu(b,sh)},'화로 보내기 ▾');return b})():null;
+    const head=h('div',{class:'tlhead'},h('b',{class:'frno'},'보관'),h('input',{value:sh.name,placeholder:'칸 이름',oninput:e=>edit(()=>sh.name=e.target.value)}),h('small',{class:'epcnt'},cntLabel(cards.map(c=>c.id),cards.length)),send);
+    const sec=h('section',{class:'frch shelf','data-sh':sh.id},head,body);      // .shelf: 빈칸에 놓을 때 보관 칸으로 들어가게 (dragDrop.js)
+    bindColDrop(sec,body,(id,nb)=>shelfPlace(id,sh.id,nb));sheet.append(sec)});
+  sheet.append(h('button',{class:'fradd',onclick:newShelf},'＋ 보관 칸'));
+}
+
+/* ---------- 구상 보드 머리: 인물 소개 한 줄 (시트는 필요할 때만 펼침) ---------- */
+function frProfile(c,n,hidden){
+  const open=!UIP.cl.sheet,goal=(c.longGoal||'').trim(),isSet=c.kind==='setting';
+  return h('div',{class:'bhead frprof'},
+    h('span',{class:'frav'+(isSet?' sq':''),style:`--c:${c.color}`},c.icon||frInitial(c.name)),
+    h('div',{class:'frwho'},
+      h('div',{class:'frnm'},h('b',{},c.name||'(이름 없음)'),c.role?h('small',{},c.role):null),
+      open||!c.summary?null:h('p',{class:'frsum'},c.summary),
+      open||isSet?null:h('p',{class:'frgoal',title:'눌러서 시트에서 목표 고치기',onclick:()=>slidePanel('sheet',false)},h('span',{},'목표'),goal||h('em',{},'아직 없어요 · 눌러서 적기'))),
+    h('div',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 숨김 ${hidden}`:''}`),
+      h('button',{class:'quiet frsht'+(open?' on':''),title:open?'인물 시트 접기':'인물 시트 펼치기 — 별칭 · 소개 · 목표 · 칸 묶음',onclick:()=>toggleCl('sheet')},open?'시트 접기':'시트 펼치기')));
 }
 
 /* ---------- 집중: 원고에서 문단을 두 번 누르면 그 카드 한 장만 크게 ---------- */

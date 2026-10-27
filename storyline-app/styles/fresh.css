@@ -223,3 +223,60 @@
 .ui3 .frpico{font-size:.8em;padding:2px 8px;color:var(--sub)}
 .frdragimg{position:fixed;left:-3000px;top:0;width:250px;padding:16px;border-radius:2px;color:#2d2a1e;font:15px/1.75 var(--fr-story);word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5)}
 @media (prefers-reduced-motion:reduce){.frpk,.frico,.ui3 .kcard.board .kdf,.ui3 .bview .kcard.board :is(.kbar,.kwrap,.kfoot){transition:none}}
+
+/* ---------- 구상: 보드 머리의 인물 소개 · 포스트잇 · 인물 시트 · 왼쪽 목록 ---------- */
+.ui3 .bhead.frprof{right:64px;max-width:none;align-items:flex-start;gap:14px;padding:4px 6px 14px 0;background:linear-gradient(var(--board,var(--bg)) 70%,transparent)}
+.frav{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--c);font-size:18px;font-weight:600;box-shadow:0 0 0 3px var(--panel)}
+.frav.sq{border-radius:12px}
+.frwho{flex:1;min-width:0}
+.frnm{display:flex;align-items:baseline;gap:10px}
+.ui3 .frnm b{font:700 24px/1.25 var(--fr-story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frnm small{color:var(--sub);font-size:12.5px;white-space:nowrap}
+.frsum{margin:4px 0 0;color:var(--sub);font-size:13px;max-width:36em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frgoal{margin:4px 0 0;font-size:12.5px;cursor:pointer;max-width:36em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frgoal span{color:var(--acc);font-weight:600;font-size:11px;letter-spacing:.06em;margin-right:8px}
+.frgoal em{font-style:normal;color:var(--sub);opacity:.7}
+.frgoal:hover{color:var(--acc)}
+.fracts{flex:none;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub)}
+.fracts .cnt{opacity:.75;white-space:nowrap}
+.fracts .frsht{font-size:12px;color:var(--sub);padding:4px 8px}
+.fracts .frsht:hover,.fracts .frsht.on{color:var(--acc)}
+.ui3 .bview .bfull{opacity:.55;box-shadow:none;background:transparent}
+.ui3 .bview .bfull:hover{opacity:1}
+/* 보드 포스트잇: 바탕체 글씨 · 두꺼운 별 테두리와 굵은 글씨 대신 종이 그림자 (별은 오른쪽 위 ★ 로) */
+.ui3 .kcard.board :is(.ktext,.kmir){font-family:var(--fr-story);font-size:calc(var(--fs,14px)*1.07);line-height:1.75}
+.ui3 .kcard.board[data-stars] :is(.ktext,.kmir){font-weight:400}
+.ui3 .kcard.board:not([data-shp]){background-image:none;border-radius:2px 2px 10px 2px}
+.ui3 .kcard.board[data-stars]{box-shadow:0 1px 0 rgba(120,95,0,.15),0 10px 18px -10px rgba(60,40,0,.45)}
+.ui3 .kcard.board[data-stars].selc{box-shadow:0 0 0 2px var(--acc),0 10px 18px -10px rgba(60,40,0,.45)}
+.ui3 .kcard.board[data-stars].editing{box-shadow:0 0 0 2px var(--acc),0 14px 26px -10px rgba(60,40,0,.5)}
+/* 인물 시트: 회색 입력 상자 대신 이름표 + 바탕체 글 */
+.ui3 #sheet .shead .nm{font:700 24px/1.3 var(--fr-story)}
+.ui3 #sheet .fl{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--sub);opacity:.8}
+.ui3 #sheet .ghost.box{background:transparent;padding-left:0;padding-right:0;font:15px/1.7 var(--fr-story);box-shadow:none;border-radius:0}
+.ui3 #sheet .ghost.box:hover{background:transparent;box-shadow:inset 0 -1px 0 var(--line)}
+.ui3 #sheet .ghost.box:focus{background:transparent;box-shadow:inset 0 -1.5px 0 var(--acc)}
+.ui3 #sheet .sgh>span:nth-child(2){font:700 14.5px var(--fr-story)}
+.ui3 #sheet .fval{font:14px/1.65 var(--fr-story);background:transparent}
+.ui3 #sheet .fval:focus{box-shadow:inset 0 -1.5px 0 var(--acc)}
+/* 왼쪽 인물 · 설정 목록: 묶음 제목은 작게 · 이름은 바탕체 · 버튼은 마우스를 올릴 때만 */
+.ui3 #left .lbh>b{font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--sub)}
+.ui3 #left .lwork .lbh>b,.ui3 #left .lnone .lbh>b{letter-spacing:0;font-size:13px;color:var(--ink)}
+.ui3 #left .ltext .lchip .cn{font-family:var(--fr-story);font-size:14px}
+.ui3 #left .ltext .lchip.act .cn{font-weight:700}
+.ui3 #left :is(.lbh,.lsh) .cbtn{opacity:0;transition:opacity .15s}
+.ui3 #left :is(.lbh,.lsh):hover .cbtn,.ui3 #left :is(.lbh,.lsh) .cbtn:focus-visible{opacity:.8}
+.ui3 #left .lsh .fn{font-size:11.5px;color:var(--sub)}
+/* 한 줄 보기 맨 아래 보관 */
+.frshdiv{display:flex;align-items:baseline;gap:10px;margin:40px 0 18px;padding-top:16px;border-top:1px solid var(--line)}
+.frshdiv b{font:700 16px var(--fr-story)}
+.frshdiv span{color:var(--sub);font-size:12.5px}
+.frsheet .frch.shelf{width:auto;background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;margin:0 0 26px}
+.frsheet .frch.shelf::before{display:none}
+.frch.shelf .tlhead b.frno{color:var(--sub)}
+.frch.shelf .tlhead b.frno::after{content:none}
+.frch.shelf .tlhead input{font-size:18px}
+.frch.shelf .tlbody{background:var(--fill);border-radius:10px;padding:6px 0}
+.frch.shelf .tlhint{padding:10px 16px}
+.frsend{font-size:12px;color:var(--acc)}
+.frshadd{margin-top:28px}
