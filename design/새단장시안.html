@@ -134,7 +134,8 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .pool .hd{padding:18px 20px 10px;display:flex;align-items:baseline;gap:8px}
 .n .pool .hd b{font:700 15px var(--story)}
 .n .pool .hd span{color:var(--sub);font-size:12px}
-.n .pool .hd .wd{margin-left:auto;color:var(--sub);font-size:12px;padding:3px 9px;border-radius:7px;cursor:pointer;box-shadow:0 0 0 1px var(--hair)}
+.n .pool .hd>span:nth-child(2){margin-right:auto}
+.n .pool .hd .wd{color:var(--sub);font-size:12px;padding:3px 9px;border-radius:7px;cursor:pointer;box-shadow:0 0 0 1px var(--hair)}
 .n .pool .hd .wd:hover{color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 .n .pool.wide .ls{display:block;columns:2;column-gap:18px}
 .n .pool.wide .pi{break-inside:avoid;margin-bottom:16px}
@@ -381,6 +382,37 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .ui small{display:block;font:600 11px var(--ui);color:var(--acc);margin-bottom:2px}
 .n .ui.b small{color:var(--br)}
 
+/* 분류 바꾸기 */
+.n .tools .kd{cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.n .tools .kd i{width:9px;height:9px;border-radius:2px;box-shadow:0 0 0 1px var(--hair)}
+.n .tools .kd:hover{color:var(--acc)}
+.n .kmenu{position:absolute;z-index:40;background:var(--paper);border-radius:10px;padding:5px;box-shadow:0 0 0 1px var(--hair),0 12px 30px rgba(0,0,0,.16);min-width:150px;font-size:13px}
+.n .kmenu button{display:flex;align-items:center;gap:9px;width:100%;padding:6px 10px;border-radius:7px;text-align:left;color:var(--ink)}
+.n .kmenu button:hover{background:var(--acc-soft)}
+.n .kmenu button i{width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 1px var(--hair)}
+.n .kmenu button.on::after{content:"✓";margin-left:auto;color:var(--acc)}
+.n .kmenu .lb{font-size:11px;color:var(--faint);padding:4px 10px 2px}
+.n .pa.fore::before{content:"";position:absolute;left:-14px;top:17px;width:7px;height:7px;border-radius:50%;background:var(--note3);box-shadow:0 0 0 1px rgba(200,80,100,.35)}
+.n .ic.fore{box-shadow:inset 3px 0 0 var(--note3),var(--lift)}
+.n .kflash{animation:kflash .8s ease-out}
+@keyframes kflash{0%{background:var(--acc-soft)}100%{background:transparent}}
+
+/* 오른쪽 목록: 작은 포스트잇 아이콘 · 올리면 반투명 미리보기 · 끌면 원래 포스트잇이 떠서 따라옴 */
+.n .icons{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:16px 14px;padding:4px 2px}
+.n .pico{position:relative;width:48px;height:48px;background:var(--bgc);border-radius:2px 2px 10px 2px;transform:rotate(var(--r));box-shadow:0 1px 0 var(--note-edge),0 5px 8px -4px rgba(90,70,0,.35);padding:9px 8px;display:flex;flex-direction:column;gap:5px;cursor:grab;transition:transform .15s}
+.n .pico i{display:block;height:2.5px;border-radius:2px;background:var(--note-ink);opacity:.28}
+.n .pico i.s{width:60%}
+.n .pico span{position:absolute;left:7px;bottom:6px;display:flex;gap:2px}
+.n .pico span b{width:5px;height:5px;border-radius:50%;background:var(--c)}
+.n .pico:hover{transform:rotate(0) scale(1.12);z-index:2}
+.n .pico.back{animation:picob .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes picob{0%{transform:scale(1.8) rotate(0);background:var(--paper)}100%{transform:rotate(var(--r))}}
+.n .pico.drag{opacity:.3}
+.n .peek{position:absolute;z-index:15;width:250px;padding:14px 15px 12px;border-radius:2px;color:var(--note-ink);font:14px/1.7 var(--story);word-break:keep-all;opacity:0;transform:translateX(8px);transition:opacity .12s,transform .12s;pointer-events:none;box-shadow:0 10px 24px -8px rgba(60,40,0,.35);backdrop-filter:blur(3px)}
+.n .peek.on{opacity:.88;transform:none}
+.n .peek small{display:block;font:600 10.5px var(--ui);letter-spacing:.08em;opacity:.6;margin-bottom:4px}
+.dragimg{position:fixed;left:-3000px;top:0;width:260px;padding:16px 16px 13px;border-radius:2px;color:#4a3d12;font:15px/1.75 "Gowun Batang",serif;word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5);transform:rotate(-2deg)}
+
 /* ============ 지금: 구상 (비교용) ============ */
 .o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
 .o .slst h4{margin:0 0 10px 6px;font-size:12px}
@@ -441,6 +473,8 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>갈래는 원고에 펼치지 않아요</b>갈래가 있는 카드는 종이가 겹쳐 보이고 <b>⑂ 2</b> 표시만 붙어요. 원고와 칸반 흐름이 그대로라서 갈래가 몇 개든 화면이 흐트러지지 않아요.</li>
     <li><b>⑂ 표시를 누르면 갈래 지도</b>집중 모드처럼 창이 뜨고, 가운데 본선 둘레에 갈래가 마인드맵처럼 퍼져요. 여러 후보를 한눈에 보고 <b>이걸로 · 합치기 · ↩ 떼어내기 · ✕</b>로 정리해요.</li>
     <li><b>갈래 만들기</b>포스트잇을 카드나 문단 한가운데에 놓으면 그 카드 밑으로 겹쳐 들어가요. 문단의 <b>⑂ 갈래</b>를 누르면 지금 글을 복사해 새 갈래를 만들고 지도가 열려요.</li>
+    <li><b>한 줄 보기에서 분류 바꾸기</b>문단에 마우스를 올리면 나오는 분류 이름(예: <b>메모 ⌄</b>)을 눌러 등록된 분류 중에서 고르세요. 메모로 바꾸면 회색 메모 상자가, 장면 · 대사로 바꾸면 원고 문단이 돼요. 칸반 카드도 같아요.</li>
+    <li><b>오른쪽 목록은 작은 포스트잇 아이콘</b>평소엔 분류 색의 작은 포스트잇으로 모여 있다가, 마우스를 올리면 왼쪽에 반투명 미리보기가 떠요. 끌면 원래 크기 포스트잇이 떠서 따라와요. <b>크게</b>를 누르면 예전처럼 큰 포스트잇으로 보여요.</li>
     <li><b>갈래도 사용한 카드</b>오른쪽 목록 <b>사용</b> 탭에 화에 넣은 카드와 갈래에 들어간 카드가 함께 나와요.</li>
     <li><b>언제든 다시 뺄 수 있어요</b>카드를 오른쪽 목록으로 끌어다 놓거나 카드의 <b>↩ 빼기</b>를 누르면 다시 노란 포스트잇으로 돌아가요. 카드를 다른 화나 같은 화의 다른 자리로 끌어 옮길 수도 있어요.</li>
     <li><b>한 줄 보기: 글 폭 · 글자 크기</b>위쪽 <b>글 폭</b> 슬라이드나 원고 양옆 손잡이를 끌어 폭을 바꾸고, <b>가 가</b>로 글자 크기를 바꿔요.</li>
@@ -475,10 +509,10 @@ const BRS={      // 갈래: 카드 번호 → 다른 버전들
   0:[{t:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 도윤은 고개 숙이는 대신 보험 처리부터 묻는다. 하린은 그런 사람을 처음 본다.',ago:'어제'}],
   1:[{t:'"사과는 공짜고 수리비는 아니잖아요. 사과만 받으세요." — 도윤',ago:'3일 전'},{t:'"죄송합니다. 그런데 돈은 없어요. 둘 중 뭘 원하세요?" — 도윤',ago:'지난주'}]};
 const brs=i=>BRS[i]||[];
-let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,MAP=null,PT='unused',STKIN=null,REAL=false;
+let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,MAP=null,PT='unused',PI=true,STKIN=null,REAL=false;
 const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
 const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
-try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
+try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;PI=p.PI!==false;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
 
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const split=t=>{const m=t.match(/^"(.+)"\s*—\s*(.+)$/);return m?{q:'“'+m[1]+'”',who:m[2]}:{q:t,who:null}};
@@ -487,15 +521,17 @@ const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 const chars=ids=>ids.reduce((a,i)=>a+CARDS[i][1].length,0);
 
 /* ---------- 새단장 ---------- */
+const KINDS=[['scene','장면 · 대사','var(--note)'],['memo','메모','var(--note2)'],['fore','복선','var(--note3)']];      // 설정에서 등록한 분류
+const kn=k=>k==='line'?'scene':k,kname=k=>(KINDS.find(x=>x[0]===kn(k))||KINDS[0])[1],kcol=k=>(KINDS.find(x=>x[0]===kn(k))||KINDS[0])[2];
 const stk=i=>{const n=brs(i).length;return (n?' stk'+Math.min(n,2):'')+(STKIN===i?' stkin':'')};      // 갈래가 있으면 종이가 겹쳐 보임
 function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
-  return `<div class="ic${k==='memo'?' memo':''}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+  return `<div class="ic${k==='memo'?' memo':''}${k==='fore'?' fore':''}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
     <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</span>
-    <span class="tools"><span>${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div></div>`}
+    <span class="tools"><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div></div>`}
 function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
-  const cls=k==='memo'?'memo':s.who?'dlg':'';
+  const cls=(k==='memo'?'memo':s.who?'dlg':'')+(k==='fore'?' fore':'');
   return `<div class="pa ${cls}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</div>`}
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</div>`}
 function renderNew(kb){
   const lanes=EPS.map((e,n)=>{const full=e[2].length;
     return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
@@ -520,11 +556,11 @@ function renderNew(kb){
 const poolW=()=>PW?'560px':'312px';
 const used=()=>EPS.flatMap((e,n)=>e[2].flatMap(i=>[{ep:n,t:CARDS[i][1]},...brs(i).map(b=>({ep:n,t:b.t,br:1}))]));      // 갈래에 들어간 카드도 사용한 것
 function poolHTML(){
-  return `<aside class="pool${PW?' wide':''}" data-pool><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span><span class="wd" data-pw title="${PW?'한 줄로 좁히기':'두 줄로 넓히기'}">${PW?'→ 좁게':'← 넓게'}</span></div>
+  return `<aside class="pool${PW?' wide':''}" data-pool><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span><span class="wd" data-pi title="${PI?'포스트잇 크게 보기':'작은 아이콘으로 보기'}">${PI?'크게':'작게'}</span><span class="wd" data-pw title="${PW?'한 줄로 좁히기':'두 줄로 넓히기'}" style="margin-left:6px">${PW?'→ 좁게':'← 넓게'}</span></div>
     <div class="in">한 줄 쓰고 Enter</div>
     <div class="backhint">여기 놓으면 다시 포스트잇으로 돌아가요</div>
     <div class="tabs">${[['unused','미사용',POOL.length],['used','사용',used().length],['all','전체',POOL.length+used().length]].map(([k,n,c])=>`<span class="${PT===k?'on':''}" data-pt="${k}">${n}<b>${c}</b></span>`).join('')}</div>
-    <div class="ls">${PT==='used'?used().map(u=>`<div class="ui${u.br?' b':''}"><small>${u.ep+1}화 · ${u.br?'갈래':'본선'}</small>${esc(split(u.t).q)}</div>`).join(''):''}${PT==='used'?'':POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-1.4,1,-.6,1.3,-1,.7][j%6]}deg">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
+    <div class="ls">${PT==='used'?used().map(u=>`<div class="ui${u.br?' b':''}"><small>${u.ep+1}화 · ${u.br?'갈래':'본선'}</small>${esc(split(u.t).q)}</div>`).join(''):''}${PT==='used'?'':PI?`<div class="icons">${POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];return `<div class="pico${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-6,4,-2,7,-4,3][j%6]}deg;--bgc:${kcol(k)}" aria-label="${esc(split(t).q)}"><i></i><i></i><i class="s"></i><span>${ch.map(c=>`<b style="--c:${CH[c][2]}"></b>`).join('')}</span></div>`}).join('')}</div>`:POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-1.4,1,-.6,1.3,-1,.7][j%6]}deg;background:${kcol(k)}">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
   </aside>`}
 
 /* ---------- 지금 (비교용) ---------- */
@@ -609,8 +645,10 @@ function wireNew(app){
   let dragI=null,ins=null;
   const detach=i=>{const k=POOL.indexOf(i);if(k>=0)POOL.splice(k,1);EPS.forEach(e=>{const j=e[2].indexOf(i);if(j>=0)e[2].splice(j,1)})};
   const clear=()=>{app.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));ins?.remove();ins=null};
-  app.querySelectorAll('.pi[draggable],.ic[draggable],.pa[draggable]').forEach(el=>{
+  app.querySelectorAll('.pi[draggable],.pico[draggable],.ic[draggable],.pa[draggable]').forEach(el=>{
     el.addEventListener('dragstart',e=>{e.stopPropagation();dragI=+el.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',el.dataset.i);
+      if(el.classList.contains('pico')){app.querySelector('.peek')?.classList.remove('on');const [k,t]=CARDS[dragI],s=split(t),g=document.createElement('div');g.className='dragimg';g.style.background=getComputedStyle(el).backgroundColor;
+        g.textContent=s.q+(s.who?' — '+s.who:'');document.body.append(g);e.dataTransfer.setDragImage(g,40,24);setTimeout(()=>g.remove(),0)}
       requestAnimationFrame(()=>{el.classList.add('drag');if(!el.classList.contains('pi'))app.classList.add('carrying')})});
     el.addEventListener('dragend',()=>{el.classList.remove('drag');app.classList.remove('carrying');clear()})});
   // 화(칸반 레인 · 원고의 장)에 놓기: 마우스 높이에 맞는 자리로
@@ -638,6 +676,22 @@ function wireNew(app){
   app.querySelectorAll('[data-map]').forEach(b=>b.onclick=e=>{e.stopPropagation();MAP=+b.dataset.map;render()});
   app.querySelectorAll('[data-mk]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.mk;(BRS[i]=BRS[i]||[]).push({t:CARDS[i][1],ago:'방금'});MAP=i;render()});
   app.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{PT=b.dataset.pt;render()});
+  app.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{PI=!PI;save();render()});
+  // 분류 바꾸기: 등록된 분류 중에서
+  app.querySelectorAll('[data-kind]').forEach(b=>b.onclick=e=>{e.stopPropagation();app.querySelector('.kmenu')?.remove();
+    const i=+b.dataset.kind,sc=app.getBoundingClientRect().width/AW(),r=b.getBoundingClientRect(),a=app.getBoundingClientRect();
+    const m=document.createElement('div');m.className='kmenu';
+    m.innerHTML='<div class="lb">분류</div>'+KINDS.map(([id,n,c])=>`<button data-k="${id}" class="${kn(CARDS[i][0])===id?'on':''}"><i style="background:${c}"></i>${n}</button>`).join('');
+    m.style.left=((r.left-a.left)/sc)+'px';m.style.top=((r.bottom-a.top)/sc+6)+'px';
+    m.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{CARDS[i][0]=x.dataset.k;m.remove();render();app.querySelector(`[data-i="${i}"]:not(.pico):not(.pi)`)?.classList.add('kflash')});
+    app.append(m);setTimeout(()=>addEventListener('click',()=>m.remove(),{once:true}))});
+  // 작은 아이콘: 올리면 반투명 미리보기
+  const peek=document.createElement('div');peek.className='peek';app.append(peek);
+  app.querySelectorAll('.pico').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{const i=+el.dataset.i,[k,t,st,ch]=CARDS[i],s=split(t),sc=app.getBoundingClientRect().width/AW(),a=app.getBoundingClientRect(),r=el.getBoundingClientRect(),pr=app.querySelector('[data-pool]').getBoundingClientRect();
+      peek.style.background=kcol(k);peek.innerHTML=`<small>${kname(k)}${st?' · '+'★'.repeat(st):''}</small>${esc(s.q)}${s.who?' — '+s.who:''}`;
+      peek.style.left=((pr.left-a.left)/sc-262)+'px';peek.style.top=Math.max(60,(r.top-a.top)/sc-10)+'px';peek.classList.add('on')});
+    el.addEventListener('mouseleave',()=>peek.classList.remove('on'))});
   // 글 폭: 위쪽 슬라이드 또는 원고 양옆 손잡이
   const sh=app.querySelector('.sheet'),rng=app.querySelector('#swr');
   const setW=w=>{SWID=Math.max(520,Math.min(1100,Math.round(w/10)*10));if(sh)sh.style.setProperty('--sw',SWID+'px');if(rng)rng.value=SWID};
@@ -730,7 +784,7 @@ function render(){
   document.querySelectorAll('#ver button').forEach(b=>b.classList.toggle('on',b.dataset.v===V));
   document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===M));
   fit()}
-function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M,W,PW,SZ,SWID,FS}))}catch(e){}}
+function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M,W,PW,PI,SZ,SWID,FS}))}catch(e){}}
 function fit(){const f=document.getElementById('frame'),a=document.getElementById('app');
   f.classList.toggle('real',REAL);
   if(REAL){a.style.transform='';f.style.height='';return}
