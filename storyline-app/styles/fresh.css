@@ -39,7 +39,7 @@
 .ui3 .kcard.tl.fr:is(.editing,.selc) .kfoot{display:flex;padding:0 14px 8px}
 .ui3 .kcard.tl.fr:is(.editing,.selc) .frcast{display:none}
 /* 도구는 마우스를 올리거나 고를 때만, 카드 안쪽 오른쪽 위에 작게 (칸 밖으로 잘리지 않고 아래 줄의 ⑂ 표시도 가리지 않게) */
-.ui3 .kcard.tl.fr .khead{position:absolute;right:6px;top:6px;z-index:5;padding:1px 3px 1px 6px;gap:4px;font-size:11px;flex-wrap:nowrap;background:var(--card);border-radius:8px;box-shadow:0 0 0 1px var(--line);opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;max-width:none}
+.ui3 .kcard.tl.fr .khead{position:absolute;right:6px;top:-12px;z-index:5;padding:1px 3px 1px 6px;gap:4px;font-size:11px;flex-wrap:nowrap;background:var(--card);border-radius:8px;box-shadow:0 0 0 1px var(--line);opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;max-width:none}
 .ui3 .kcard.tl.fr:is(:hover,.selc,:focus-within) .khead{opacity:1;pointer-events:auto}
 .ui3 .kcard.tl.fr .khead .grip,.ui3 .kcard.tl.fr .khead .pinx,.ui3 .kcard.tl.fr .khead>.sp,.ui3 .kcard.tl.fr .khead .brbadge{display:none}
 .ui3 .kcard.tl.fr .khead :is(.frbk,.frdc){font-size:.78em;color:var(--sub);padding:1px 6px;min-height:0;background:transparent;white-space:nowrap;flex:none}

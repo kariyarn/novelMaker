@@ -85,8 +85,8 @@ function renderPool0(){
       ...((UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])]);
     setTimeout(()=>{if(UI.pq)si.focus()},0)}},icon('filter'),fOn?h('i',{class:'fdot'}):null);
   const icoB=U3()?h('button',{class:'cbtn frpico',title:frIcons()?'포스트잇을 크게 보기':'작은 포스트잇 아이콘으로 보기',onclick:()=>{UIP.pico=!frIcons();saveUIP();renderPool()}},frIcons()?'크게':'작게'):null;
-  const left=U3()?S.cards.filter(c=>!c.discarded&&!episodeOf(c.id)&&!shelfOf(c.id)).length:0;      // 새단장: 아직 화에 안 넣은 장수 (줄어드는 만큼 정리된 것)
-  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),U3()?h('small',{class:'pcnt',title:`전체 ${S.cards.length}장 중 화 · 보관 칸에 아직 안 넣은 장수 (폐기한 카드 빼고)`},`${left}장 남음`):h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),icoB,fb,ptog('pool')));
+  const left=U3()?S.cards.filter(c=>poolPass(c)&&!episodeOf(c.id)).length:0;      // 새단장: 지금 고른 분류 중 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭과 같은 수 · 줄어드는 만큼 정리된 것)
+  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),U3()?h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`):h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),icoB,fb,ptog('pool')));
   else p.append(h('div',{class:'phead'},h('b',{},'쓰고 싶은 장면 · 대사'),h('span',{class:'sp'}),h('span',{class:'muted'},`${S.cards.length}장`),fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
