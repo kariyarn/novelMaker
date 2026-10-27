@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>타임라인 새단장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* 개념: 정리 전(오른쪽)은 따뜻한 노란 포스트잇, 정리 후(가운데)는 서늘하고 하얀 색인 카드 · 원고.
+   색 온도가 "마구 써 둔 것 → 깔끔하게 정리된 것"을 말해 줌. 이야기 글은 바탕체, 앱 글씨는 고딕. */
+:root{
+  --ground:#e9ecf1; --paper:#ffffff; --ink:#1c2230; --sub:#687083; --faint:#a9b0be; --hair:rgba(28,34,48,.10);
+  --acc:#2b5fd9; --acc-soft:rgba(43,95,217,.10);
+  --note:#fff3b8; --note-ink:#4a3d12; --note-edge:rgba(120,95,0,.18);
+  --memo:#f4f6f9; --lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.06);
+  --page:#f6f7f9; --side:#f1f3f6;
+  --story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  --ui:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  /* 지금 화면(비교용) */
+  --o-bg:#f5f5f7;--o-panel:#fff;--o-side:#f2f2f5;--o-ink:#1d1d1f;--o-sub:#6e6e73;--o-faint:#aeaeb2;--o-line:rgba(0,0,0,.09);--o-fill:rgba(0,0,0,.045);--o-fill2:rgba(0,0,0,.08);--o-acc:#0071e3;--o-acc-soft:rgba(0,113,227,.12);--o-seg:rgba(0,0,0,.06);--o-segon:#fff;--o-card:#fff;--o-br:#8e5bd8;--o-warm:linear-gradient(90deg,rgba(240,160,0,.07),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px rgba(0,0,0,.06)
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
+  --memo:#1b1e24;--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
+  --memo:#1b1e24;--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 var(--ui);letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none}
+main{max-width:1240px;margin:0 auto;padding-block:36px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--sub);margin:0 0 18px;max-width:46em}
+.lead b{color:var(--ink);font-weight:600}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.pill{display:inline-flex;gap:2px;background:var(--hair);border-radius:10px;padding:3px}
+.pill button{padding:5px 14px;border-radius:8px;color:var(--sub)}
+.pill button.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.pill button:focus-visible,.ctl>button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.ctl>button{padding:6px 12px;border-radius:9px;color:var(--sub)}
+.ctl>button:hover{background:var(--hair);color:var(--ink)}
+.ctl .sp{flex:1}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px 28px;margin:22px 0 0;padding:0;list-style:none;color:var(--sub);font-size:.92em}
+.notes b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+
+/* ---------- 노트북 화면 1440×860 (페이지 폭에 맞게 줄임) ---------- */
+.frame{border-radius:12px;overflow:hidden;box-shadow:0 0 0 7px #111317,0 22px 50px rgba(0,0,0,.28)}
+.frame.real{overflow:auto;max-height:900px}
+.app{width:1440px;height:860px;transform-origin:0 0;display:grid;grid-template-rows:52px minmax(0,1fr)}
+
+/* ============ 새 시안 ============ */
+.n{background:var(--ground);color:var(--ink);font-family:var(--ui)}
+.n .top{display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--paper);border-bottom:1px solid var(--hair)}
+.n .top .nm{font:700 15px var(--story)}
+.n .top .ex{font-size:11px;color:var(--acc);background:var(--acc-soft);border-radius:99px;padding:1px 8px;font-weight:600}
+.n .top nav{margin:0 auto;display:flex;gap:28px;font-size:14px;color:var(--sub)}
+.n .top nav span{padding:14px 2px;border-bottom:2px solid transparent}
+.n .top nav span.on{color:var(--ink);font-weight:600;border-color:var(--ink)}
+.n .top .r{color:var(--sub);letter-spacing:12px;font-size:15px}
+.n .body{display:grid;grid-template-columns:52px minmax(0,1fr) 312px;min-height:0}
+.n .rail{background:var(--paper);border-right:1px solid var(--hair);display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:14px;color:var(--sub)}
+.n .rail span{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;font-size:15px}
+.n .rail span:hover{background:var(--acc-soft);color:var(--acc)}
+.n .mid{display:flex;flex-direction:column;min-width:0}
+.n .bar{display:flex;align-items:center;gap:22px;padding:16px 28px 0;font-size:13.5px;color:var(--sub)}
+.n .bar .tab{padding-bottom:10px;border-bottom:2px solid transparent;cursor:pointer}
+.n .bar .tab.on{color:var(--ink);font-weight:600;border-color:var(--acc)}
+.n .bar .sp{flex:1}
+.n .bar .q{padding-bottom:10px}
+.n .bar .add{padding-bottom:10px;color:var(--acc);font-weight:600}
+.n .rule{height:1px;background:var(--hair);margin:0 28px}
+.n .sc{flex:1;overflow:auto;padding:22px 28px 40px}
+
+/* 칸반: 레인은 상자 없이, 카드만 종이처럼 */
+.n .kb{display:flex;gap:26px;align-items:flex-start}
+.n .lane{flex:none;width:292px}
+.n .lh{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:baseline;padding:0 2px 12px;margin-bottom:12px;border-bottom:1px solid var(--hair)}
+.n .lh .no{font:400 34px/1 var(--story);color:var(--acc);font-variant-numeric:tabular-nums}
+.n .lh .no small{font:500 12px var(--ui);margin-left:2px;color:var(--sub)}
+.n .lh .ti{font:700 16px/1.35 var(--story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n .lh .me{grid-column:2/4;font-size:12px;color:var(--sub);margin-top:2px;min-height:1.6em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n .lh .ct{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.n .stack{display:flex;flex-direction:column;gap:10px}
+.n .lane.empty .lh .no{color:var(--faint)}
+.n .lane.empty .drop{border:1.5px dashed var(--hair);border-radius:10px;height:92px;display:grid;place-items:center;color:var(--faint);font-size:12px}
+
+/* 색인 카드 */
+.n .ic{position:relative;background:var(--paper);border-radius:6px;box-shadow:var(--lift);padding:14px 16px 11px}
+.n .ic .tx{margin:0;font:15px/1.75 var(--story);color:var(--ink);word-break:keep-all}
+.n .ic .tx .who{font:500 12px var(--ui);margin-left:6px;white-space:nowrap}
+.n .ic .ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;min-height:20px}
+.n .ic .cast{display:flex}
+.n .ic .cast i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 10.5px var(--ui);font-style:normal;color:#fff;background:var(--c);box-shadow:0 0 0 2px var(--paper);margin-right:-4px}
+.n .ic .tools{display:flex;gap:10px;font-size:11.5px;color:var(--sub);opacity:0;transition:opacity .15s}
+.n .ic .tools .st{color:#e3a008;letter-spacing:1px}
+.n .ic:hover{box-shadow:0 0 0 1px var(--acc-soft),var(--lift)}
+.n .ic:hover .tools{opacity:1}
+.n .ic.memo{background:var(--memo);box-shadow:none;border:1px dashed var(--hair)}
+.n .ic.memo{padding-bottom:12px}
+.n .ic.memo .tx{font:13px/1.65 var(--ui);color:var(--sub)}
+.n .ic.memo .ft{position:absolute;right:12px;bottom:6px;margin:0;min-height:0}
+.n .ic.memo .tx::before{content:"메모";font-weight:600;font-size:11px;color:var(--faint);margin-right:8px}
+
+/* 한 줄 보기: 원고 한 장처럼 읽기 */
+.n .sheet{max-width:720px;margin:0 auto;background:var(--paper);border-radius:4px;box-shadow:var(--lift);padding:56px 72px 64px}
+.n .ch{margin:0 0 44px}
+.n .ch .lb{font:600 11.5px var(--ui);letter-spacing:.18em;color:var(--acc)}
+.n .ch h2{font:700 25px/1.35 var(--story);margin:6px 0 4px;text-wrap:balance}
+.n .ch .me{color:var(--sub);font-size:13px;margin:0 0 22px}
+.n .pa{position:relative;margin:0 -16px;padding:4px 16px;border-radius:6px}
+.n .pa p{margin:0;font:16.5px/2 var(--story);text-indent:1em;word-break:keep-all}
+.n .pa.dlg p{text-indent:0}
+.n .pa.dlg .who{font:500 12px var(--ui);margin-left:8px;opacity:.8}
+.n .pa.memo p{text-indent:0;font:13px/1.7 var(--ui);color:var(--sub);background:var(--memo);border-radius:6px;padding:8px 12px;margin:6px 0}
+.n .pa.memo p::before{content:"메모";font-weight:600;font-size:11px;color:var(--faint);margin-right:8px}
+.n .pa .tools{position:absolute;right:-6px;top:-14px;display:flex;gap:10px;align-items:center;font-size:11.5px;color:var(--sub);background:var(--paper);border-radius:7px;padding:2px 10px;box-shadow:0 0 0 1px var(--hair),0 2px 8px rgba(0,0,0,.08);opacity:0;pointer-events:none;transition:opacity .15s}
+.n .pa .tools .st{color:#e3a008}
+.n .pa .tools .dots{display:flex;gap:3px}
+.n .pa .tools .dots i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.n .pa:hover{background:var(--acc-soft)}
+.n .pa:hover .tools{opacity:1;pointer-events:auto}
+.n .orn{text-align:center;color:var(--faint);letter-spacing:.6em;margin:0 0 40px;font-size:12px}
+.n .rest{color:var(--faint);font-size:13px;text-align:center;border-top:1px solid var(--hair);padding-top:22px}
+
+/* 오른쪽: 아직 정리 안 한 포스트잇 */
+.n .pool{background:var(--side);border-left:1px solid var(--hair);display:flex;flex-direction:column;min-width:0}
+.n .pool .hd{padding:18px 20px 10px;display:flex;align-items:baseline;gap:8px}
+.n .pool .hd b{font:700 15px var(--story)}
+.n .pool .hd span{color:var(--sub);font-size:12px}
+.n .pool .in{margin:0 20px;padding:10px 14px;border-radius:10px;background:var(--paper);color:var(--faint);font-size:13px;box-shadow:inset 0 0 0 1px var(--hair)}
+.n .pool .tabs{display:flex;gap:16px;padding:12px 22px 4px;font-size:12px;color:var(--faint)}
+.n .pool .tabs .on{color:var(--ink);font-weight:600}
+.n .pool .ls{flex:1;overflow:auto;padding:12px 22px 30px;display:flex;flex-direction:column;gap:16px}
+.n .pi{background:var(--note);color:var(--note-ink);padding:14px 15px 12px;border-radius:2px;box-shadow:0 1px 0 var(--note-edge),0 6px 14px -6px rgba(90,70,0,.3);transform:rotate(var(--r));font:14px/1.7 var(--story);word-break:keep-all;cursor:grab;transition:transform .15s}
+.n .pi:hover{transform:rotate(0) translateY(-2px)}
+.n .pi .ft{display:flex;gap:5px;margin-top:8px}
+.n .pi .ft i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+
+/* ============ 지금 화면 (비교용) ============ */
+.o{background:var(--o-panel);color:var(--o-ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.o .top{display:flex;align-items:center;padding:0 20px;border-bottom:.5px solid var(--o-line);gap:14px}
+.o .top .nm{font-weight:700;font-size:15px}
+.o .top .demo{background:var(--o-acc-soft);color:var(--o-acc);font-size:11px;font-weight:600;border-radius:99px;padding:1px 8px}
+.o .top .ctr{margin:0 auto;display:flex;gap:16px;align-items:center}
+.o .seg{display:inline-flex;gap:2px;background:var(--o-seg);border-radius:9px;padding:2px}
+.o .seg span{padding:3px 12px;font-size:.92em;border-radius:7px}
+.o .seg span.on{background:var(--o-segon);box-shadow:0 1px 3px rgba(0,0,0,.14);font-weight:600}
+.o .btn{background:var(--o-fill);border-radius:8px;padding:4px 11px}
+.o .top .r{color:var(--o-sub);letter-spacing:10px}
+.o .body{display:grid;min-height:0}
+.o .lp{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;overflow:hidden;font-size:13px}
+.o .lp h4{margin:0 0 10px 6px;font-size:12px}
+.o .lp .opt{display:flex;gap:8px;align-items:center;color:var(--o-sub);margin:0 6px 4px}
+.o .lp .opt span{background:var(--o-fill2);border-radius:6px;padding:1px 10px;color:var(--o-ink)}
+.o .lp .lnk{color:var(--o-acc);font-size:12px;margin:0 6px 8px}
+.o .lp .tot{background:var(--o-acc-soft);color:var(--o-acc);border-radius:8px;padding:7px 10px;display:flex;gap:14px;font-weight:700}
+.o .lp .tot span:last-child{margin-left:auto;font-weight:400;color:var(--o-sub)}
+.o .lp .g{color:var(--o-sub);font-size:12px;font-weight:600;padding:12px 8px 6px;display:flex;justify-content:space-between}
+.o .lp .e{display:flex;gap:12px;padding:6px 10px 6px 26px;color:var(--o-faint)}
+.o .lp .e.on{color:var(--o-ink)}
+.o .lp .e b{min-width:28px}
+.o .lp .e .t{color:var(--o-sub);flex:1}
+.o .lp .e .c{color:var(--o-sub);font-size:12px}
+.o .mid{display:flex;flex-direction:column;min-width:0;border-right:.5px solid var(--o-line);background:var(--o-side)}
+.o .tb{display:flex;align-items:center;gap:10px;padding:12px 16px 8px;flex-wrap:wrap}
+.o .tb h3{margin:0;font-size:15px}
+.o .tb .sp{flex:1}
+.o .tb .meta{color:var(--o-sub);font-size:12.5px}
+.o .tb .add{color:var(--o-acc)}
+.o .tb .brold{background:var(--o-br);color:#fff;font-weight:600;border-radius:8px;padding:4px 11px}
+.o .tb .slider{display:inline-flex;align-items:center;gap:8px;color:var(--o-sub);font-size:12.5px}
+.o .tb .slider i{display:inline-block;width:96px;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--o-acc) 22%,var(--o-fill2) 22%)}
+.o .chips{display:flex;gap:6px;padding:0 16px 10px}
+.o .chips span{background:var(--o-fill2);border-radius:99px;padding:2px 12px;font-size:12.5px;color:var(--o-sub)}
+.o .chips span.on{background:var(--o-acc-soft);color:var(--o-acc);font-weight:600}
+.o .sc{flex:1;overflow:auto;padding:6px 16px 30px}
+.o .kb{display:flex;gap:14px;align-items:flex-start}
+.o .col{flex:none;width:470px;background:var(--o-panel);border-radius:14px;box-shadow:var(--o-shadow);padding:12px 12px 6px}
+.o .eh{display:flex;align-items:baseline;gap:10px;margin:0 2px 4px;white-space:nowrap}
+.o .eh .b{background:var(--o-acc-soft);color:var(--o-acc);font-weight:700;border-radius:99px;padding:0 9px}
+.o .eh .t{font-weight:700}
+.o .eh .s{color:var(--o-sub);font-size:12px;margin-left:auto}
+.o .em{color:var(--o-sub);font-size:13px;margin:0 2px 10px}
+.o .card{background:var(--o-card);border-radius:10px;border-left:4px solid #f0a000;background-image:var(--o-warm);box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);padding:10px 14px 9px;margin:0 0 10px}
+.o .card.memo{border-left-color:#c7c7cc}
+.o .card .chd{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--o-sub);margin:0 0 8px 18px}
+.o .card .chd .st{color:#f0a000;font-size:13px}
+.o .card .tx{line-height:1.7}
+.o .card .tx.bub{border:1px solid var(--o-line);border-radius:12px;padding:1px 8px;margin:0 -6px}
+.o .card .tags{display:flex;gap:6px;margin-top:6px;font-size:11.5px;color:var(--o-sub)}
+.o .card .tags>span{background:var(--o-fill);border-radius:99px;padding:0 8px;display:inline-flex;align-items:center;gap:5px}
+.o .dot{width:7px;height:7px;border-radius:50%;background:var(--c);display:inline-block}
+.o .ln{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:0 0 16px}
+.o .ln .num{width:30px;height:30px;border-radius:50%;background:var(--o-acc);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;margin-top:8px}
+.o .ln .box{background:var(--o-panel);border-radius:14px;box-shadow:var(--o-shadow);padding:12px 14px 4px}
+.o .rp{background:var(--o-panel);display:flex;flex-direction:column;min-width:0}
+.o .rp .hd{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;font-size:13px}
+.o .rp .hd b{flex:1}
+.o .rp .hd span{color:var(--o-sub)}
+.o .rp .in{margin:0 16px;border-radius:10px;box-shadow:0 0 0 .5px var(--o-line),0 1px 3px rgba(0,0,0,.05);padding:9px 12px;color:var(--o-faint)}
+.o .rp .tabs{display:flex;justify-content:space-between;padding:10px 18px 6px;font-size:12px;color:var(--o-acc)}
+.o .rp .ls{flex:1;overflow:auto;padding:8px 16px}
+.o .rp .ls .card{max-width:380px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>타임라인 새단장</h1>
+  <p class="lead">오른쪽은 <b>아직 정리 안 한 노란 포스트잇</b>, 가운데는 <b>정리된 하얀 색인 카드와 원고</b>예요. 색 온도만 봐도 어디까지 정리됐는지 보여요. 기능은 지금 앱과 같고, 13인치 노트북 화면(1440×900)을 줄여서 보여 줘요.</p>
+  <div class="ctl">
+    <div class="pill" id="ver"><button data-v="new">새단장</button><button data-v="now">지금</button></div>
+    <div class="pill" id="mode"><button data-m="kanban">칸반</button><button data-m="line">한 줄</button></div>
+    <span class="sp"></span>
+    <button id="real">실제 크기로 보기</button>
+    <div class="pill" id="thm"><button data-t="">자동</button><button data-t="light">밝게</button><button data-t="dark">어둡게</button></div>
+  </div>
+  <div class="frame" id="frame"><div class="app" id="app"></div></div>
+  <ul class="notes">
+    <li><b>칸반은 책상 위 색인 카드</b>화를 감싸던 흰 상자를 없애고 카드만 종이처럼 띄웠어요. 화 번호는 크게, 제목은 바탕체로 써서 훑어볼 때 눈이 먼저 가요.</li>
+    <li><b>한 줄 보기는 원고 한 장</b>화가 장(章)처럼 이어지고, 카드는 문단이 돼요. 장면은 들여쓰고 대사는 붙여 써서 소설처럼 읽혀요.</li>
+    <li><b>인물은 얼굴 동그라미로</b>“이도윤 ×” 태그 대신 도 · 하 같은 첫 글자 동그라미를 겹쳐 놓았어요. 분류 · 별점 · 지우기는 마우스를 올릴 때만 나와요.</li>
+    <li><b>메모는 이야기와 다르게</b>장면 · 대사는 하얀 카드, 메모는 점선 테두리에 작은 고딕 글씨라서 이야기 흐름과 섞이지 않아요.</li>
+    <li><b>노트북에서 숨 쉴 자리</b>왼쪽 화 목록은 아이콘 줄로 접고, 묶음 칩 · 열 너비 · 분류는 위쪽 한 줄 안으로 넣었어요.</li>
+    <li><b>그대로 둔 것</b>오른쪽 = 쓰고 싶은 장면, 가운데 = 화별 정리. 칸반 · 한 줄 · 등장표 · 보관 · 갈래 · 화 메모 · 끌어다 놓기.</li>
+  </ul>
+</main>
+
+<script>
+const CH={d:['이도윤','도','#3a9fd8'],h:['서하린','하','#a865d6']};
+const CARDS=[
+  ['scene','새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.',3,['d','h']],
+  ['line','"저는 사과를 드릴 수 있고, 돈은 없습니다. 둘 중 하나만 고르세요." — 도윤',3,['d']],
+  ['line','"왜 죄송하다고 안 하죠? 다들 그러던데." — 하린',2,['h']],
+  ['scene','서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.',2,['d','h']],
+  ['memo','도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.',1,['d']],
+  ['line','"배고픈 사람한테 코스요리는 고문이에요." — 도윤',2,['d']],
+  ['scene','하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.',3,['d','h']],
+  ['memo','하린은 사람들이 돈이 아닌 자신을 봐 주길 바라지만 정작 먼저 돈 얘기를 한다.',1,['h']],
+  ['scene','도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.',3,['d','h']],
+  ['memo','둘의 아비투스가 부딪히는 순간: 같은 우산을 두 사람이 서로 다르게 쓰는 장면',0,['d','h']],
+];
+const EPS=[['새벽의 접촉사고','둘의 아비투스가 처음 충돌',[0,1,2,7]],['반지하','',[3]],['봉투','돈으로 선을 긋는 아버지',[6]],...Array.from({length:9},()=>['','',[]])];
+const POOL=[8,4,5,9];
+let V='new',M='kanban',REAL=false;
+try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M}catch(e){}
+
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const split=t=>{const m=t.match(/^"(.+)"\s*—\s*(.+)$/);return m?{q:'“'+m[1]+'”',who:m[2]}:{q:t,who:null}};
+const whoColor=w=>Object.values(CH).find(c=>c[0].endsWith(w))?.[2]||'var(--sub)';
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const chars=ids=>ids.reduce((a,i)=>a+CARDS[i][1].length,0);
+
+/* ---------- 새단장 ---------- */
+function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
+  return `<div class="ic${k==='memo'?' memo':''}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}</span>
+    <span class="tools"><span>${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span><span>✕</span></span></div></div>`}
+function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
+  const cls=k==='memo'?'memo':s.who?'dlg':'';
+  return `<div class="pa ${cls}"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span>정보</span><span>↩ 빼기</span></span></div>`}
+function renderNew(kb){
+  const lanes=EPS.map((e,n)=>{const full=e[2].length;
+    return `<section class="lane${full?'':' empty'}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
+      ${full?`<div class="stack">${e[2].map(ic).join('')}</div>`:'<div class="drop">여기로 끌어다 놓기</div>'}</section>`}).join('');
+  const sheet=`<article class="sheet">${EPS.filter(e=>e[2].length).map((e,n)=>`${n?'<div class="orn">· · ·</div>':''}<section class="ch"><div class="lb">${n+1}화</div><h2>${e[0]}</h2>${e[1]?`<p class="me">${e[1]}</p>`:'<p class="me"></p>'}${e[2].map(para).join('')}</section>`).join('')}
+    <div class="rest">4–12화 · 아직 비어 있어요</div></article>`;
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="ex">예시</span><nav><span>구상</span><span class="on">타임라인</span><span>관계망</span></nav><span class="r">⌕ ⋯</span></div>
+  <div class="body">
+    <aside class="rail" aria-label="화 목록"><span title="화 목록">☰</span><span title="전체 보기">⤢</span></aside>
+    <section class="mid">
+      <div class="bar">${[['kanban','칸반'],['line','한 줄'],['m','등장표'],['s','보관']].map(([k,t])=>`<span class="tab${M===k?' on':''}" data-go="${k}">${t}</span>`).join('')}
+        ${kb?'':'<span class="q">⑂ 갈래</span>'}<span class="sp"></span><span class="q">전체 12화 ⌄</span><span class="q">보기 ⌄</span><span class="add">＋ 화</span></div>
+      <div class="rule"></div>
+      <div class="sc">${kb?`<div class="kb">${lanes}</div>`:sheet}</div>
+    </section>
+    <aside class="pool"><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span></div>
+      <div class="in">한 줄 쓰고 Enter</div>
+      <div class="tabs"><span class="on">미사용</span><span>사용</span><span>전체</span></div>
+      <div class="ls">${POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi" style="--r:${[-1.4,1,-.6,1.3][j%4]}deg">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
+    </aside>
+  </div>`}
+
+/* ---------- 지금 (비교용) ---------- */
+function oc(i){const [k,t,st,ch]=CARDS[i];
+  return `<div class="card${k==='memo'?' memo':''}"><div class="chd"><span>● ${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span></div>
+    <div class="tx${t.startsWith('"')?' bub':''}">${esc(t)}</div>
+    <div class="tags">${ch.map(c=>`<span><i class="dot" style="--c:${CH[c][2]}"></i>${CH[c][0]} ×</span>`).join('')}</div></div>`}
+function oh(e,n){return `<div class="eh"><span class="b">${n}화</span><span class="t">${e[0]}</span><span class="s">${e[2].length?e[2].length+'장 · '+chars(e[2])+'자':''}</span></div><div class="em">${e[1]||'한 줄 메모'}</div>`}
+function renderNow(kb){
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="demo">예시</span><div class="ctr"><span class="btn">전체 보기</span><div class="seg"><span>구상</span><span class="on">타임라인</span><span>관계망</span></div></div><span class="r">⌕⋯</span></div>
+  <div class="body" style="grid-template-columns:230px ${kb?'minmax(0,1fr) 330px':'420px minmax(0,1fr)'}">
+    <nav class="lp"><h4>☰ 화 목록</h4><div class="opt">묶음 단위 <span>10화씩 ⌄</span></div><div class="lnk">모두 접기</div>
+      <div class="tot"><span>전체</span><span>12화</span><span>6</span></div><div class="g"><span>▾ 1–10화</span><span>6</span></div>
+      ${EPS.slice(0,10).map((e,i)=>`<div class="e${e[2].length?' on':''}"><b>${i+1}화</b><span class="t">${e[0]}</span><span class="c">${e[2].length||''}</span></div>`).join('')}
+      <div class="g"><span>▾ 11–12화</span><span>0</span></div><div class="e"><b>11화</b></div><div class="e"><b>12화</b></div></nav>
+    <section class="mid"><div class="tb"><h3>타임라인</h3><div class="seg">${[['kanban','칸반'],['line','한 줄'],['m','등장표'],['s','보관']].map(([k,t])=>`<span class="${M===k?'on':''}">${t}</span>`).join('')}</div><span class="btn">분류 ⌄</span>${kb?'':'<span class="brold">⑂ 갈래</span>'}<span class="sp"></span><span class="meta">전체 12화</span>${kb?'<span class="slider">열 너비 <i></i></span>':''}<span class="add">＋ 화</span></div>
+      <div class="chips"><span class="on">전체 12</span><span>1–10화 6</span><span>11–12화</span></div>
+      <div class="sc">${kb?`<div class="kb">${EPS.map((e,i)=>`<div class="col">${oh(e,i+1)}${e[2].map(oc).join('')}</div>`).join('')}</div>`
+        :EPS.slice(0,4).map((e,i)=>`<div class="ln"><div class="num">${i+1}</div><div class="box">${oh(e,i+1)}${e[2].map(oc).join('')}</div></div>`).join('')}</div></section>
+    <aside class="rp"><div class="hd"><b>쓰고 싶은 장면 · 대사</b><span>10장</span></div><div class="in">한 줄 쓰고 Enter → 장면 · 대사</div><div class="tabs"><span>미사용</span><span>모두 보기</span></div><div class="ls">${POOL.map(oc).join('')}</div></aside>
+  </div>`}
+
+function render(){
+  const app=document.getElementById('app'),kb=M==='kanban';
+  app.className='app '+(V==='new'?'n':'o');
+  app.innerHTML=V==='new'?renderNew(kb):renderNow(kb);
+  app.querySelectorAll('[data-go]').forEach(t=>t.onclick=()=>{if(t.dataset.go==='kanban'||t.dataset.go==='line'){M=t.dataset.go;save();render()}});
+  document.querySelectorAll('#ver button').forEach(b=>b.classList.toggle('on',b.dataset.v===V));
+  document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===M));
+  fit()}
+function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M}))}catch(e){}}
+function fit(){const f=document.getElementById('frame'),a=document.getElementById('app');
+  f.classList.toggle('real',REAL);
+  if(REAL){a.style.transform='';f.style.height='';return}
+  const s=Math.min(1,f.clientWidth/1440);a.style.transform=`scale(${s})`;f.style.height=860*s+'px'}
+document.querySelectorAll('#ver button').forEach(b=>b.onclick=()=>{V=b.dataset.v;save();render()});
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{M=b.dataset.m;save();render()});
+document.getElementById('real').onclick=e=>{REAL=!REAL;e.target.textContent=REAL?'페이지에 맞추기':'실제 크기로 보기';fit()};
+addEventListener('resize',fit);
+const thm=t=>{t?document.documentElement.setAttribute('data-theme',t):document.documentElement.removeAttribute('data-theme');document.querySelectorAll('#thm button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));try{localStorage.setItem('sdsian-theme',t)}catch(e){}};
+document.querySelectorAll('#thm button').forEach(b=>b.onclick=()=>thm(b.dataset.t));
+let t0='';try{t0=localStorage.getItem('sdsian-theme')||''}catch(e){}thm(t0);
+render();
+</script>
+</body>
+</html>
