@@ -72,6 +72,7 @@ function goMode(k){
   UI.folderView=null;if(k==='graph'&&UI.mode!=='graph'){UI.prevMode=UI.mode;GC.reset()}      // 처음 열 때는 새로 자리 잡기
   if(k==='all'){if(UI.sel!=='all')UI.prevSel=UI.sel;UI.sel='all';UIP.pc=UIP.pc||{};UIP.pc.all=true}      // 전체 보기는 오른쪽 목록을 접고 시작
   else if(UI.sel==='all')UI.sel=(UI.prevSel&&(UI.prevSel==='none'||charById(UI.prevSel)))?UI.prevSel:firstEntity();
+  if(U3())frLeftSwap(UI.mode,k);      // 새단장: 타임라인의 화 목록은 구상의 인물 목록과 따로 접고 폄
   UI.mode=k;renderAll();
 }
 function topMenuItems(){
@@ -131,18 +132,18 @@ function sheetW(){
   const left=UIP.cl.left?0:LEFTW,pool=poolClosed()?0:Math.min(poolW(),330);
   return Math.max(280,Math.min(want,innerWidth-left-pool-MIDMIN-3));
 }
-function maxPoolW(){const lw=UI.mode==='story'?(UIP.cl.left?0:LEFTW)+(UIP.cl.sheet?0:sheetW())+2:(UI.mode==='tl'?(UIP.cl.left?0:240)+2:0);return Math.max(330,innerWidth-lw-(lineMode()?500:440))}
+function maxPoolW(){const lw=UI.mode==='story'?(UIP.cl.left?0:LEFTW)+(UIP.cl.sheet?0:sheetW())+2:(UI.mode==='tl'?(UIP.cl.left?0:240)+2:0);return Math.max(330,innerWidth-lw-(lineMode()&&!U3()?500:440))}
 function applyLayout(){
   const r=document.documentElement.style;
   r.setProperty('--lw',(UIP.cl.left&&UI.peek!=='left')?'0px':(UI.mode==='tl'?'240px':LEFTW+'px'));
   r.setProperty('--sw',(UIP.cl.sheet&&UI.peek!=='sheet')?'0px':sheetW()+'px');
-  r.setProperty('--rw',(poolClosed()&&UI.peek!=='pool')?'0px':(lineMode()?Math.round(lineAvail()*lineR()):Math.min(poolW(),maxPoolW()))+'px');      // 가운데 보드가 너무 좁아지지 않게 제한
+  r.setProperty('--rw',(poolClosed()&&UI.peek!=='pool')?'0px':(lineMode()&&!U3()?Math.round(lineAvail()*lineR()):Math.min(poolW(),maxPoolW()))+'px');      // 새단장 한 줄 보기는 원고가 주인공이라 목록은 보통 폭      // 가운데 보드가 너무 좁아지지 않게 제한
   r.setProperty('--tlw',(UIP.tlw||250)+'px');r.setProperty('--tll',(UIP.tll||420)+'px');
   hlLater();
 }
 /* 접힌 패널 살짝 보기: 아이콘에 마우스를 올리거나 포커스를 주면 잠깐 열리고, 벗어나면 다시 접힘 */
 let PEEKT=0,PEEKC=0;
-const peekW0=k=>k==='left'?(UI.mode==='tl'?240:LEFTW):k==='sheet'?sheetW():(lineMode()?Math.round(lineAvail()*lineR()):poolW());
+const peekW0=k=>k==='left'?(UI.mode==='tl'?240:LEFTW):k==='sheet'?sheetW():(lineMode()&&!U3()?Math.round(lineAvail()*lineR()):poolW());
 function peekSoon(k){clearTimeout(PEEKT);PEEKT=setTimeout(()=>startPeek(k),420);const el=$(k);el.addEventListener('mouseleave',()=>clearTimeout(PEEKT),{once:true})}
 function startPeek(k,fromKey){clearTimeout(PEEKT);clearTimeout(PEEKC);if(UI.peek===k)return;const old=UI.peek;UI.peek=k;applyLayout();if(old)rerenderPanel(old);rerenderPanel(k);
   if(fromKey)setTimeout(()=>{const t=$(k).querySelector('.ptog');if(t)t.focus({preventScroll:true})},0);      // 키보드로 열었다면 포커스를 패널 안으로 (벗어날 때 닫히도록)
@@ -182,12 +183,13 @@ document.addEventListener('dragend',()=>{if(UI.peek)PEEKC=setTimeout(endPeekChec
 function autoFitSheet(){
   if(UI.mode!=='story'||UI.folderView)return false;
   const left=UIP.cl.left?0:LEFTW,sw=Math.min(UIP.sw||340,340),pool=poolClosed()?0:Math.min(poolW(),maxPoolW());
-  const fits=innerWidth-left-sw-pool-2>=500;
+  const fits=innerWidth-left-sw-pool-2>=500&&(!U3()||innerWidth>=FR_NARROW);      // 새단장: 13인치처럼 좁은 창에선 보드에 자리를 줌
   if(!UIP.cl.sheet){if(fits){UIP.noAuto=false;return false}if(UIP.noAuto)return false;UIP.cl.sheet=true;UIP.autoSh=true;return true}
   if(UIP.autoSh&&fits){UIP.cl.sheet=false;UIP.autoSh=false;return true}
   return false;
 }
 function slidePanel(k,close){
+  if(k==='left'&&UI.mode==='tl'&&U3())UIP.frLeftUser=true;      // 직접 접거나 편 뒤에는 창 폭을 따르지 않음
   if(k==='sheet'){UIP.autoSh=false;if(!close)UIP.noAuto=true;const c=charById(UI.sel);if(c&&c.kind!=='setting')UIP.chCl=!!close}      // 인물 시트를 직접 접고 편 상태를 기억
   UI.peek=null;const el=$(k),closed=k==='pool'?poolClosed():!!UIP.cl[k];
   const apply=()=>{if(k==='pool')setPoolClosed(close);else UIP.cl[k]=close;saveUIP();document.body.classList.add('slide');renderAll();
@@ -219,7 +221,7 @@ const togglePool=()=>slidePanel('pool',!poolClosed());
     el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
   };
   drag($('sp1'),e=>{const l=$('sheet').getBoundingClientRect().left;UIP.sw=Math.round(Math.max(280,Math.min(640,innerWidth-(UIP.cl.left?0:LEFTW)-(poolClosed()?0:Math.min(poolW(),330))-MIDMIN-3,e.clientX-l)));applyLayout()});
-  drag($('sp2'),e=>{if(lineMode())UIP.rwr=Math.min(.67,Math.max(.5,(innerWidth-e.clientX)/lineAvail()));else setPoolW(Math.round(Math.max(260,Math.min(maxPoolW(),innerWidth-e.clientX-3))));applyLayout()});
-  $('sp2').addEventListener('dblclick',()=>{if(lineMode())UIP.rwr=.67;else setPoolW(330);saveUIP();applyLayout()});
+  drag($('sp2'),e=>{if(lineMode()&&!U3())UIP.rwr=Math.min(.67,Math.max(.5,(innerWidth-e.clientX)/lineAvail()));else setPoolW(Math.round(Math.max(260,Math.min(maxPoolW(),innerWidth-e.clientX-3))));applyLayout()});
+  $('sp2').addEventListener('dblclick',()=>{if(lineMode()&&!U3())UIP.rwr=.67;else setPoolW(330);saveUIP();applyLayout()});
   $('sp1').addEventListener('dblclick',()=>{UIP.sw=340;saveUIP();applyLayout()});
 })();

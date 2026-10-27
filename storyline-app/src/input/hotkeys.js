@@ -41,7 +41,7 @@ document.addEventListener('keydown',e=>{
     else if(!typing&&UI.mode==='graph'&&!$('modal').classList.contains('on'))goMode(UI.prevMode&&UI.prevMode!=='graph'?UI.prevMode:'story');      // 관계망에서 Esc: 하던 화면으로
   }
 });
-addEventListener('resize',()=>{if(autoFitSheet()){saveUIP();renderAll()}if(onBoard()){scheduleMM();setTimeout(fitDock,0)}if(lineMode()||UI.mode==='story')applyLayout()});      // 구상: 창 폭에 맞춰 인물 시트 폭을 다시 제한
+addEventListener('resize',()=>{if(autoFitSheet()|frAutoLeft()){saveUIP();renderAll()}if(onBoard()){scheduleMM();setTimeout(fitDock,0)}if(lineMode()||UI.mode==='story')applyLayout()});      // 구상: 창 폭에 맞춰 인물 시트 폭을 다시 제한
 // ⌘N: 새 포스트잇 (구상 화면은 마우스가 보드 위에 있으면 그 자리, 아니면 화면 중앙 / 타임라인 화면은 목록에 새 카드)
 let PTR={x:-1,y:-1};document.addEventListener('mousemove',e=>{PTR={x:e.clientX,y:e.clientY}},{passive:true});
 function newNoteShortcut(kindId){
