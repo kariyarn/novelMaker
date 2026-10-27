@@ -1,0 +1,177 @@
+/* ============ 새단장 (설정 → 겉모습 → 화면 디자인 → 새단장 · body.ui3) ============
+   정리 전(오른쪽 목록 · 구상 보드)은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고.
+   색은 테마 값(--card · --ink · --sub · --line …)을 그대로 따라서 모든 테마에서 같이 바뀜 */
+:root{--fr-story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;--fr-note:#fff3b8;--fr-x:rgba(210,69,59,.75);
+  --fr-lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.07)}
+:root.dk{--fr-note:#3a3420;--fr-lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3)}
+.ui3 #app.m-tl2 #mid{background:color-mix(in srgb,var(--bg) 88%,var(--acc) 3%)}
+
+/* ---------- 칸반: 화 레인은 상자 없이, 카드만 종이처럼 ---------- */
+.ui3 .tlcols{gap:26px;padding:20px 28px 40px}
+.ui3 .tlcol{background:transparent;box-shadow:none;border:0;border-radius:0;flex-basis:var(--tlw,280px)}
+.ui3 .tlcol .tlhead{align-items:baseline;gap:8px;padding:0 2px 8px;margin:0 0 2px;border-bottom:1px solid var(--line)}
+.ui3 .tlhead b.frno{background:none;padding:0;border-radius:0;color:var(--acc);font:400 32px/1 var(--fr-story);font-variant-numeric:tabular-nums}
+.ui3 .tlhead b.frno small{font-size:12px;font-family:inherit;color:var(--sub);margin-left:2px;font-weight:500}
+.ui3 .tlcol{min-width:0}
+.ui3 .tlcol .tlhead input{width:0;font:700 16px/1.35 var(--fr-story);padding:2px 4px}      /* 입력칸 기본 폭 때문에 열이 넓어지지 않게 */
+.ui3 .tlcol .tlhead .epcnt{font-size:11.5px;color:var(--sub);opacity:.75}
+/* 화 머리의 복사 · 메뉴 · 지우기는 마우스를 올릴 때만, 글자 수 자리 위에 겹쳐서 (제목 자리를 빼앗지 않게) */
+.ui3 .tlhead{position:relative}
+.ui3 .tlhead:has(input:focus) .epcnt{visibility:hidden}
+.ui3 .tlhead :is(.tlcopy,.epmenu,.x){position:absolute;right:0;top:-2px;opacity:0;pointer-events:none;background:var(--bg)}
+.ui3 .tlhead .tlcopy{right:52px}.ui3 .tlhead .epmenu{right:24px}
+.ui3 :is(.tlcol,.frch):hover .tlhead :is(.tlcopy,.epmenu,.x){opacity:.85;pointer-events:auto}
+.frch .tlhead :is(.tlcopy,.epmenu,.x){background:var(--card)}
+.ui3 .tlcol .tlmemo{margin:4px 2px 8px;padding:2px 4px;font-size:12px;min-height:0}
+.ui3 .tlcol .tlmemo:placeholder-shown:not(:focus){opacity:0}
+.ui3 .tlcol:hover .tlmemo:placeholder-shown{opacity:.6}
+.ui3 .tlcol .tlbody{padding:4px 2px 8px}
+.ui3 .tlhint{border:1.5px dashed var(--line);border-radius:10px;padding:26px 0;font-size:12px}
+.ui3 .tlcols .addcol{flex-basis:110px;border-color:var(--line);font-size:.86em}
+
+/* 색인 카드 */
+.ui3 .kcard.tl.fr{position:relative;background:var(--card);border:0;border-radius:6px;box-shadow:var(--fr-lift);margin:0 0 10px}
+.ui3 .kcard.tl.fr:hover{box-shadow:0 0 0 1px var(--acc-soft),var(--fr-lift)}
+.ui3 .kcard.tl.fr.editing,.ui3 .kcard.tl.fr.selc{box-shadow:0 0 0 1.5px var(--acc),var(--fr-lift)}
+.ui3 .kcard.tl.fr .ktext,.ui3 .kcard.tl.fr .kmir{font-family:var(--fr-story);font-size:15px;line-height:1.75;padding:12px 16px 4px;word-break:keep-all}
+.ui3 .kcard.tl.fr .kfoot{display:none}
+.ui3 .kcard.tl.fr .kblk{display:none}      /* 대사 말풍선 테두리는 원고 · 색인 카드에선 빼고 글만 */
+.ui3 .kcard.tl.fr:is(.editing,.selc) .kfoot{display:flex;padding:0 14px 8px}
+.ui3 .kcard.tl.fr:is(.editing,.selc) .frcast{display:none}
+/* 도구는 마우스를 올리거나 고를 때만, 카드 안쪽 오른쪽 위에 작게 (칸 밖으로 잘리지 않고 아래 줄의 ⑂ 표시도 가리지 않게) */
+.ui3 .kcard.tl.fr .khead{position:absolute;right:6px;top:6px;z-index:5;padding:1px 3px 1px 6px;gap:4px;font-size:11px;flex-wrap:nowrap;background:var(--card);border-radius:8px;box-shadow:0 0 0 1px var(--line);opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;max-width:none}
+.ui3 .kcard.tl.fr:is(:hover,.selc,:focus-within) .khead{opacity:1;pointer-events:auto}
+.ui3 .kcard.tl.fr .khead .grip,.ui3 .kcard.tl.fr .khead .pinx,.ui3 .kcard.tl.fr .khead>.sp,.ui3 .kcard.tl.fr .khead .brbadge{display:none}
+.ui3 .kcard.tl.fr .khead :is(.frbk,.frdc){font-size:.78em;color:var(--sub);padding:1px 6px;min-height:0;background:transparent;white-space:nowrap;flex:none}
+.ui3 .kcard.tl.fr .khead .frbk:hover{color:var(--acc)}
+.ui3 .kcard.tl.fr .khead .frdc:hover{color:var(--warn)}
+.ui3 .kcard.tl.fr .khead .brmk{opacity:1}
+.ui3 .tlcol .kcard.tl.fr .khead .frlb{display:none}      /* 칸반은 좁아서 ↩ 만 */
+.ui3 .kcard.tl.fr .khead .kpill select{max-width:66px;font-size:11px;padding-top:0;padding-bottom:0}
+.ui3 .kcard.tl.fr .khead .stars{font-size:11px;letter-spacing:-1px}
+.ui3 .kcard.tl.fr .khead .brmk{padding:0 4px;min-height:0}
+/* 아래 줄: 인물 첫 글자 동그라미 · 갈래 표시 */
+.ui3 .frrow{display:flex;align-items:center;gap:8px;min-height:20px;padding:4px 16px 10px}
+.frcast{display:inline-flex}
+.frcast i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:600;font-style:normal;color:#fff;background:var(--c);box-shadow:0 0 0 2px var(--card);margin-right:-4px}
+.ui3 .brbadge.frbr{font-size:11px;padding:1px 8px}
+/* 메모: 이야기와 다르게 점선 · 작은 글씨 */
+.ui3 .kcard.tl.fr.frmemo{background:var(--fill);box-shadow:none;outline:1px dashed var(--line)}
+.ui3 .kcard.tl.fr.frmemo .ktext,.ui3 .kcard.tl.fr.frmemo .kmir{font-family:inherit;font-size:13px;line-height:1.65;color:var(--sub);text-indent:2.8em}
+.ui3 .kcard.tl.fr.frmemo::after{content:"메모";position:absolute;left:16px;top:13px;font-size:11px;font-weight:600;color:var(--sub);opacity:.7;pointer-events:none}
+.ui3 .kcard.tl.fr.frmemo .frrow{padding-bottom:8px}
+/* 갈래가 있는 카드: 뒤에 종이가 겹쳐 보임 */
+.ui3 .kcard.tl.fr.stk1{box-shadow:var(--fr-lift),4px 4px 0 -1px var(--card),4px 4px 0 0 var(--br-soft),4px 5px 6px -2px rgba(0,0,0,.08)}
+.ui3 .kcard.tl.fr.stk2{box-shadow:var(--fr-lift),4px 4px 0 -1px var(--card),4px 4px 0 0 var(--br-soft),8px 8px 0 -1px var(--card),8px 8px 0 0 var(--br-soft),8px 9px 8px -2px rgba(0,0,0,.08)}
+/* 목록에서 들어온 카드: 노란 종이가 하얀 카드로 바뀌며 자리를 잡음 */
+.ui3 .kcard.tl.fr.land{animation:frland 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes frland{0%{background:var(--fr-note);transform:rotate(-2.5deg) scale(1.05)}50%{background:var(--fr-note);transform:rotate(0) scale(1.01)}100%{transform:none}}
+/* 갈래로 들어간 카드: 한 장이 밑으로 쏙 */
+.ui3 .kcard.tl.fr.stkin{animation:frstk .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes frstk{0%{transform:translate(10px,10px) rotate(2deg)}60%{transform:translate(-2px,-2px)}100%{transform:none}}
+/* 폐기: 붉은 X가 그어지며 작아져 사라짐 */
+.ui3 .kcard.tl.fr.frout{animation:frout .38s ease-in forwards}
+.ui3 .kcard.tl.fr.frout::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(45deg,transparent 48.5%,var(--fr-x) 49.5% 50.5%,transparent 51.5%),linear-gradient(-45deg,transparent 48.5%,var(--fr-x) 49.5% 50.5%,transparent 51.5%)}
+@keyframes frout{0%,40%{opacity:1;transform:none}100%{opacity:0;transform:scale(.86) rotate(-3deg)}}
+
+/* ---------- 한 줄 보기: 원고 한 장 (화 = 장, 카드 = 문단) ---------- */
+.ui3 .frline{flex:1;overflow:auto;padding:24px 28px 60px}
+.frsheet{position:relative;max-width:var(--frw,720px);margin:0 auto;background:var(--card);border-radius:4px;box-shadow:var(--fr-lift);padding:56px 72px 60px}
+.frch{position:relative;margin:0 0 44px}
+.frch+.frch::before,.frrun+.frch::before{content:"· · ·";display:block;text-align:center;letter-spacing:.6em;color:var(--sub);opacity:.5;font-size:12px;margin:-4px 0 40px}
+.frch .tlhead{flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:0;border:0}
+.frch .tlhead b.frno{flex-basis:100%;font-size:11.5px;font-weight:600;line-height:1.4;font-family:inherit;letter-spacing:.18em;color:var(--acc)}
+.frch .tlhead b.frno small{display:none}
+.frch .tlhead b.frno::after{content:"화"}
+.frch .tlhead input{flex:1;width:0;font:700 25px/1.35 var(--fr-story);padding:0;margin-left:-2px}
+.frch .tlhead .epcnt{font-size:11.5px;color:var(--sub);opacity:.7}
+.frch .tlmemo{margin:2px 0 18px;padding:0;font-size:13px;min-height:0}
+.frch .tlmemo:placeholder-shown:not(:focus){display:none}
+.frch .tlbody{padding:0;overflow:visible;min-height:24px;-webkit-mask-image:none;mask-image:none}
+.frch .tlbody.over{background:var(--acc-soft);border-radius:8px}
+.frch .tlhint{padding:10px 0;font-size:12px;text-align:left;border:0;opacity:.7}
+/* 문단: 카드 장식 없이 원고 글로 (장면도 대사도 한 칸 들여쓰기) */
+.ui3 .frch .kcard.tl.fr{background:transparent;box-shadow:none;margin:0 -16px;border-radius:6px}
+.ui3 .frch .kcard.tl.fr:hover{background:var(--acc-soft);box-shadow:none}
+.ui3 .frch .kcard.tl.fr:is(.editing,.selc){box-shadow:inset 0 0 0 1.5px var(--acc)}
+.ui3 .frch .kcard.tl.fr .ktext,.ui3 .frch .kcard.tl.fr .kmir{font-size:var(--frfs,16.5px);line-height:2;text-indent:1em;padding:3px 16px;min-height:0}
+.ui3 .frch .kcard.tl.fr .frrow{position:absolute;left:-40px;top:9px;padding:0;min-height:0}
+.ui3 .frch .kcard.tl.fr .frrow .frcast{display:none}
+.ui3 .frch .kcard.tl.fr .khead{top:-15px;right:4px}
+.ui3 .frch .kcard.tl.fr:is(.stk1,.stk2){box-shadow:none}
+.ui3 .frch .kcard.tl.fr.frmemo{background:var(--fill);outline:0;margin:6px 0;border-radius:6px}
+.ui3 .frch .kcard.tl.fr.frmemo .ktext,.ui3 .frch .kcard.tl.fr.frmemo .kmir{font-size:13px;line-height:1.7;text-indent:2.8em;padding:8px 12px}
+.ui3 .frch .kcard.tl.fr.frmemo::after{left:12px;top:9px}
+.ui3 .frch .kcard.tl.fr.land{animation:frlandp 1.2s ease-out}
+@keyframes frlandp{0%,40%{background:var(--fr-note)}100%{background:transparent}}
+/* 이어진 빈 화는 한 줄로 · 카드를 끌어 올리면 펼쳐짐 */
+.frrun{margin:0 0 30px}
+.frrunh{background:none;color:var(--sub);opacity:.75;font-size:13px;padding:4px 0}
+.frrunh:hover{opacity:1;background:none}
+.frrun>.frch{display:none;margin:10px 0 16px}
+.frrun>.frch::before{display:none}
+.frrun:is(.open,.hov)>.frch{display:block}
+.frrun:is(.open,.hov)>.frch .tlhead input{font-size:18px}
+.fradd{display:block;margin:10px auto 0;background:none;color:var(--sub);font-size:13px}
+.fradd:hover{color:var(--acc);background:none}
+/* 글 폭: 원고 양옆 손잡이 · 위쪽 슬라이드 · 글자 크기 */
+.freg{position:absolute;top:0;bottom:0;width:16px;cursor:ew-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;touch-action:none}
+.freg::after{content:"";width:4px;height:44px;border-radius:4px;background:var(--sub);opacity:.5}
+.freg.l{left:-20px}.freg.r{right:-20px}
+.frsheet:hover>.freg,.freg.on{opacity:1}
+.frwctl{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:.86em}
+.frwctl input{width:100px;padding:0;background:transparent;border:0;accent-color:var(--acc)}
+.frfsz{display:inline-flex;align-items:baseline;gap:0}
+.frfsz button{font-family:var(--fr-story);padding:0 6px;color:var(--sub);min-height:0}
+.frfsz button.big{font-size:1.25em}
+
+/* ---------- 집중: 문단 한 장만 크게 ---------- */
+.frfocus{position:fixed;inset:0;z-index:95;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:frin .22s ease-out}
+@keyframes frin{from{opacity:0}to{opacity:1}}
+.frfp{width:min(680px,86vw);background:var(--card);border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.18);padding:44px 56px 26px}
+.frlb{font-size:11.5px;font-weight:600;letter-spacing:.18em;color:var(--acc);margin:0 0 16px}
+.frft{display:block;width:100%;min-height:220px;max-height:60vh;border:0;outline:0;resize:none;background:transparent;color:var(--ink);font:21px/2 var(--fr-story);word-break:keep-all;padding:0}
+.frft:focus{box-shadow:none;background:transparent}
+.frff{display:flex;justify-content:space-between;color:var(--sub);opacity:.75;font-size:12px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+
+/* ---------- 갈래 지도 ---------- */
+.frmap{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--bg) 95%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:frin .22s ease-out}
+.frmap.quiet{animation:none}
+.frmap header{position:absolute;z-index:3;left:0;right:0;top:0;display:flex;align-items:baseline;gap:14px;padding:22px 32px}
+.frmap header b{font:700 20px var(--fr-story)}
+.frmap header>span{color:var(--sub);font-size:13px}
+.frml{display:flex;gap:4px;margin-left:24px}
+.frml button{background:none;color:var(--sub);font-size:12.5px;padding:2px 6px;border-radius:0;border-bottom:1.5px solid transparent;min-height:0}
+.frml button:hover{color:var(--ink);background:none}
+.frml button.on{color:var(--br);border-color:var(--br);font-weight:600}
+.frx{margin-left:auto;font-size:12.5px}
+.frlinks{position:absolute;inset:0;width:100%;height:100%}
+.frn{position:absolute;transform:translate(-50%,-50%);width:280px;border-radius:6px;padding:14px 16px 12px;transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1)}
+.frn .frtag{font-size:10.5px;font-weight:600;letter-spacing:.14em;color:var(--sub)}
+.frn .frtag small{font-weight:400;letter-spacing:0;margin-left:6px}
+.frn .frtag .st{color:#e3a008;letter-spacing:1px;margin-left:6px}
+.frnt{display:block;width:100%;border:0;background:transparent;resize:none;overflow:hidden;padding:4px 0 0;margin:0;font:15px/1.8 var(--fr-story);color:var(--ink);word-break:keep-all;min-height:0;cursor:default}
+.frnt:not([readonly]){cursor:text;background:var(--fill);border-radius:4px;box-shadow:none}
+.frnt:focus{box-shadow:none}
+.frn .frcast{margin-top:8px}
+.frn .frcast i{box-shadow:0 0 0 2px var(--card)}
+.frn.main{width:320px;background:var(--card);box-shadow:0 0 0 1.5px var(--ink),0 20px 50px rgba(0,0,0,.12);padding:18px 20px 14px;z-index:2}
+.frn.main .frnt{font-size:16.5px}
+.frn.alt{background:color-mix(in srgb,var(--card) 88%,var(--br));box-shadow:0 0 0 1px var(--br-soft),var(--fr-lift);z-index:1}
+.frn.alt .frtag{color:var(--br)}
+.frn.alt.sel{box-shadow:0 0 0 2px var(--br),var(--fr-lift)}
+.frn.alt.off{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.frn.alt.off::before{content:"";position:absolute;inset:8px;pointer-events:none;background:linear-gradient(45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6% 50.4%,transparent 50.6%),linear-gradient(-45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6% 50.4%,transparent 50.6%)}
+.frn.alt.off :is(.frnt,.frtag){opacity:.55}
+.frn.alt.off .frtag{color:var(--warn)}
+.fraa{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.fraa button{font-size:12px;color:var(--sub);padding:3px 9px;border-radius:7px;box-shadow:0 0 0 1px var(--line);background:var(--card);min-height:0}
+.fraa button:hover{color:var(--br);box-shadow:0 0 0 1px var(--br)}
+.fraa .pick{color:var(--br);font-weight:600}
+.fraa .del{margin-left:auto;box-shadow:none;background:none}
+.fraa .del:hover{color:var(--warn);box-shadow:none}
+.frn.alt.off .fraa .del{color:var(--acc)}
+.frn.add{width:200px;text-align:center;color:var(--sub);font-size:12.5px;border:1.5px dashed var(--line);background:transparent;padding:16px}
+.frn.add:hover{color:var(--br);border-color:var(--br);background:transparent}
+.frmap footer{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:var(--sub);opacity:.7;font-size:12px}
+@media (prefers-reduced-motion:reduce){.ui3 .kcard.tl.fr:is(.land,.stkin,.frout),.frfocus,.frmap{animation:none}.frn{transition:none}}

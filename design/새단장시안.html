@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>스토리라인 새단장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* 개념: 정리 전(오른쪽)은 따뜻한 노란 포스트잇, 정리 후(가운데)는 서늘하고 하얀 색인 카드 · 원고.
+   색 온도가 "마구 써 둔 것 → 깔끔하게 정리된 것"을 말해 줌. 이야기 글은 바탕체, 앱 글씨는 고딕. */
+:root{
+  --ground:#e9ecf1; --paper:#ffffff; --ink:#1c2230; --sub:#687083; --faint:#a9b0be; --hair:rgba(28,34,48,.10);
+  --acc:#2b5fd9; --acc-soft:rgba(43,95,217,.10);
+  --note:#fff3b8; --note-ink:#4a3d12; --note-edge:rgba(120,95,0,.18);
+  --memo:#f4f6f9; --note2:#d9f2e6; --note3:#fde2e4; --thread:#d2453b; --br:#7b55c7; --br-soft:rgba(123,85,199,.08); --lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.06);
+  --page:#f6f7f9; --side:#f1f3f6;
+  --story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  --ui:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  /* 지금 화면(비교용) */
+  --o-bg:#f5f5f7;--o-panel:#fff;--o-side:#f2f2f5;--o-ink:#1d1d1f;--o-sub:#6e6e73;--o-faint:#aeaeb2;--o-line:rgba(0,0,0,.09);--o-fill:rgba(0,0,0,.045);--o-fill2:rgba(0,0,0,.08);--o-acc:#0071e3;--o-acc-soft:rgba(0,113,227,.12);--o-seg:rgba(0,0,0,.06);--o-segon:#fff;--o-card:#fff;--o-br:#8e5bd8;--o-warm:linear-gradient(90deg,rgba(240,160,0,.07),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px rgba(0,0,0,.06)
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
+  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--br:#b896ff;--br-soft:rgba(184,150,255,.1);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--note:#3a3420;--note-ink:#efe2b0;--note-edge:rgba(255,220,120,.14);
+  --memo:#1b1e24;--note2:#1f3a30;--note3:#432a2e;--thread:#ff7a6e;--br:#b896ff;--br-soft:rgba(184,150,255,.1);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1a1d22;
+  --o-bg:#1c1c1e;--o-panel:#2c2c2e;--o-side:#242426;--o-ink:#f5f5f7;--o-sub:#98989d;--o-faint:#636366;--o-line:rgba(255,255,255,.1);--o-fill:rgba(255,255,255,.07);--o-fill2:rgba(255,255,255,.12);--o-acc:#0a84ff;--o-acc-soft:rgba(10,132,255,.22);--o-seg:rgba(255,255,255,.1);--o-segon:#636366;--o-card:#3a3a3c;--o-br:#b48cff;--o-warm:linear-gradient(90deg,rgba(240,160,0,.1),transparent 60%);--o-shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 var(--ui);letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none}
+main{max-width:1240px;margin:0 auto;padding-block:36px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--sub);margin:0 0 18px;max-width:46em}
+.lead b{color:var(--ink);font-weight:600}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.pill{display:inline-flex;gap:2px;background:var(--hair);border-radius:10px;padding:3px}
+.pill button{padding:5px 14px;border-radius:8px;color:var(--sub)}
+.pill button.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.pill button:focus-visible,.ctl>button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.ctl>button{padding:6px 12px;border-radius:9px;color:var(--sub)}
+.ctl>button:hover{background:var(--hair);color:var(--ink)}
+.ctl .sp{flex:1}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px 28px;margin:22px 0 0;padding:0;list-style:none;color:var(--sub);font-size:.92em}
+.notes b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+
+/* ---------- 노트북 화면 1440×860 (페이지 폭에 맞게 줄임) ---------- */
+.frame{border-radius:12px;overflow:hidden;box-shadow:0 0 0 7px #111317,0 22px 50px rgba(0,0,0,.28)}
+.frame.real{overflow:auto;max-height:900px}
+.app{position:relative;width:1440px;height:860px;transform-origin:0 0;display:grid;grid-template-rows:52px minmax(0,1fr)}
+
+/* ============ 새 시안 ============ */
+.n{background:var(--ground);color:var(--ink);font-family:var(--ui)}
+.n .top{display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--paper);border-bottom:1px solid var(--hair)}
+.n .top .nm{font:700 15px var(--story)}
+.n .top .ex{font-size:11px;color:var(--acc);background:var(--acc-soft);border-radius:99px;padding:1px 8px;font-weight:600}
+.n .top nav{margin:0 auto;display:flex;gap:28px;font-size:14px;color:var(--sub)}
+.n .top nav span{padding:14px 2px;border-bottom:2px solid transparent}
+.n .top nav span.on{color:var(--ink);font-weight:600;border-color:var(--ink)}
+.n .top .r{color:var(--sub);letter-spacing:12px;font-size:15px}
+.n .body{display:grid;grid-template-columns:52px minmax(0,1fr) 312px;min-height:0}
+.n .rail{background:var(--paper);border-right:1px solid var(--hair);display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:14px;color:var(--sub)}
+.n .rail span{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;font-size:15px}
+.n .rail span:hover{background:var(--acc-soft);color:var(--acc)}
+.n .mid{display:flex;flex-direction:column;min-width:0}
+.n .bar{display:flex;align-items:center;gap:22px;padding:16px 28px 0;font-size:13.5px;color:var(--sub)}
+.n .bar .tab{padding-bottom:10px;border-bottom:2px solid transparent;cursor:pointer}
+.n .bar .tab.on{color:var(--ink);font-weight:600;border-color:var(--acc)}
+.n .bar .sp{flex:1}
+.n .bar .q{padding-bottom:10px}
+.n .bar .add{padding-bottom:10px;color:var(--acc);font-weight:600}
+.n .rule{height:1px;background:var(--hair);margin:0 28px}
+.n .sc{flex:1;overflow:auto;padding:22px 28px 40px}
+
+/* 칸반: 레인은 상자 없이, 카드만 종이처럼 */
+.n .kb{display:flex;gap:26px;align-items:flex-start}
+.n .lane{flex:none;width:292px}
+.n .lh{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:baseline;padding:0 2px 12px;margin-bottom:12px;border-bottom:1px solid var(--hair)}
+.n .lh .no{font:400 34px/1 var(--story);color:var(--acc);font-variant-numeric:tabular-nums}
+.n .lh .no small{font:500 12px var(--ui);margin-left:2px;color:var(--sub)}
+.n .lh .ti{font:700 16px/1.35 var(--story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n .lh .me{grid-column:2/4;font-size:12px;color:var(--sub);margin-top:2px;min-height:1.6em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n .lh .ct{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.n .stack{display:flex;flex-direction:column;gap:10px}
+.n .lane.empty .lh .no{color:var(--faint)}
+.n .lane.empty .drop{border:1.5px dashed var(--hair);border-radius:10px;height:92px;display:grid;place-items:center;color:var(--faint);font-size:12px}
+
+/* 색인 카드 */
+.n .ic{position:relative;background:var(--paper);border-radius:6px;box-shadow:var(--lift);padding:14px 16px 11px}
+.n .ic .tx{margin:0;font:15px/1.75 var(--story);color:var(--ink);word-break:keep-all}
+.n .ic .tx .who{font:500 12px var(--ui);margin-left:6px;white-space:nowrap}
+.n .ic .ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;min-height:20px}
+.n .ic .cast{display:flex}
+.n .ic .cast i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 10.5px var(--ui);font-style:normal;color:#fff;background:var(--c);box-shadow:0 0 0 2px var(--paper);margin-right:-4px}
+.n .ic .tools{display:flex;gap:10px;font-size:11.5px;color:var(--sub);opacity:0;transition:opacity .15s}
+.n .ic .tools .st{color:#e3a008;letter-spacing:1px}
+.n .ic:hover{box-shadow:0 0 0 1px var(--acc-soft),var(--lift)}
+.n .ic:hover .tools{opacity:1}
+.n .ic.memo{background:var(--memo);box-shadow:none;border:1px dashed var(--hair)}
+.n .ic.memo{padding-bottom:12px}
+.n .ic.memo .tx{font:13px/1.65 var(--ui);color:var(--sub)}
+.n .ic.memo .ft{position:absolute;right:12px;bottom:6px;margin:0;min-height:0}
+.n .ic.memo .tx::before{content:"메모";font-weight:600;font-size:11px;color:var(--faint);margin-right:8px}
+
+/* 한 줄 보기: 원고 한 장처럼 읽기 */
+.n .sheet{position:relative;max-width:var(--sw,720px);margin:0 auto;background:var(--paper);border-radius:4px;box-shadow:var(--lift);padding:56px 72px 64px}
+.n .ch{margin:0 0 44px}
+.n .ch .lb{font:600 11.5px var(--ui);letter-spacing:.18em;color:var(--acc)}
+.n .ch h2{font:700 25px/1.35 var(--story);margin:6px 0 4px;text-wrap:balance}
+.n .ch .me{color:var(--sub);font-size:13px;margin:0 0 22px}
+.n .pa{position:relative;margin:0 -16px;padding:4px 16px;border-radius:6px}
+.n .pa p{margin:0;font:var(--fs,16.5px)/2 var(--story);text-indent:1em;word-break:keep-all}
+.n .pa.dlg .who{font:500 12px var(--ui);margin-left:8px;opacity:.8}
+.n .pa.memo p{text-indent:0;font:13px/1.7 var(--ui);color:var(--sub);background:var(--memo);border-radius:6px;padding:8px 12px;margin:6px 0}
+.n .pa.memo p::before{content:"메모";font-weight:600;font-size:11px;color:var(--faint);margin-right:8px}
+.n .pa .tools{position:absolute;right:-6px;top:-14px;display:flex;gap:10px;align-items:center;font-size:11.5px;color:var(--sub);background:var(--paper);border-radius:7px;padding:2px 10px;box-shadow:0 0 0 1px var(--hair),0 2px 8px rgba(0,0,0,.08);opacity:0;pointer-events:none;transition:opacity .15s}
+.n .pa .tools .st{color:#e3a008}
+.n .pa .tools .dots{display:flex;gap:3px}
+.n .pa .tools .dots i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.n .pa:hover{background:var(--acc-soft)}
+.n .pa:hover .tools{opacity:1;pointer-events:auto}
+.n .orn{text-align:center;color:var(--faint);letter-spacing:.6em;margin:0 0 40px;font-size:12px}
+.n .rest{color:var(--faint);font-size:13px;text-align:center;border-top:1px solid var(--hair);padding-top:22px}
+
+/* 오른쪽: 아직 정리 안 한 포스트잇 */
+.n .pool{background:var(--side);border-left:1px solid var(--hair);display:flex;flex-direction:column;min-width:0}
+.n .pool .hd{padding:18px 20px 10px;display:flex;align-items:baseline;gap:8px}
+.n .pool .hd b{font:700 15px var(--story)}
+.n .pool .hd span{color:var(--sub);font-size:12px}
+.n .pool .hd>span:nth-child(2){margin-right:auto}
+.n .pool .hd .wd{color:var(--sub);font-size:12px;padding:3px 9px;border-radius:7px;cursor:pointer;box-shadow:0 0 0 1px var(--hair)}
+.n .pool .hd .wd:hover{color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.n .pool.wide .ls{display:block;columns:2;column-gap:18px}
+.n .pool.wide .pi{break-inside:avoid;margin-bottom:16px}
+.n .pool .in{margin:0 20px;padding:10px 14px;border-radius:10px;background:var(--paper);color:var(--faint);font-size:13px;box-shadow:inset 0 0 0 1px var(--hair)}
+.n .pool .tabs{display:flex;gap:16px;padding:12px 22px 4px;font-size:12px;color:var(--faint)}
+.n .pool .tabs .on{color:var(--ink);font-weight:600}
+.n .pool .ls{flex:1;overflow:auto;padding:12px 22px 30px;display:flex;flex-direction:column;gap:16px}
+.n .pi{background:var(--note);color:var(--note-ink);padding:14px 15px 12px;border-radius:2px;box-shadow:0 1px 0 var(--note-edge),0 6px 14px -6px rgba(90,70,0,.3);transform:rotate(var(--r));font:14px/1.7 var(--story);word-break:keep-all;cursor:grab;transition:transform .15s}
+.n .pi:hover{transform:rotate(0) translateY(-2px)}
+.n .pi .ft{display:flex;gap:5px;margin-top:8px}
+.n .pi .ft i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+
+/* ============ 지금 화면 (비교용) ============ */
+.o{background:var(--o-panel);color:var(--o-ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.o .top{display:flex;align-items:center;padding:0 20px;border-bottom:.5px solid var(--o-line);gap:14px}
+.o .top .nm{font-weight:700;font-size:15px}
+.o .top .demo{background:var(--o-acc-soft);color:var(--o-acc);font-size:11px;font-weight:600;border-radius:99px;padding:1px 8px}
+.o .top .ctr{margin:0 auto;display:flex;gap:16px;align-items:center}
+.o .seg{display:inline-flex;gap:2px;background:var(--o-seg);border-radius:9px;padding:2px}
+.o .seg span{padding:3px 12px;font-size:.92em;border-radius:7px}
+.o .seg span.on{background:var(--o-segon);box-shadow:0 1px 3px rgba(0,0,0,.14);font-weight:600}
+.o .btn{background:var(--o-fill);border-radius:8px;padding:4px 11px}
+.o .top .r{color:var(--o-sub);letter-spacing:10px}
+.o .body{display:grid;min-height:0}
+.o .lp{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;overflow:hidden;font-size:13px}
+.o .lp h4{margin:0 0 10px 6px;font-size:12px}
+.o .lp .opt{display:flex;gap:8px;align-items:center;color:var(--o-sub);margin:0 6px 4px}
+.o .lp .opt span{background:var(--o-fill2);border-radius:6px;padding:1px 10px;color:var(--o-ink)}
+.o .lp .lnk{color:var(--o-acc);font-size:12px;margin:0 6px 8px}
+.o .lp .tot{background:var(--o-acc-soft);color:var(--o-acc);border-radius:8px;padding:7px 10px;display:flex;gap:14px;font-weight:700}
+.o .lp .tot span:last-child{margin-left:auto;font-weight:400;color:var(--o-sub)}
+.o .lp .g{color:var(--o-sub);font-size:12px;font-weight:600;padding:12px 8px 6px;display:flex;justify-content:space-between}
+.o .lp .e{display:flex;gap:12px;padding:6px 10px 6px 26px;color:var(--o-faint)}
+.o .lp .e.on{color:var(--o-ink)}
+.o .lp .e b{min-width:28px}
+.o .lp .e .t{color:var(--o-sub);flex:1}
+.o .lp .e .c{color:var(--o-sub);font-size:12px}
+.o .mid{display:flex;flex-direction:column;min-width:0;border-right:.5px solid var(--o-line);background:var(--o-side)}
+.o .tb{display:flex;align-items:center;gap:10px;padding:12px 16px 8px;flex-wrap:wrap}
+.o .tb h3{margin:0;font-size:15px}
+.o .tb .sp{flex:1}
+.o .tb .meta{color:var(--o-sub);font-size:12.5px}
+.o .tb .add{color:var(--o-acc)}
+.o .tb .brold{background:var(--o-br);color:#fff;font-weight:600;border-radius:8px;padding:4px 11px}
+.o .tb .slider{display:inline-flex;align-items:center;gap:8px;color:var(--o-sub);font-size:12.5px}
+.o .tb .slider i{display:inline-block;width:96px;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--o-acc) 22%,var(--o-fill2) 22%)}
+.o .chips{display:flex;gap:6px;padding:0 16px 10px}
+.o .chips span{background:var(--o-fill2);border-radius:99px;padding:2px 12px;font-size:12.5px;color:var(--o-sub)}
+.o .chips span.on{background:var(--o-acc-soft);color:var(--o-acc);font-weight:600}
+.o .sc{flex:1;overflow:auto;padding:6px 16px 30px}
+.o .kb{display:flex;gap:14px;align-items:flex-start}
+.o .col{flex:none;width:470px;background:var(--o-panel);border-radius:14px;box-shadow:var(--o-shadow);padding:12px 12px 6px}
+.o .eh{display:flex;align-items:baseline;gap:10px;margin:0 2px 4px;white-space:nowrap}
+.o .eh .b{background:var(--o-acc-soft);color:var(--o-acc);font-weight:700;border-radius:99px;padding:0 9px}
+.o .eh .t{font-weight:700}
+.o .eh .s{color:var(--o-sub);font-size:12px;margin-left:auto}
+.o .em{color:var(--o-sub);font-size:13px;margin:0 2px 10px}
+.o .card{background:var(--o-card);border-radius:10px;border-left:4px solid #f0a000;background-image:var(--o-warm);box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);padding:10px 14px 9px;margin:0 0 10px}
+.o .card.memo{border-left-color:#c7c7cc}
+.o .card .chd{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--o-sub);margin:0 0 8px 18px}
+.o .card .chd .st{color:#f0a000;font-size:13px}
+.o .card .tx{line-height:1.7}
+.o .card .tx.bub{border:1px solid var(--o-line);border-radius:12px;padding:1px 8px;margin:0 -6px}
+.o .card .tags{display:flex;gap:6px;margin-top:6px;font-size:11.5px;color:var(--o-sub)}
+.o .card .tags>span{background:var(--o-fill);border-radius:99px;padding:0 8px;display:inline-flex;align-items:center;gap:5px}
+.o .dot{width:7px;height:7px;border-radius:50%;background:var(--c);display:inline-block}
+.o .ln{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:0 0 16px}
+.o .ln .num{width:30px;height:30px;border-radius:50%;background:var(--o-acc);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;margin-top:8px}
+.o .ln .box{background:var(--o-panel);border-radius:14px;box-shadow:var(--o-shadow);padding:12px 14px 4px}
+.o .rp{background:var(--o-panel);display:flex;flex-direction:column;min-width:0}
+.o .rp .hd{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;font-size:13px}
+.o .rp .hd b{flex:1}
+.o .rp .hd span{color:var(--o-sub)}
+.o .rp .in{margin:0 16px;border-radius:10px;box-shadow:0 0 0 .5px var(--o-line),0 1px 3px rgba(0,0,0,.05);padding:9px 12px;color:var(--o-faint)}
+.o .rp .tabs{display:flex;justify-content:space-between;padding:10px 18px 6px;font-size:12px;color:var(--o-acc)}
+.o .rp .ls{flex:1;overflow:auto;padding:8px 16px}
+.o .rp .ls .card{max-width:380px}
+
+
+/* ============ 새단장: 구상 ============ */
+/* 보드는 "마구 붙여 두는" 따뜻한 자리 — 포스트잇 · 핀 · 실. 인물 정보는 보드 머리에 한 줄로, 시트는 필요할 때만 */
+.n .lst{background:var(--paper);border-right:1px solid var(--hair);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.n .lst .find{padding:8px 12px;border-radius:9px;background:var(--side);color:var(--faint);font-size:13px;margin-bottom:10px}
+.n .lst .gh{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;letter-spacing:.08em;color:var(--faint);padding:14px 8px 6px}
+.n .lst .it{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:9px;cursor:pointer}
+.n .lst .it:hover{background:var(--side)}
+.n .lst .it.on{background:var(--acc-soft)}
+.n .lst .it .nm{font:700 14.5px var(--story)}
+.n .lst .it .rl{font-size:11.5px;color:var(--sub);margin-left:auto}
+.n .lst .it .bk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--side);color:var(--sub);font-size:12px}
+.n .lst .add{color:var(--faint);font-size:12.5px;padding:4px 8px}
+.av{border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--c);font-family:var(--ui);font-weight:600;flex:none}
+.n .lst .av{width:26px;height:26px;font-size:12px}
+
+.n .brd{position:relative;min-width:0;overflow:hidden;background-color:var(--ground);background-image:radial-gradient(var(--hair) 1.1px,transparent 1.3px);background-size:22px 22px}
+.n .prof{position:absolute;left:0;right:0;top:0;display:flex;align-items:flex-start;gap:16px;padding:22px 28px 18px;background:linear-gradient(var(--ground) 70%,transparent);z-index:3}
+.n .prof .av{width:48px;height:48px;font-size:19px;box-shadow:0 0 0 3px var(--paper)}
+.n .prof .who{min-width:0;flex:1}
+.n .prof h2{margin:0;font:700 26px/1.2 var(--story);display:flex;align-items:baseline;gap:10px}
+.n .prof h2 small{font:500 12.5px var(--ui);color:var(--sub)}
+.n .prof .sum{margin:6px 0 0;color:var(--sub);font-size:13.5px;max-width:34em}
+.n .prof .goal{margin:6px 0 0;font-size:12.5px;color:var(--ink)}
+.n .prof .goal span{color:var(--acc);font-weight:600;margin-right:8px;letter-spacing:.06em;font-size:11px}
+.n .prof .acts{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--sub)}
+.n .prof .acts span{padding:4px 6px;border-radius:6px;color:var(--faint);cursor:pointer}
+.n .prof .acts span:hover{color:var(--acc)}
+.n .prof .acts span.on{color:var(--acc)}
+.n .prof .acts .cnt{font-size:12px;color:var(--faint);cursor:default}
+.n .prof .acts .cnt:hover{color:var(--faint)}
+
+.n .pn{position:absolute;width:230px;padding:18px 18px 14px;border-radius:2px;background:var(--bgc);color:var(--note-ink);font:15px/1.75 var(--story);word-break:keep-all;transform:rotate(var(--r));box-shadow:0 1px 0 var(--note-edge),0 10px 18px -10px rgba(60,40,0,.45);z-index:1}
+.n .pn.y{--bgc:var(--note)}.n .pn.g{--bgc:var(--note2)}.n .pn.p{--bgc:var(--note3)}
+.n .pn .st{position:absolute;right:12px;top:6px;font-size:11px;color:#d89a00;letter-spacing:1px}
+.n .pn .ft{display:flex;margin-top:10px}
+.n .pn .ft .av{width:20px;height:20px;font-size:10.5px;margin-right:-4px;box-shadow:0 0 0 2px var(--bgc)}
+.n .pn .who{font:500 12px var(--ui);margin-left:6px;opacity:.8}
+.n .pin{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8a80,var(--thread) 60%);box-shadow:0 2px 3px rgba(0,0,0,.35);z-index:4}
+.n .thread{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.n .tool{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:var(--paper);border-radius:14px;padding:6px;box-shadow:0 0 0 1px var(--hair),0 8px 24px rgba(0,0,0,.12);font-size:13px;color:var(--sub);z-index:5;white-space:nowrap}
+.n .tool span{padding:6px 12px;border-radius:9px}
+.n .tool .new{background:var(--acc);color:var(--paper);font-weight:600}
+.n .tool i{width:1px;height:18px;background:var(--hair);margin:0 4px}
+
+.n .dos{background:var(--paper);border-right:1px solid var(--hair);overflow:auto;padding:26px 26px 40px}
+.n .dos .lb{font:600 11px var(--ui);letter-spacing:.14em;color:var(--faint);margin:0 0 4px}
+.n .dos .val{font:15px/1.7 var(--story);margin:0 0 18px}
+.n .dos .gr{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--hair);font-size:13.5px}
+.n .dos .gr b{font:700 14.5px var(--story)}
+.n .dos .gr small{color:var(--faint);margin-left:auto}
+.n .dos .gr.open{flex-wrap:wrap}
+.n .dos .fv{flex-basis:100%;display:grid;grid-template-columns:72px 1fr;gap:4px 12px;font-size:13px;padding:8px 0 2px 20px}
+.n .dos .fv span{color:var(--sub)}
+.n .dos .fv p{margin:0;font:14px/1.6 var(--story)}
+.n .dos .more{color:var(--faint);font-size:12.5px;padding:12px 0;border-top:1px solid var(--hair)}
+
+/* 포스트잇 → 카드: 놓는 순간 노란 종이가 하얀 카드로 바뀜 */
+.n .ic.land{animation:land 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes land{0%{background:var(--note);transform:rotate(-2.5deg) scale(1.05);box-shadow:0 12px 22px -8px rgba(90,70,0,.45)}50%{background:var(--note);transform:rotate(0) scale(1.01)}100%{background:var(--paper);transform:none}}
+.n .pa.land{animation:landp 1.2s ease-out}
+@keyframes landp{0%,40%{background:var(--note)}100%{background:transparent}}
+.n .lane.over .stack,.n .lane.over .drop{outline:2px dashed var(--acc);outline-offset:4px;border-radius:8px}
+.n .ch.over{background:var(--acc-soft);border-radius:8px;box-shadow:0 0 0 12px var(--acc-soft)}
+.n .pi.drag,.n .ic.drag,.n .pa.drag{opacity:.35}
+.n .ic[draggable],.n .pa[draggable]{cursor:grab}
+/* 카드 → 포스트잇: 오른쪽 목록으로 돌려놓으면 하얀 카드가 다시 노란 종이로 */
+.n .pi.back{animation:back 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes back{0%{background:var(--paper);transform:rotate(0) scale(.97)}45%{background:var(--paper)}100%{background:var(--note);transform:rotate(var(--r))}}
+.n .pool.over .ls{outline:2px dashed var(--acc);outline-offset:-8px;border-radius:12px;background:var(--acc-soft)}
+.n .pool .backhint{display:none;margin:0 20px;padding:8px 12px;border-radius:9px;background:var(--acc-soft);color:var(--acc);font-size:12.5px}
+.n .pool.over .backhint,.n.carrying .pool .backhint{display:block}
+.n .ins{height:3px;border-radius:3px;background:var(--acc);margin:-1px 0}
+.n .tools .bk{cursor:pointer}
+.n .tools .bk:hover{color:var(--acc)}
+
+/* 한 줄 보기: 글 폭 · 글자 크기 */
+.n .bar .wctl{display:flex;align-items:center;gap:8px;padding-bottom:10px}
+.n .bar .wctl input{width:110px;accent-color:var(--acc)}
+.n .bar .fsz{display:flex;gap:2px;padding-bottom:10px}
+.n .bar .fsz button{color:var(--sub);padding:0 6px;border-radius:6px;font-family:var(--story)}
+.n .bar .fsz button:hover{background:var(--hair);color:var(--ink)}
+.n .bar .fsz button+button{font-size:17px}
+.n .eg{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.n .eg::after{content:"";width:4px;height:44px;border-radius:4px;background:var(--faint)}
+.n .eg.l{left:-18px}.n .eg.r{right:-18px}
+.n .sheet:hover .eg,.n .eg.on{opacity:1}
+
+/* 집중 모드: 문단을 두 번 누르면 그 카드 한 장만 크게 */
+.n .zen{position:absolute;inset:0;z-index:20;background:color-mix(in srgb,var(--ground) 94%,transparent);backdrop-filter:blur(6px);display:grid;place-items:center;animation:zin .25s ease-out}
+@keyframes zin{from{opacity:0}to{opacity:1}}
+.n .zen .zp{width:min(680px,80%);background:var(--paper);border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.18);padding:44px 56px 30px}
+.n .zen .lb{font:600 11.5px var(--ui);letter-spacing:.18em;color:var(--acc);margin:0 0 18px}
+.n .zen textarea{width:100%;min-height:200px;border:0;outline:0;resize:none;background:transparent;color:var(--ink);font:21px/2 var(--story);word-break:keep-all}
+.n .zen .ft{display:flex;justify-content:space-between;color:var(--faint);font-size:12px;margin-top:18px;border-top:1px solid var(--hair);padding-top:12px}
+
+/* 넓은 화면에서 저절로 펼쳐지는 화 목록 */
+.n .lst .ep{display:flex;gap:10px;align-items:baseline;padding:6px 8px;border-radius:8px;font-size:13px;color:var(--faint)}
+.n .lst .ep.on{color:var(--ink)}
+.n .lst .ep b{font:400 15px var(--story);color:var(--acc);min-width:22px;font-variant-numeric:tabular-nums}
+.n .lst .ep.on b{font-weight:700}
+.n .lst .ep span{flex:1;font-family:var(--story)}
+.n .lst .ep small{color:var(--sub)}
+.n .lst .hdx{display:flex;justify-content:space-between;align-items:center;font:700 14px var(--story);padding:2px 8px 10px}
+.n .lst .hdx span{font:500 12px var(--ui);color:var(--sub);cursor:pointer;padding:2px 6px;border-radius:6px}
+.n .lst .hdx span:hover{background:var(--side)}
+.n .rail span[data-ls]{cursor:pointer}
+
+/* ============ 갈래: 같은 장면의 다른 버전 · 원고엔 ⑂ 표시만, 고르는 건 갈래 지도에서 ============ */
+.n .brm{position:absolute;left:-46px;top:9px;font:600 11.5px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 8px;cursor:pointer}
+.n .brm:hover{background:var(--br);color:var(--paper)}
+.n .ic .brc{white-space:nowrap;font:600 11px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 7px;margin-left:8px}
+.n .pa.brin,.n .ic.brin{background:var(--br-soft);box-shadow:inset 0 0 0 2px var(--br)}
+/* 합치기 */
+.n .mg .zp{width:min(980px,90%)}
+.n .mg .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px}
+.n .mg .cols div{font:15px/1.9 var(--story);padding:12px 14px;border-radius:8px;background:var(--side)}
+.n .mg .cols .b{background:var(--br-soft)}
+.n .mg .cols span{cursor:pointer;border-radius:4px}
+.n .mg .cols span:hover{background:var(--acc-soft)}
+.n .mg textarea{min-height:120px;font-size:17px;border-top:1px solid var(--hair);padding-top:10px}
+.n .mg .ok{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.n .mg .ok button{padding:6px 14px;border-radius:9px;box-shadow:0 0 0 1px var(--hair);color:var(--sub)}
+.n .mg .ok button.go{background:var(--br);color:var(--paper);box-shadow:none;font-weight:600}
+
+/* 갈래가 있는 카드: 종이가 겹쳐 보임 · 갈래가 생기는 순간 한 장이 밑으로 들어가는 효과 */
+.n .ic.stk1{box-shadow:var(--lift),4px 4px 0 -1px var(--paper),4px 4px 0 0 var(--br-soft),4px 5px 6px -2px rgba(0,0,0,.08)}
+.n .ic.stk2{box-shadow:var(--lift),4px 4px 0 -1px var(--paper),4px 4px 0 0 var(--br-soft),8px 8px 0 -1px var(--paper),8px 8px 0 0 var(--br-soft),8px 9px 8px -2px rgba(0,0,0,.08)}
+.n .pa.stk1 p,.n .pa.stk2 p{text-decoration:none}
+.n .ic.stkin,.n .pa.stkin{animation:stkin .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes stkin{0%{transform:translate(10px,10px) rotate(2deg)}60%{transform:translate(-2px,-2px)}100%{transform:none}}
+.n .pa.stkin .brm{animation:pop .7s}
+@keyframes pop{0%{transform:scale(1.6)}100%{transform:none}}
+.n .brc{cursor:pointer}
+.n .brc:hover{background:var(--br);color:var(--paper)}
+/* 갈래 지도 */
+.n .bmap{display:block;background:color-mix(in srgb,var(--ground) 96%,transparent)}
+.n .bmap.quiet{animation:none}
+.n .bmap header{position:absolute;z-index:3;left:0;right:0;top:0;display:flex;align-items:baseline;gap:14px;padding:22px 32px}
+.n .bmap header b{font:700 20px var(--story)}
+.n .bmap header span{color:var(--sub);font-size:13px}
+.n .bmap header button{margin-left:auto;color:var(--sub);font-size:12.5px;padding:5px 12px;border-radius:9px;box-shadow:0 0 0 1px var(--hair);background:var(--paper)}
+.n .bmap .links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.n .mn{position:absolute;transform:translate(-50%,-50%);width:280px;border-radius:6px;padding:14px 16px 12px}
+.n .mn p{margin:4px 0 0;font:15px/1.8 var(--story);word-break:keep-all}
+.n .mn .who{font:500 12px var(--ui);margin-left:6px}
+.n .mn .tag{font:600 10.5px var(--ui);letter-spacing:.14em;color:var(--faint)}
+.n .mn .tag small{font-weight:400;letter-spacing:0;margin-left:6px}
+.n .mn.main{width:320px;background:var(--paper);box-shadow:0 0 0 1.5px var(--ink),0 20px 50px rgba(0,0,0,.12);padding:18px 20px 14px}
+.n .mn.main p{font-size:16.5px}
+.n .mn.main .stars{color:#e3a008;letter-spacing:1px;margin-left:6px}
+.n .mn .cast{display:flex;margin-top:8px}
+.n .mn .cast i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 10.5px var(--ui);font-style:normal;color:#fff;background:var(--c);box-shadow:0 0 0 2px var(--paper);margin-right:-4px}
+.n .mn.alt{background:color-mix(in srgb,var(--paper) 88%,var(--br));box-shadow:0 0 0 1px var(--br-soft),var(--lift)}
+.n .mn.alt .tag{color:var(--br)}
+.n .mn .aa{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.n .mn .aa button{font-size:12px;color:var(--sub);padding:3px 9px;border-radius:7px;box-shadow:0 0 0 1px var(--hair);background:var(--paper)}
+.n .mn .aa button:hover{color:var(--br);box-shadow:0 0 0 1px var(--br)}
+.n .mn .aa .pick{color:var(--br);font-weight:600}
+.n .mn .aa .del{margin-left:auto;box-shadow:none;background:none}
+.n .mn.add{width:200px;text-align:center;color:var(--faint);font-size:12.5px;border:1.5px dashed var(--hair);cursor:pointer;padding:16px}
+.n .mn.add:hover{color:var(--br);border-color:var(--br)}
+.n .bmap footer{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:var(--faint);font-size:12px}
+/* 오른쪽 목록 탭: 사용 = 화에 넣은 카드 + 갈래에 들어간 카드 */
+.n .pool .tabs span{cursor:pointer}
+.n .pool .tabs b{font-weight:500;margin-left:3px;font-variant-numeric:tabular-nums}
+.n .ui{background:var(--paper);border-radius:6px;padding:10px 12px;font:13.5px/1.65 var(--story);color:var(--sub);box-shadow:0 0 0 1px var(--hair)}
+.n .ui small{display:block;font:600 11px var(--ui);color:var(--acc);margin-bottom:2px}
+.n .ui.b small{color:var(--br)}
+
+/* 분류 바꾸기 */
+.n .tools .kd{cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.n .tools .kd i{width:9px;height:9px;border-radius:2px;box-shadow:0 0 0 1px var(--hair)}
+.n .tools .kd:hover{color:var(--acc)}
+.n .kmenu{position:absolute;z-index:40;background:var(--paper);border-radius:10px;padding:5px;box-shadow:0 0 0 1px var(--hair),0 12px 30px rgba(0,0,0,.16);min-width:150px;font-size:13px}
+.n .kmenu button{display:flex;align-items:center;gap:9px;width:100%;padding:6px 10px;border-radius:7px;text-align:left;color:var(--ink)}
+.n .kmenu button:hover{background:var(--acc-soft)}
+.n .kmenu button i{width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 1px var(--hair)}
+.n .kmenu button.on::after{content:"✓";margin-left:auto;color:var(--acc)}
+.n .kmenu .lb{font-size:11px;color:var(--faint);padding:4px 10px 2px}
+.n .pa.fore::before{content:"";position:absolute;left:-14px;top:17px;width:7px;height:7px;border-radius:50%;background:var(--note3);box-shadow:0 0 0 1px rgba(200,80,100,.35)}
+.n .ic.fore{box-shadow:inset 3px 0 0 var(--note3),var(--lift)}
+.n .kflash{animation:kflash .8s ease-out}
+@keyframes kflash{0%{background:var(--acc-soft)}100%{background:transparent}}
+
+/* 오른쪽 목록: 작은 포스트잇 아이콘 · 올리면 반투명 미리보기 · 끌면 원래 포스트잇이 떠서 따라옴 */
+.n .icons{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:16px 14px;padding:4px 2px}
+.n .pico{position:relative;width:48px;height:48px;background:var(--bgc);border-radius:2px 2px 10px 2px;transform:rotate(var(--r));box-shadow:0 1px 0 var(--note-edge),0 5px 8px -4px rgba(90,70,0,.35);padding:9px 8px;display:flex;flex-direction:column;gap:5px;cursor:grab;transition:transform .15s}
+.n .pico i{display:block;height:2.5px;border-radius:2px;background:var(--note-ink);opacity:.28}
+.n .pico i.s{width:60%}
+.n .pico span{position:absolute;left:7px;bottom:6px;display:flex;gap:2px}
+.n .pico span b{width:5px;height:5px;border-radius:50%;background:var(--c)}
+.n .pico:hover{transform:rotate(0) scale(1.12);z-index:2}
+.n .pico.back{animation:picob .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes picob{0%{transform:scale(1.8) rotate(0);background:var(--paper)}100%{transform:rotate(var(--r))}}
+.n .pico.drag{opacity:.3}
+.n .peek{position:absolute;z-index:15;width:250px;padding:14px 15px 12px;border-radius:2px;color:var(--note-ink);font:14px/1.7 var(--story);word-break:keep-all;opacity:0;transform:translateX(8px);transition:opacity .12s,transform .12s;pointer-events:none;box-shadow:0 10px 24px -8px rgba(60,40,0,.35);backdrop-filter:blur(3px)}
+.n .peek.on{opacity:.88;transform:none}
+.n .peek small{display:block;font:600 10.5px var(--ui);letter-spacing:.08em;opacity:.6;margin-bottom:4px}
+.dragimg{position:fixed;left:-3000px;top:0;width:260px;padding:16px 16px 13px;border-radius:2px;color:#4a3d12;font:15px/1.75 "Gowun Batang",serif;word-break:keep-all;box-shadow:0 16px 30px -10px rgba(60,40,0,.5);transform:rotate(-2deg)}
+
+/* 구상 왼쪽: 이름만 · 묶음으로 나눔 · 아이콘은 글자처럼 조용히 */
+.n .lst2{background:var(--paper);border-right:1px solid var(--hair);padding:18px 18px 24px;overflow:auto;display:flex;flex-direction:column;gap:18px}
+.n .find2{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--hair);padding:2px 2px 7px;color:var(--faint)}
+.n .find2 input{border:0;outline:0;background:none;font:inherit;font-size:13px;color:var(--ink);width:100%}
+.n .find2 input::placeholder{color:var(--faint)}
+.n .find2:focus-within{border-color:var(--acc);color:var(--acc)}
+.n .note2{font:700 14px var(--story);cursor:pointer}
+.n .note2:hover{color:var(--acc)}
+.n .sg h5{display:flex;align-items:baseline;gap:6px;margin:0 0 8px;font:600 11px var(--ui);letter-spacing:.16em;color:var(--faint)}
+.n .sg h5 small{font-weight:400;letter-spacing:0}
+.n .sg .plus{margin-left:auto;font-weight:400;letter-spacing:0;opacity:0;cursor:pointer;transition:opacity .15s}
+.n .sg:hover .plus{opacity:1}
+.n .sg .plus:hover{color:var(--acc)}
+.n .fd{margin:0 0 10px;line-height:1.9}
+.n .fd em{display:block;font-style:normal;font-size:11px;color:var(--faint);line-height:1.4}
+.n .nm2{font:14px var(--story);color:var(--ink);cursor:pointer;white-space:nowrap}
+/* 줄 맨 앞의 | 는 왼쪽으로 밀어 잘라 냄 */
+.n .fd .nl{margin-left:-19px}
+.n .fd{overflow:hidden}
+.n .nm2{display:inline-block}
+.n .nm2::before{content:"|";display:inline-block;width:19px;text-align:center;color:var(--faint);opacity:.6;font-weight:400}
+.n .nm2:hover{color:var(--acc)}
+.n .nm2.on{font-weight:700;color:var(--c,var(--ink))}
+.n .loose{font-size:12.5px;color:var(--faint);margin-top:auto}
+.n .loose small{margin-left:4px}
+
+/* 갈래 지도 모양 고르기 */
+.n .bmap header .ml{display:flex;gap:16px;margin-left:28px;font-size:12.5px;color:var(--faint)}
+.n .bmap header .ml span{cursor:pointer;padding-bottom:3px;border-bottom:1.5px solid transparent}
+.n .bmap header .ml span:hover{color:var(--ink)}
+.n .bmap header .ml span.on{color:var(--br);border-color:var(--br);font-weight:600}
+.n .bmap .mn{transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1)}
+.n .mn .aa .del{color:var(--faint)}
+.n .mn .aa .del:hover{color:#d2453b;box-shadow:none}
+/* 폐기: 붉은 X가 그어지며 작아져 사라짐 */
+.n .tools .dc{cursor:pointer;color:var(--faint)}
+.n .tools .dc:hover{color:#d2453b}
+.n .discarding{position:relative;animation:disc .42s ease-in forwards}
+.n .discarding::after{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 48%,rgba(210,69,59,.7) 49%,rgba(210,69,59,.7) 51%,transparent 52%),linear-gradient(-45deg,transparent 48%,rgba(210,69,59,.7) 49%,rgba(210,69,59,.7) 51%,transparent 52%);pointer-events:none}
+@keyframes disc{0%{opacity:1;transform:none}40%{opacity:1;transform:scale(1.02)}100%{opacity:0;transform:scale(.85) rotate(-3deg)}}
+.n .mn.discarding{animation:discm .42s ease-in forwards}
+@keyframes discm{0%{opacity:1}40%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(.85) rotate(-3deg)}}
+.n .toast2{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:50;display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--paper);border-radius:10px;padding:9px 16px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);white-space:nowrap}
+.n .toast2 button{color:var(--paper);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+/* 폐기한 갈래: 지우지 않고 지도에 남김 · 바탕에 붉은 X */
+.n .mn.alt.off{background:var(--paper);box-shadow:0 0 0 1px var(--hair)}
+.n .mn.alt.off::before{content:"";position:absolute;inset:8px;background:linear-gradient(45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6%,rgba(210,69,59,.22) 50.4%,transparent 50.6%),linear-gradient(-45deg,transparent 49.4%,rgba(210,69,59,.22) 49.6%,rgba(210,69,59,.22) 50.4%,transparent 50.6%);pointer-events:none}
+.n .mn.alt.off p,.n .mn.alt.off .tag{opacity:.55}
+.n .mn.alt.off .tag{color:#d2453b}
+.n .mn.alt.off .aa .del{color:var(--acc)}
+
+/* ============ 지금: 구상 (비교용) ============ */
+.o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
+.o .slst h4{margin:0 0 10px 6px;font-size:12px}
+.o .slst .find{background:var(--o-fill2);border-radius:8px;padding:6px 10px;color:var(--o-faint);margin-bottom:10px}
+.o .slst .row{padding:6px 10px;border-bottom:.5px solid var(--o-line)}
+.o .slst .g{color:var(--o-sub);font-size:12px;padding:10px 6px 4px}
+.o .slst .chips{display:flex;gap:6px;padding:4px 4px 10px;border-bottom:.5px solid var(--o-line)}
+.o .slst .chips span{border-radius:99px;padding:1px 12px;background:var(--o-fill2);display:inline-flex;gap:6px;align-items:center}
+.o .slst .chips span.on{background:var(--o-acc-soft);color:var(--o-acc)}
+.o .osh{background:var(--o-panel);border-right:.5px solid var(--o-line);padding:20px;overflow:hidden}
+.o .osh .nm{font-size:24px;font-weight:700;display:flex;align-items:center;gap:10px;margin:22px 0 8px}
+.o .osh .fl{font-size:12.5px;margin:14px 0 6px}
+.o .osh .bx{background:var(--o-fill);border-radius:10px;padding:9px 12px}
+.o .osh .gr{display:flex;justify-content:space-between;padding:14px 0;font-size:12.5px;border-top:.5px solid var(--o-line)}
+.o .osh .gr span:last-child{color:var(--o-sub)}
+.o .obrd{position:relative;background-color:var(--o-bg);background-image:radial-gradient(var(--o-line) 1.2px,transparent 1.4px);background-size:22px 22px;overflow:hidden}
+.o .obrd .hd{padding:12px 16px;font-size:13px}
+.o .obrd .hd b{font-size:15px;margin-right:8px}
+.o .opn{position:absolute;left:40px;width:300px;border:2px solid #f0b400;border-radius:8px 8px 14px 8px;background:#fff0a8;padding:12px 14px;font-weight:600;color:#3a3000;box-shadow:0 6px 14px rgba(0,0,0,.12)}
+.o .opn.g{background:#c8efd9;border-color:#e9d58a}
+.o .opn .st{text-align:right;color:#c08000;font-size:12px}
+.o .opn .tags{display:flex;gap:6px;margin-top:6px;font-size:11px;font-weight:400}
+.o .opn .tags span{background:rgba(255,255,255,.6);border-radius:99px;padding:0 8px}
+.o .otool{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:var(--o-panel);border-radius:14px;padding:6px;box-shadow:var(--o-shadow);display:flex;gap:10px;align-items:center;font-size:13px;white-space:nowrap}
+.o .otool .new{background:var(--o-acc);color:#fff;border-radius:10px;padding:5px 14px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>스토리라인 새단장</h1>
+  <p class="lead"><b>구상</b>은 포스트잇을 마구 붙여 두는 따뜻한 보드, <b>타임라인</b>은 정리된 하얀 색인 카드와 원고예요. 노란 종이가 하얀 종이로 바뀌는 만큼 정리가 된 거예요. 기능은 지금 앱과 같고, 13인치 노트북 화면(1440×900)을 줄여서 보여 줘요.</p>
+  <div class="ctl">
+    <div class="pill" id="ver"><button data-v="new">새단장</button><button data-v="now">지금</button></div>
+    <div class="pill" id="view"><button data-w="story">구상</button><button data-w="timeline">타임라인</button></div>
+    <div class="pill" id="mode"><button data-m="kanban">칸반</button><button data-m="line">한 줄</button></div>
+    <span class="sp"></span>
+    <div class="pill" id="size"><button data-z="13">13인치</button><button data-z="27">27인치</button></div>
+    <div class="pill" id="sht"><button data-s="0">시트 접기</button><button data-s="1">시트 펼치기</button></div>
+    <button id="real">실제 크기로 보기</button>
+    <div class="pill" id="thm"><button data-t="">자동</button><button data-t="light">밝게</button><button data-t="dark">어둡게</button></div>
+  </div>
+  <div class="frame" id="frame"><div class="app" id="app"></div></div>
+  <ul class="notes" id="notes-story">
+    <li><b>보드에 자리를 돌려줬어요</b>13인치에서 목록 · 인물 시트 · 보드 · 오른쪽 목록 네 칸이 나란히 서면 보드가 430px밖에 안 남아요. 인물 시트를 기본으로 접고, 이름 · 역할 · 소개 · 목표만 보드 머리에 한 줄로 올렸어요.</li>
+    <li><b>보드는 마구 붙여 두는 자리</b>포스트잇은 노랑 · 민트 · 분홍 종이에 바탕체 글씨로, 살짝 비뚤게 붙어요. 핀과 실도 그대로예요. 두꺼운 노란 테두리와 굵은 글씨는 뺐어요.</li>
+    <li><b>시트는 필요할 때만</b>13인치에선 접혀 있고 27인치에선 저절로 펼쳐져요. “시트 펼치기”를 누르면 보드 옆에 인물 시트가 열려요. 입력 상자 대신 이름표와 바탕체 글로 읽히고, 칸 묶음은 접힌 채 개수만 보여요.</li>
+    <li><b>왼쪽은 이름만</b>웹소설은 인물 · 설정이 많아서 한 줄에 하나씩 두지 않고, <b>이도윤 | 서하린 | …</b>처럼 이름을 이어 놓고 묶음(주요 · 조연 · 장소 …)으로만 나눴어요. 고른 인물은 그 인물 색으로 굵게. 역할 · 개수 같은 글자는 빼고, ＋는 묶음에 마우스를 올릴 때만 보여요.</li>
+    <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, 정리할 포스트잇이 많을 때 <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요. 가운데는 그만큼 좁아져요.</li>
+    <li><b>그대로 둔 것</b>인물마다 자기 보드 · 포스트잇 · 핀과 실 · 집중 · 새 포스트잇 · 미사용 · 배치 · 확대 · 오른쪽 쓰고 싶은 장면 목록.</li>
+  </ul>
+  <ul class="notes" id="notes-timeline">
+    <li><b>칸반은 책상 위 색인 카드</b>화를 감싸던 흰 상자를 없애고 카드만 종이처럼 띄웠어요. 화 번호는 크게, 제목은 바탕체로 써서 훑어볼 때 눈이 먼저 가요.</li>
+    <li><b>한 줄 보기는 원고 한 장</b>화가 장(章)처럼 이어지고, 카드는 문단이 돼요. 장면도 대사도 한 칸 들여 써서 소설처럼 읽혀요.</li>
+    <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요.</li>
+    <li><b>포스트잇이 카드로 바뀌어요</b>오른쪽 포스트잇을 칸반의 화나 한 줄 보기의 장에 끌어다 놓아 보세요. 노란 종이가 하얀 카드로 바뀌며 자리를 잡아요.</li>
+    <li><b>갈래는 원고에 펼치지 않아요</b>갈래가 있는 카드는 종이가 겹쳐 보이고 <b>⑂ 2</b> 표시만 붙어요. 원고와 칸반 흐름이 그대로라서 갈래가 몇 개든 화면이 흐트러지지 않아요.</li>
+    <li><b>⑂ 표시를 누르면 갈래 지도</b>집중 모드처럼 창이 뜨고, 가운데 본선 둘레에 갈래가 마인드맵처럼 퍼져요. 여러 후보를 한눈에 보고 <b>이걸로 · 합치기 · ↩ 떼어내기 · ✕</b>로 정리해요.</li>
+    <li><b>지도 모양 고르기</b>갈래 지도 위쪽에서 <b>양쪽 · 오른쪽 · 아래로 · 둘레</b> 중에 고르면 갈래들이 미끄러지듯 자리를 옮겨요. 고른 모양은 기억해요.</li>
+    <li><b>안 쓸 건 바로 폐기</b>갈래 지도에서 <b>폐기</b>를 누르면 갈래는 그 자리에 남고 바탕에 붉은 X만 그어져요. 나중에 <b>되살리기</b>로 다시 쓸 수 있어요. 칸반 카드 · 한 줄 문단의 <b>폐기</b>는 구상 보드의 폐기 보기(⌥4)로 치워 둬요.</li>
+    <li><b>갈래 만들기</b>포스트잇을 카드나 문단 한가운데에 놓으면 그 카드 밑으로 겹쳐 들어가요. 문단의 <b>⑂ 갈래</b>를 누르면 지금 글을 복사해 새 갈래를 만들고 지도가 열려요.</li>
+    <li><b>한 줄 보기에서 분류 바꾸기</b>문단에 마우스를 올리면 나오는 분류 이름(예: <b>메모 ⌄</b>)을 눌러 등록된 분류 중에서 고르세요. 메모로 바꾸면 회색 메모 상자가, 장면 · 대사로 바꾸면 원고 문단이 돼요. 칸반 카드도 같아요.</li>
+    <li><b>오른쪽 목록은 작은 포스트잇 아이콘</b>평소엔 분류 색의 작은 포스트잇으로 모여 있다가, 마우스를 올리면 왼쪽에 반투명 미리보기가 떠요. 끌면 원래 크기 포스트잇이 떠서 따라와요. <b>크게</b>를 누르면 예전처럼 큰 포스트잇으로 보여요.</li>
+    <li><b>갈래도 사용한 카드</b>오른쪽 목록 <b>사용</b> 탭에 화에 넣은 카드와 갈래에 들어간 카드가 함께 나와요.</li>
+    <li><b>언제든 다시 뺄 수 있어요</b>카드를 오른쪽 목록으로 끌어다 놓거나 카드의 <b>↩ 빼기</b>를 누르면 다시 노란 포스트잇으로 돌아가요. 카드를 다른 화나 같은 화의 다른 자리로 끌어 옮길 수도 있어요.</li>
+    <li><b>한 줄 보기: 글 폭 · 글자 크기</b>위쪽 <b>글 폭</b> 슬라이드나 원고 양옆 손잡이를 끌어 폭을 바꾸고, <b>가 가</b>로 글자 크기를 바꿔요.</li>
+    <li><b>읽다가 바로 집중</b>한 줄 보기에서 문단을 두 번 누르면 그 카드 한 장만 크게 열려요. Esc로 닫으면 고친 글이 그대로 남아요.</li>
+    <li><b>화면 크기에 맞춰 저절로</b>위쪽 <b>13인치 / 27인치</b>를 바꿔 보세요. 넓은 화면에선 화 목록 · 인물 시트가 저절로 펼쳐지고, 좁은 화면에선 접혀요. 직접 열고 닫으면 그 선택이 우선이에요.</li>
+    <li><b>인물은 얼굴 동그라미로</b>“이도윤 ×” 태그 대신 도 · 하 같은 첫 글자 동그라미를 겹쳐 놓았어요. 분류 · 별점 · 지우기는 마우스를 올릴 때만 나와요.</li>
+    <li><b>메모는 이야기와 다르게</b>장면 · 대사는 하얀 카드, 메모는 점선 테두리에 작은 고딕 글씨라서 이야기 흐름과 섞이지 않아요.</li>
+    <li><b>노트북에서 숨 쉴 자리</b>왼쪽 화 목록은 아이콘 줄로 접고, 묶음 칩 · 열 너비 · 분류는 위쪽 한 줄 안으로 넣었어요.</li>
+    <li><b>그대로 둔 것</b>오른쪽 = 쓰고 싶은 장면, 가운데 = 화별 정리. 칸반 · 한 줄 · 등장표 · 보관 · 갈래 · 화 메모 · 끌어다 놓기.</li>
+  </ul>
+</main>
+
+<script>
+const CH={d:['이도윤','도','#3a9fd8'],h:['서하린','하','#a865d6']};
+const CARDS=[
+  ['scene','새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.',3,['d','h']],
+  ['line','"저는 사과를 드릴 수 있고, 돈은 없습니다. 둘 중 하나만 고르세요." — 도윤',3,['d']],
+  ['line','"왜 죄송하다고 안 하죠? 다들 그러던데." — 하린',2,['h']],
+  ['scene','서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.',2,['d','h']],
+  ['memo','도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.',1,['d']],
+  ['line','"배고픈 사람한테 코스요리는 고문이에요." — 도윤',2,['d']],
+  ['scene','하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.',3,['d','h']],
+  ['memo','하린은 사람들이 돈이 아닌 자신을 봐 주길 바라지만 정작 먼저 돈 얘기를 한다.',1,['h']],
+  ['scene','도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.',3,['d','h']],
+  ['memo','둘의 아비투스가 부딪히는 순간: 같은 우산을 두 사람이 서로 다르게 쓰는 장면',0,['d','h']],
+  ['line','"우산은 같이 쓰는 거예요. 반반씩 젖는 거고요." — 도윤',2,['d']],
+  ['scene','하린이 처음으로 편의점 도시락을 고른다. 가격표부터 보는 자신이 낯설다.',2,['h']],
+];
+const EPS=[['새벽의 접촉사고','둘의 아비투스가 처음 충돌',[0,1,2,7]],['반지하','',[3]],['봉투','돈으로 선을 긋는 아버지',[6]],...Array.from({length:9},()=>['','',[]])];
+const POOL=[8,4,5,9,10,11];
+const BRS={      // 갈래: 카드 번호 → 다른 버전들
+  0:[{t:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 도윤은 고개 숙이는 대신 보험 처리부터 묻는다. 하린은 그런 사람을 처음 본다.',ago:'어제'}],
+  1:[{t:'"사과는 공짜고 수리비는 아니잖아요. 사과만 받으세요." — 도윤',ago:'3일 전'},{t:'"죄송합니다. 그런데 돈은 없어요. 둘 중 뭘 원하세요?" — 도윤',ago:'지난주'}]};
+const brs=i=>BRS[i]||[],live=i=>brs(i).filter(b=>!b.disc).length;      // 폐기한 갈래는 개수에서 뺌
+let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,DISC=[],MAP=null,ML='both',PT='unused',PI=true,STKIN=null,REAL=false;
+const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
+const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
+try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;ML=p.ML||ML;PI=p.PI!==false;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
+
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const split=t=>{const m=t.match(/^"(.+)"\s*—\s*(.+)$/);return m?{q:'“'+m[1]+'”',who:m[2]}:{q:t,who:null}};
+const whoColor=w=>Object.values(CH).find(c=>c[0].endsWith(w))?.[2]||'var(--sub)';
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const chars=ids=>ids.reduce((a,i)=>a+CARDS[i][1].length,0);
+
+/* ---------- 새단장 ---------- */
+const KINDS=[['scene','장면 · 대사','var(--note)'],['memo','메모','var(--note2)'],['fore','복선','var(--note3)']];      // 설정에서 등록한 분류
+const kn=k=>k==='line'?'scene':k,kname=k=>(KINDS.find(x=>x[0]===kn(k))||KINDS[0])[1],kcol=k=>(KINDS.find(x=>x[0]===kn(k))||KINDS[0])[2];
+const stk=i=>{const n=brs(i).length;return (n?' stk'+Math.min(n,2):'')+(STKIN===i?' stkin':'')};      // 갈래가 있으면 종이가 겹쳐 보임
+function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
+  return `<div class="ic${k==='memo'?' memo':''}${k==='fore'?' fore':''}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+    <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${live(i)||'·'}</span>`:''}</span>
+    <span class="tools"><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span></div></div>`}
+function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
+  const cls=(k==='memo'?'memo':s.who?'dlg':'')+(k==='fore'?' fore':'');
+  return `<div class="pa ${cls}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${live(i)||'·'}</span>`:''}</div>`}
+function renderNew(kb){
+  const lanes=EPS.map((e,n)=>{const full=e[2].length;
+    return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
+      ${full?`<div class="stack">${e[2].map(ic).join('')}</div>`:'<div class="drop">여기로 끌어다 놓기</div>'}</section>`}).join('');
+  const shown=EPS.map((e,n)=>[e,n]).filter(([e])=>e[2].length),empty=EPS.length-shown.length;
+  const sheet=`<article class="sheet" style="--sw:${SWID}px;--fs:${FS}px"><span class="eg l" data-eg="-1"></span><span class="eg r" data-eg="1"></span>${shown.map(([e,n],j)=>`${j?'<div class="orn">· · ·</div>':''}<section class="ch" data-ep="${n}"><div class="lb">${n+1}화</div><h2>${e[0]}</h2>${e[1]?`<p class="me">${e[1]}</p>`:'<p class="me"></p>'}${e[2].map(para).join('')}</section>`).join('')}
+    <div class="rest">${empty}개 화가 아직 비어 있어요 · 칸반에서 빈 화에 놓을 수 있어요</div></article>`;
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="ex">예시</span><nav><span data-nav="story" style="cursor:pointer">구상</span><span class="on">타임라인</span><span>관계망</span></nav><span class="r">⌕ ⋯</span></div>
+  <div class="body" style="grid-template-columns:${LSe()?'230px':'52px'} minmax(0,1fr) ${poolW()}">
+    ${LSe()?`<aside class="lst"><div class="hdx">화 목록<span data-ls title="접기">‹ 접기</span></div>${EPS.map((e,n)=>`<div class="ep${e[2].length?' on':''}"><b>${n+1}</b><span>${e[0]||''}</span><small>${e[2].length||''}</small></div>`).join('')}</aside>`
+      :`<aside class="rail" aria-label="화 목록"><span title="화 목록 펴기" data-ls>☰</span><span title="전체 보기">⤢</span></aside>`}
+    <section class="mid">
+      <div class="bar">${[['kanban','칸반'],['line','한 줄'],['m','등장표'],['s','보관']].map(([k,t])=>`<span class="tab${M===k?' on':''}" data-go="${k}">${t}</span>`).join('')}
+        <span class="sp"></span>${kb?'':`<label class="wctl q" title="글 폭 (원고 양옆을 끌어도 돼요)">글 폭 <input type="range" id="swr" min="520" max="1100" step="10" value="${SWID}"></label><span class="fsz" title="글자 크기"><button data-fs="-1" aria-label="글자 작게">가</button><button data-fs="1" aria-label="글자 크게">가</button></span>`}<span class="q">전체 12화 ⌄</span><span class="q">보기 ⌄</span><span class="add">＋ 화</span></div>
+      <div class="rule"></div>
+      <div class="sc">${kb?`<div class="kb">${lanes}</div>`:sheet}</div>
+    </section>
+    ${poolHTML()}
+  </div>`}
+
+/* 오른쪽 목록: 평소엔 한 줄, 정리할 게 많을 때 넓히면 두 줄 */
+const poolW=()=>PW?'560px':'312px';
+const used=()=>EPS.flatMap((e,n)=>e[2].flatMap(i=>[{ep:n,t:CARDS[i][1]},...brs(i).map(b=>({ep:n,t:b.t,br:1}))]));      // 갈래에 들어간 카드도 사용한 것
+function poolHTML(){
+  return `<aside class="pool${PW?' wide':''}" data-pool><div class="hd"><b>쓰고 싶은 장면</b><span>${POOL.length}장 남음</span><span class="wd" data-pi title="${PI?'포스트잇 크게 보기':'작은 아이콘으로 보기'}">${PI?'크게':'작게'}</span><span class="wd" data-pw title="${PW?'한 줄로 좁히기':'두 줄로 넓히기'}" style="margin-left:6px">${PW?'→ 좁게':'← 넓게'}</span></div>
+    <div class="in">한 줄 쓰고 Enter</div>
+    <div class="backhint">여기 놓으면 다시 포스트잇으로 돌아가요</div>
+    <div class="tabs">${[['unused','미사용',POOL.length],['used','사용',used().length],['all','전체',POOL.length+used().length]].map(([k,n,c])=>`<span class="${PT===k?'on':''}" data-pt="${k}">${n}<b>${c}</b></span>`).join('')}</div>
+    <div class="ls">${PT==='used'?used().map(u=>`<div class="ui${u.br?' b':''}"><small>${u.ep+1}화 · ${u.br?'갈래':'본선'}</small>${esc(split(u.t).q)}</div>`).join(''):''}${PT==='used'?'':PI?`<div class="icons">${POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];return `<div class="pico${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-6,4,-2,7,-4,3][j%6]}deg;--bgc:${kcol(k)}" aria-label="${esc(split(t).q)}"><i></i><i></i><i class="s"></i><span>${ch.map(c=>`<b style="--c:${CH[c][2]}"></b>`).join('')}</span></div>`}).join('')}</div>`:POOL.map((i,j)=>{const [k,t,st,ch]=CARDS[i];const s=split(t);return `<div class="pi${BACK===i?' back':''}" draggable="true" data-i="${i}" style="--r:${[-1.4,1,-.6,1.3,-1,.7][j%6]}deg;background:${kcol(k)}">${esc(s.q)}${s.who?' — '+s.who:''}<div class="ft">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</div></div>`}).join('')}</div>
+  </aside>`}
+
+/* ---------- 지금 (비교용) ---------- */
+function oc(i){const [k,t,st,ch]=CARDS[i];
+  return `<div class="card${k==='memo'?' memo':''}"><div class="chd"><span>● ${k==='memo'?'메모':'장면 · 대사'} ⌄</span><span class="st">${stars(st)}</span></div>
+    <div class="tx${t.startsWith('"')?' bub':''}">${esc(t)}</div>
+    <div class="tags">${ch.map(c=>`<span><i class="dot" style="--c:${CH[c][2]}"></i>${CH[c][0]} ×</span>`).join('')}</div></div>`}
+function oh(e,n){return `<div class="eh"><span class="b">${n}화</span><span class="t">${e[0]}</span><span class="s">${e[2].length?e[2].length+'장 · '+chars(e[2])+'자':''}</span></div><div class="em">${e[1]||'한 줄 메모'}</div>`}
+function renderNow(kb){
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="demo">예시</span><div class="ctr"><span class="btn">전체 보기</span><div class="seg"><span>구상</span><span class="on">타임라인</span><span>관계망</span></div></div><span class="r">⌕⋯</span></div>
+  <div class="body" style="grid-template-columns:230px ${kb?'minmax(0,1fr) 330px':'420px minmax(0,1fr)'}">
+    <nav class="lp"><h4>☰ 화 목록</h4><div class="opt">묶음 단위 <span>10화씩 ⌄</span></div><div class="lnk">모두 접기</div>
+      <div class="tot"><span>전체</span><span>12화</span><span>6</span></div><div class="g"><span>▾ 1–10화</span><span>6</span></div>
+      ${EPS.slice(0,10).map((e,i)=>`<div class="e${e[2].length?' on':''}"><b>${i+1}화</b><span class="t">${e[0]}</span><span class="c">${e[2].length||''}</span></div>`).join('')}
+      <div class="g"><span>▾ 11–12화</span><span>0</span></div><div class="e"><b>11화</b></div><div class="e"><b>12화</b></div></nav>
+    <section class="mid"><div class="tb"><h3>타임라인</h3><div class="seg">${[['kanban','칸반'],['line','한 줄'],['m','등장표'],['s','보관']].map(([k,t])=>`<span class="${M===k?'on':''}">${t}</span>`).join('')}</div><span class="btn">분류 ⌄</span>${kb?'':'<span class="brold">⑂ 갈래</span>'}<span class="sp"></span><span class="meta">전체 12화</span>${kb?'<span class="slider">열 너비 <i></i></span>':''}<span class="add">＋ 화</span></div>
+      <div class="chips"><span class="on">전체 12</span><span>1–10화 6</span><span>11–12화</span></div>
+      <div class="sc">${kb?`<div class="kb">${EPS.map((e,i)=>`<div class="col">${oh(e,i+1)}${e[2].map(oc).join('')}</div>`).join('')}</div>`
+        :EPS.slice(0,4).map((e,i)=>`<div class="ln"><div class="num">${i+1}</div><div class="box">${oh(e,i+1)}${e[2].map(oc).join('')}</div></div>`).join('')}</div></section>
+    <aside class="rp"><div class="hd"><b>쓰고 싶은 장면 · 대사</b><span>10장</span></div><div class="in">한 줄 쓰고 Enter → 장면 · 대사</div><div class="tabs"><span>미사용</span><span>모두 보기</span></div><div class="ls">${POOL.map(oc).join('')}</div></aside>
+  </div>`}
+
+
+/* ---------- 새단장: 구상 (이도윤 보드) ---------- */
+const BOARD=[ // [카드, 색, x, y, 기울기, 핀]
+  [8,'y',40,170,-1.6,true],[5,'y',320,150,1.2,false],[4,'g',590,190,-.8,false],[0,'p',90,420,.9,false],[6,'y',380,430,-1.1,true]];
+function pnote([i,col,x,y,r,pin]){const [k,t,st,ch]=CARDS[i],s=split(t);
+  return `<div class="pn ${col}" style="left:${x}px;top:${y}px;--r:${r}deg"><span class="st">${'★'.repeat(st)}</span>${esc(s.q)}${s.who?`<span class="who">${s.who}</span>`:''}
+    <div class="ft">${ch.map(c=>`<span class="av" style="--c:${CH[c][2]}">${CH[c][1]}</span>`).join('')}</div></div>${pin?`<span class="pin" style="left:${x+108}px;top:${y-6}px"></span>`:''}`}
+function renderStoryNew(){
+  const a=BOARD[0],b=BOARD[4],x1=a[2]+115,y1=a[3+0]+1,x2=b[2]+115,y2=b[3]+1;
+  // 왼쪽: 이름만 흐르듯 늘어놓고, 묶음(폴더)으로만 나눔 · 인물은 색 점, 설정은 점 없이
+  const names=(arr,dot)=>arr.map(([n,c,on])=>`<span class="nm2${on?' on':''}"${dot?` style="--c:${c}"`:''}>${n}</span>`).join('');
+  const grp=(t,cnt,folders,dot)=>`<section class="sg"><h5>${t}<small>${cnt}</small><span class="plus" title="${t} 추가">＋</span></h5>
+    ${folders.map(([f,arr])=>`<div class="fd">${f?`<em>${f}</em>`:''}<div class="nl">${names(arr,dot)}</div></div>`).join('')}</section>`;
+  const list=`<aside class="lst2">
+    <label class="find2"><span aria-hidden="true">⌕</span><input placeholder="찾기" aria-label="이름으로 찾기"></label>
+    <div class="note2">작품 노트</div>
+    ${grp('인물',12,[['주요',[['이도윤',CH.d[2],1],['서하린',CH.h[2]],['서회장','#a2845e'],['강민재','#e0784a']]],
+      ['조연',[['윤소라','#4fae7b'],['박 기사','#7a8aa3'],['한 실장','#c45b8a'],['최 집사','#8f7bd1'],['도윤 엄마','#d9a441'],['지훈','#3fa3a0']]],
+      ['단역',[['편의점 사장','#9aa1ad'],['경비원','#9aa1ad']]]],true)}
+    ${grp('설정',7,[['장소',[['반지하 원룸'],['한남동 저택'],['배달 대행 사무실'],['서진그룹 본사']]],['물건',[['흰 봉투'],['오토바이'],['우산']]]],false)}
+    <div class="loose">미분류 <small>1</small></div></aside>`;
+  const dos=SHe()?`<aside class="dos"><div class="lb">별칭</div><p class="val">도윤</p>
+    <div class="lb">소개</div><p class="val">반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.</p>
+    <div class="lb">목표</div><p class="val">빚에서 벗어나 내 가게를 갖는다</p>
+    <div class="gr open"><span>▾</span><b>아비투스 · 세 자본</b><small>3칸</small>
+      <div class="fv"><span>경제 자본</span><p>반지하 월세, 부모의 빚. 돈이 곧 선택지의 개수라는 걸 일찍 배웠다.</p><span>문화 자본</span><p style="color:var(--faint)">—</p><span>사회 자본</span><p style="color:var(--faint)">—</p></div></div>
+    <div class="gr"><span>▸</span><b>아비투스 · 여섯 질문</b><small>6칸</small></div>
+    <div class="gr"><span>▸</span><b>말씨 · 감정</b><small>3칸</small></div>
+    <div class="gr"><span>▸</span><b>결함 · 트라우마</b><small>2칸</small></div>
+    <div class="more">＋ 묶음 추가</div></aside>`:'';
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="ex">예시</span><nav><span class="on">구상</span><span data-nav="timeline" style="cursor:pointer">타임라인</span><span>관계망</span></nav><span class="r">⌕ ⋯</span></div>
+  <div class="body" style="grid-template-columns:210px ${SHe()?'320px ':''}minmax(0,1fr) ${poolW()}">
+    ${list}${dos}
+    <section class="brd">
+      <header class="prof"><span class="av" style="--c:${CH.d[2]}">도</span>
+        <div class="who"><h2>이도윤 <small>주인공</small></h2>
+          ${SHe()?'':`<p class="sum">반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.</p><p class="goal"><span>목표</span>빚에서 벗어나 내 가게를 갖는다</p>`}</div>
+        <div class="acts"><span class="cnt">5장 · 숨김 2</span><span data-sheet class="${SHe()?'on':''}">${SHe()?'시트 접기':'시트 펼치기'}</span><span title="보드만 크게">⤢</span></div></header>
+      <svg class="thread" aria-hidden="true"><path d="M${x1} ${y1} Q ${(x1+x2)/2-60} ${(y1+y2)/2+40} ${x2} ${y2}" fill="none" stroke="var(--thread)" stroke-width="1.6" stroke-linecap="round" opacity=".75"/></svg>
+      ${BOARD.map(pnote).join('')}
+      <div class="tool"><span>집중</span><span class="new">＋ 새 포스트잇</span><span>미사용</span><span>배치</span><i></i><span>−</span><span>100%</span><span>＋</span></div>
+    </section>
+    ${poolHTML()}
+  </div>`}
+
+/* ---------- 지금: 구상 (비교용) ---------- */
+function renderStoryNow(){
+  const on=(i,top,g)=>{const [k,t,st,ch]=CARDS[i];return `<div class="opn${g?' g':''}" style="top:${top}px"><div class="st">${'★'.repeat(st)}</div>${esc(t)}<div class="tags">${ch.map(c=>`<span>● ${CH[c][0]} ×</span>`).join('')}</div></div>`};
+  return `<div class="top"><span class="nm">캐릭터 스토리라인</span><span class="demo">예시</span><div class="ctr"><span class="btn">전체 보기</span><div class="seg"><span class="on">구상</span><span data-nav="timeline" style="cursor:pointer">타임라인</span><span>관계망</span></div></div><span class="r">⌕⋯</span></div>
+  <div class="body" style="grid-template-columns:300px 340px minmax(0,1fr) 330px">
+    <nav class="slst"><h4>▤ 인물·설정</h4><div class="find">이름으로 찾기</div><div class="row">📖 <b>작품 노트</b> 12화</div>
+      <div class="g">▾ 인물 2</div><div class="chips"><span class="on">● 이도윤</span><span>● 서하린</span></div>
+      <div class="g">▾ 설정 0</div><div class="row" style="color:var(--o-sub);font-size:12px">아직 설정이 없어요 · ＋로 만들어요</div><div class="row"><b>미분류</b> 1장</div></nav>
+    <section class="osh"><div class="nm"><span class="o dot" style="--c:${CH.d[2]};width:12px;height:12px;border-radius:50%;background:var(--c)"></span>이도윤</div>
+      <div class="bx" style="background:none;padding:0 4px">주인공</div><div class="fl">별칭</div><div class="bx">도윤</div><div class="fl">소개</div><div class="bx">반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.</div>
+      <div class="gr" style="margin-top:20px"><span>› 목표 0</span><span></span></div><div class="gr"><span>› 아비투스 · 세 자본 3</span><span>＋ 칸</span></div><div class="gr"><span>› 아비투스 · 여섯 질문 6</span><span>＋ 칸</span></div><div class="gr"><span>› 히스토리 4</span><span>＋ 칸</span></div><div class="gr"><span>› 결함 · 트라우마 2</span><span>＋ 칸</span></div></section>
+    <section class="obrd"><div class="hd"><b>이도윤</b>3장 · 4장 숨김</div>${on(8,190)}${on(5,340)}${on(4,510,true)}
+      <div class="otool"><span class="new">＋ 새 포스트잇</span><span>◐</span><span>− 99% ＋</span><span>⌖</span><span>✎</span></div></section>
+    <aside class="rp"><div class="hd"><b>쓰고 싶은 장면 10</b></div><div class="in">한 줄 쓰고 Enter</div><div class="tabs"><span>미사용</span><span>사용</span><span>전체</span></div><div class="ls">${oc(8)}</div></aside>
+  </div>`}
+
+/* ---------- 새단장: 끌어다 놓기 · 글 폭 · 집중 모드 ---------- */
+function wireNew(app){
+  let dragI=null,ins=null;
+  const detach=i=>{const k=POOL.indexOf(i);if(k>=0)POOL.splice(k,1);EPS.forEach(e=>{const j=e[2].indexOf(i);if(j>=0)e[2].splice(j,1)})};
+  const clear=()=>{app.querySelectorAll('.over').forEach(x=>x.classList.remove('over'));ins?.remove();ins=null};
+  app.querySelectorAll('.pi[draggable],.pico[draggable],.ic[draggable],.pa[draggable]').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.stopPropagation();dragI=+el.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',el.dataset.i);
+      if(el.classList.contains('pico')){app.querySelector('.peek')?.classList.remove('on');const [k,t]=CARDS[dragI],s=split(t),g=document.createElement('div');g.className='dragimg';g.style.background=getComputedStyle(el).backgroundColor;
+        g.textContent=s.q+(s.who?' — '+s.who:'');document.body.append(g);e.dataTransfer.setDragImage(g,40,24);setTimeout(()=>g.remove(),0)}
+      requestAnimationFrame(()=>{el.classList.add('drag');if(!el.classList.contains('pi'))app.classList.add('carrying')})});
+    el.addEventListener('dragend',()=>{el.classList.remove('drag');app.classList.remove('carrying');clear()})});
+  // 화(칸반 레인 · 원고의 장)에 놓기: 마우스 높이에 맞는 자리로
+  app.querySelectorAll('[data-ep]').forEach(t=>{
+    t.addEventListener('dragover',e=>{if(dragI==null)return;e.preventDefault();t.classList.add('over');
+      app.querySelectorAll('.brin').forEach(x=>x.classList.remove('brin'));
+      const hit=e.target.closest?.('.pa[data-i]:not(.drag),.ic[data-i]:not(.drag)');      // 카드 · 문단 한가운데에 놓으면 그 카드의 갈래로
+      if(hit&&+hit.dataset.i!==dragI){const r=hit.getBoundingClientRect();if(e.clientY>r.top+r.height*.25&&e.clientY<r.bottom-r.height*.25){hit.classList.add('brin');ins?.remove();ins=null;t.dataset.brto=hit.dataset.i;return}}
+      delete t.dataset.brto;
+      const items=[...t.querySelectorAll('[data-i]:not(.drag)')],nx=items.find(c=>{const r=c.getBoundingClientRect();return e.clientY<r.top+r.height/2});
+      if(!ins){ins=document.createElement('div');ins.className='ins'}
+      if(nx)nx.before(ins);else if(items.length)items[items.length-1].after(ins);else ins.remove();ins.dataset.before=nx?nx.dataset.i:''});
+    t.addEventListener('dragleave',e=>{if(!t.contains(e.relatedTarget))clear()});
+    t.addEventListener('drop',e=>{e.preventDefault();const i=dragI,b=ins?.dataset.before,to=t.dataset.brto;dragI=null;clear();delete t.dataset.brto;app.querySelectorAll('.brin').forEach(x=>x.classList.remove('brin'));if(i==null)return;
+      if(to!=null){detach(i);(BRS[to]=BRS[to]||[]).push({t:CARDS[i][1],ago:'방금',from:i});STKIN=+to;render();return}
+      detach(i);const list=EPS[+t.dataset.ep][2],at=b?list.indexOf(+b):-1;at<0?list.push(i):list.splice(at,0,i);JUST=i;render()})});
+  // 오른쪽 목록에 놓기 · ↩ 빼기: 다시 포스트잇으로
+  const back=i=>{detach(i);POOL.unshift(i);BACK=i;render()};
+  const pool=app.querySelector('[data-pool]');
+  if(pool){pool.addEventListener('dragover',e=>{if(dragI==null||POOL.includes(dragI))return;e.preventDefault();pool.classList.add('over')});
+    pool.addEventListener('dragleave',e=>{if(!pool.contains(e.relatedTarget))pool.classList.remove('over')});
+    pool.addEventListener('drop',e=>{e.preventDefault();const i=dragI;dragI=null;clear();if(i==null||POOL.includes(i))return;back(i)})}
+  app.querySelectorAll('[data-back]').forEach(b=>b.onclick=e=>{e.stopPropagation();back(+b.dataset.back)});
+  // 갈래: ⑂ 표시를 누르면 갈래 지도 · ⑂ 갈래는 지금 글을 복사해 새 갈래
+  app.querySelectorAll('[data-map]').forEach(b=>b.onclick=e=>{e.stopPropagation();MAP=+b.dataset.map;render()});
+  app.querySelectorAll('[data-mk]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.mk;(BRS[i]=BRS[i]||[]).push({t:CARDS[i][1],ago:'방금'});MAP=i;render()});
+  app.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{PT=b.dataset.pt;render()});
+  app.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{PI=!PI;save();render()});
+  // 폐기: 지우지 않고 치워 둠 (오른쪽 목록 · 타임라인에서 빠지고, 구상 보드의 폐기 보기에서 되살림)
+  app.querySelectorAll('[data-discard]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.discard,el=b.closest('[data-i]');el?.classList.add('discarding');
+    setTimeout(()=>{const ep=EPS.findIndex(x=>x[2].includes(i)),at=ep<0?POOL.indexOf(i):EPS[ep][2].indexOf(i);detach(i);DISC.push({i});
+      render();toast(app,'폐기했어요 · 구상 보드 ▸ 폐기에서 되살릴 수 있어요',()=>{DISC.pop();(ep<0?POOL:EPS[ep][2]).splice(at,0,i);JUST=i;render()})},420)});      // 되돌리기는 원래 자리로
+  // 분류 바꾸기: 등록된 분류 중에서
+  app.querySelectorAll('[data-kind]').forEach(b=>b.onclick=e=>{e.stopPropagation();app.querySelector('.kmenu')?.remove();
+    const i=+b.dataset.kind,sc=app.getBoundingClientRect().width/AW(),r=b.getBoundingClientRect(),a=app.getBoundingClientRect();
+    const m=document.createElement('div');m.className='kmenu';
+    m.innerHTML='<div class="lb">분류</div>'+KINDS.map(([id,n,c])=>`<button data-k="${id}" class="${kn(CARDS[i][0])===id?'on':''}"><i style="background:${c}"></i>${n}</button>`).join('');
+    m.style.left=((r.left-a.left)/sc)+'px';m.style.top=((r.bottom-a.top)/sc+6)+'px';
+    m.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{CARDS[i][0]=x.dataset.k;m.remove();render();app.querySelector(`[data-i="${i}"]:not(.pico):not(.pi)`)?.classList.add('kflash')});
+    app.append(m);setTimeout(()=>addEventListener('click',()=>m.remove(),{once:true}))});
+  // 작은 아이콘: 올리면 반투명 미리보기
+  const peek=document.createElement('div');peek.className='peek';app.append(peek);
+  app.querySelectorAll('.pico').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{const i=+el.dataset.i,[k,t,st,ch]=CARDS[i],s=split(t),sc=app.getBoundingClientRect().width/AW(),a=app.getBoundingClientRect(),r=el.getBoundingClientRect(),pr=app.querySelector('[data-pool]').getBoundingClientRect();
+      peek.style.background=kcol(k);peek.innerHTML=`<small>${kname(k)}${st?' · '+'★'.repeat(st):''}</small>${esc(s.q)}${s.who?' — '+s.who:''}`;
+      peek.style.left=((pr.left-a.left)/sc-262)+'px';peek.style.top=Math.max(60,(r.top-a.top)/sc-10)+'px';peek.classList.add('on')});
+    el.addEventListener('mouseleave',()=>peek.classList.remove('on'))});
+  // 글 폭: 위쪽 슬라이드 또는 원고 양옆 손잡이
+  const sh=app.querySelector('.sheet'),rng=app.querySelector('#swr');
+  const setW=w=>{SWID=Math.max(520,Math.min(1100,Math.round(w/10)*10));if(sh)sh.style.setProperty('--sw',SWID+'px');if(rng)rng.value=SWID};
+  rng&&rng.addEventListener('input',()=>setW(+rng.value));
+  rng&&rng.addEventListener('change',save);
+  app.querySelectorAll('[data-eg]').forEach(g=>g.addEventListener('pointerdown',e=>{e.preventDefault();g.classList.add('on');
+    const sc=app.getBoundingClientRect().width/AW(),x0=e.clientX,w0=SWID,dir=+g.dataset.eg;
+    const mv=ev=>setW(w0+dir*2*(ev.clientX-x0)/sc);
+    const up=()=>{g.classList.remove('on');removeEventListener('pointermove',mv);removeEventListener('pointerup',up);save()};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up)}));
+  app.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{FS=Math.max(14,Math.min(21,FS+ +b.dataset.fs));sh&&sh.style.setProperty('--fs',FS+'px');save()});
+  // 집중 모드
+  app.querySelectorAll('.pa[data-i]').forEach(pa=>pa.addEventListener('dblclick',()=>openZen(app,+pa.dataset.i)));
+}
+
+/* 갈래 지도: 집중 모드처럼 창을 띄우고, 가운데 본선 둘레에 갈래를 마인드맵처럼 */
+function openMap(app,i,quiet){
+  app.querySelector('.bmap')?.remove();
+  const ep=EPS.findIndex(e=>e[2].includes(i));if(ep<0){MAP=null;return}
+  const bs=brs(i),nodes=[...bs.map((b,j)=>({b,j})),{add:true}];
+  const w=AW(),h=AH(),N=nodes.length;let cx=w/2,cy=h/2+20;
+  // 지도 모양 (SimpleMind처럼): 양쪽 · 오른쪽 · 아래 · 둘레
+  if(ML==='both'){const rx=Math.min(430,w*.3),gap=Math.min(230,(h-200)/Math.ceil(N/2)),R=[],L=[];nodes.forEach((n,k)=>(k%2?L:R).push(n));
+    const place=(arr,side)=>arr.forEach((n,j)=>{n.x=cx+side*rx;n.y=cy+(j-(arr.length-1)/2)*gap;n.side=side});place(R,1);place(L,-1)}
+  else if(ML==='right'){cx=w*.27;const gap=Math.min(190,(h-180)/N);nodes.forEach((n,j)=>{n.x=w*.68;n.y=cy+(j-(N-1)/2)*gap;n.side=1})}
+  else if(ML==='down'){cy=230;const per=Math.min(N,4),gx=Math.min(320,(w-160)/per);nodes.forEach((n,j)=>{const r=Math.floor(j/per),c=j%per,cnt=Math.min(per,N-r*per);n.x=cx+(c-(cnt-1)/2)*gx;n.y=520+r*220})}
+  else{const rx=Math.min(470,w*.33),ry=Math.min(270,h*.33);nodes.forEach((n,j)=>{const a=-Math.PI/2+Math.PI*2*j/N+(N%2?0:Math.PI/N);n.x=cx+rx*Math.cos(a);n.y=cy+ry*Math.sin(a)})}
+  const link=n=>{if(ML==='down'){const y1=cy+70,y2=n.y-80,my=(y1+y2)/2;return `M${cx} ${y1} C ${cx} ${my}, ${n.x} ${my}, ${n.x} ${y2}`}
+    if(ML==='radial')return `M${cx} ${cy} L ${n.x} ${n.y}`;
+    const x1=cx+n.side*170,x2=n.x-n.side*140,mx=(x1+x2)/2;return `M${x1} ${cy} C ${mx} ${cy}, ${mx} ${n.y}, ${x2} ${n.y}`};
+  const txt=t=>{const s=split(t);return `${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}`};
+  const [k,t,st,ch]=CARDS[i];
+  const z=document.createElement('div');z.className='zen bmap'+(quiet?' quiet':'');
+  z.innerHTML=`<header><b>갈래 지도</b><span>${ep+1}화 · ${EPS[ep][0]} · 갈래 ${bs.length}개</span><nav class="ml">${[['both','양쪽'],['right','오른쪽'],['down','아래로'],['radial','둘레']].map(([k,n])=>`<span class="${ML===k?'on':''}" data-ml="${k}">${n}</span>`).join('')}</nav><button data-x aria-label="닫기">닫기 · Esc</button></header>
+    <svg class="links" viewBox="0 0 ${w} ${h}" aria-hidden="true">${nodes.map(n=>{
+      return `<path d="${link(n)}" fill="none" stroke="var(--br)" stroke-width="1.5" stroke-dasharray="${n.add?'4 5':''}" opacity="${n.add?.4:.55}"/>`}).join('')}</svg>
+    <div class="mn main" style="left:${cx}px;top:${cy}px"><div class="tag">본선 <span class="stars">${'★'.repeat(st)}</span></div><p>${txt(t)}</p>
+      <div class="cast">${ch.map(c=>`<i style="--c:${CH[c][2]}">${CH[c][1]}</i>`).join('')}</div></div>
+    ${nodes.map(n=>n.add?`<div class="mn add" data-new style="left:${n.x}px;top:${n.y}px">＋ 지금 본선을 복사해<br>새 갈래 쓰기</div>`
+      :`<div class="mn alt${n.b.disc?' off':''}" style="left:${n.x}px;top:${n.y}px"><div class="tag">갈래 ${n.j+1} <small>${n.b.disc?'폐기 · ':''}${n.b.ago||'방금'}</small></div><p>${txt(n.b.t)}</p>
+        <div class="aa"><button class="pick" data-pick="${n.j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${n.j}">합치기</button><button data-detach="${n.j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button>${n.b.disc?`<button class="del" data-disc="${n.j}" title="폐기 취소">되살리기</button>`:`<button class="del" data-disc="${n.j}" title="폐기 · 갈래로 남겨 두고 X만 표시해요">폐기</button>`}</div></div>`).join('')}
+    <footer>이걸로 · 합치기 해도 원래 본선은 갈래로 남아요 · 원고 복사는 본선만 써요</footer>`;
+  const close=()=>{MAP=null;z.remove();removeEventListener('keydown',key)};
+  const key=e=>{if(e.key==='Escape'&&!app.querySelector('.mg'))close()};
+  addEventListener('keydown',key);z._key=key;
+  z.querySelector('[data-x]').onclick=close;z.addEventListener('click',e=>{if(e.target===z)close()});
+  const re=()=>{removeEventListener('keydown',key);render()};
+  z.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const br=bs[+b.dataset.pick],old=CARDS[i][1];CARDS[i][1]=br.t;br.t=old;br.ago='방금 전 본선';re()});
+  z.querySelectorAll('[data-ml]').forEach(b=>b.onclick=()=>{ML=b.dataset.ml;save();openMap(app,i,true)});
+  z.querySelectorAll('[data-disc]').forEach(b=>b.onclick=()=>{const br=bs[+b.dataset.disc];br.disc=!br.disc;re();      // 폐기해도 갈래로 남음 (나중에 쓸 수도 있으니까)
+    if(br.disc)toast(app,'갈래를 폐기했어요 · 지도에 X로 남아 있어요',()=>{br.disc=false;MAP=i;render()})});
+  z.querySelectorAll('[data-detach]').forEach(b=>b.onclick=()=>{const br=bs.splice(+b.dataset.detach,1)[0],c=CARDS[i];CARDS.push([c[0],br.t,c[2],c[3].slice()]);POOL.unshift(CARDS.length-1);BACK=CARDS.length-1;if(!bs.length)MAP=null;re()});
+  z.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>openMerge(app,i,+b.dataset.merge));
+  z.querySelector('[data-new]').onclick=()=>{bs.push({t:CARDS[i][1],ago:'방금'});BRS[i]=bs;re()};
+  app.querySelectorAll('.bmap').forEach(x=>{if(x._key)removeEventListener('keydown',x._key);x.remove()});
+  app.append(z)}
+function toast(app,msg,undo){app.querySelector('.toast2')?.remove();const t=document.createElement('div');t.className='toast2';t.innerHTML=`<span>${msg}</span>${undo?'<button>되돌리기</button>':''}`;
+  if(undo)t.querySelector('button').onclick=()=>{t.remove();undo()};app.append(t);setTimeout(()=>t.remove(),4200)}
+function openMerge(app,i,j){      // 합치기: 문장을 누르면 아래 합친 글에 들어감 · 합친 글이 본선, 원래 본선은 갈래로 남음
+  const inner=t=>{const m=t.match(/^"(.+)"\s*—/);return m?m[1]:t};      // 대사는 따옴표 안 글만
+  const sent=t=>inner(t).split(/(?<=[.?!。”])\s+/).map(x=>`<span>${esc(x)}</span>`).join(' ');
+  const z=document.createElement('div');z.className='zen mg';z.style.zIndex=30;
+  z.innerHTML=`<div class="zp"><div class="lb">갈래 합치기 · 문장을 누르면 아래에 들어가요</div>
+    <div class="cols"><div>${sent(CARDS[i][1])}</div><div class="b">${sent(BRS[i][j].t)}</div></div>
+    <textarea aria-label="합친 글">${esc(inner(CARDS[i][1]))}</textarea>
+    <div class="ok"><button data-x>취소</button><button class="go" data-go>합쳐서 본선으로</button></div></div>`;
+  const ta=z.querySelector('textarea');
+  z.querySelectorAll('.cols span').forEach(sp=>sp.onclick=()=>{const p=ta.selectionStart;ta.setRangeText((p&&!/\s$/.test(ta.value.slice(0,p))?' ':'')+sp.textContent,p,ta.selectionEnd,'end');ta.focus()});
+  const close=()=>{z.remove();removeEventListener('keydown',key)};const key=e=>{if(e.key==='Escape')close()};
+  z.querySelector('[data-x]').onclick=close;z.addEventListener('click',e=>{if(e.target===z)close()});addEventListener('keydown',key);
+  z.querySelector('[data-go]').onclick=()=>{const who=split(CARDS[i][1]).who,v=ta.value.trim();BRS[i].push({t:CARDS[i][1],ago:'합치기 전 본선'});CARDS[i][1]=who?`"${v}" — ${who}`:v;JUST=i;close();render()};
+  app.append(z);ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}
+function openZen(app,i){
+  const ep=EPS.findIndex(e=>e[2].includes(i)),s=split(CARDS[i][1]);
+  const z=document.createElement('div');z.className='zen';
+  z.innerHTML=`<div class="zp"><div class="lb">${ep+1}화 · ${EPS[ep][0]}</div><textarea id="zt" aria-label="카드 글">${esc(s.who?s.q+' — '+s.who:s.q)}</textarea>
+    <div class="ft"><span>쓰는 대로 저장돼요</span><span>Esc 또는 바깥을 눌러 닫기</span></div></div>`;
+  const close=()=>{const v=z.querySelector('textarea').value;const m=v.match(/^“(.+)”\s*—\s*(.+)$/);CARDS[i][1]=m?`"${m[1]}" — ${m[2]}`:v;z.remove();removeEventListener('keydown',key);render()};
+  const key=e=>{if(e.key==='Escape')close()};
+  z.addEventListener('click',e=>{if(e.target===z)close()});addEventListener('keydown',key);
+  app.append(z);const ta=z.querySelector('textarea');ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}
+
+function render(){
+  const app=document.getElementById('app'),kb=M==='kanban';
+  app.className='app '+(V==='new'?'n':'o');
+  app.innerHTML=W==='story'?(V==='new'?renderStoryNew():renderStoryNow()):(V==='new'?renderNew(kb):renderNow(kb));
+  app.querySelectorAll('[data-pw]').forEach(t=>t.onclick=()=>{PW=!PW;save();render()});
+  app.querySelectorAll('[data-sheet]').forEach(t=>t.onclick=()=>{SH=!SHe();render()});
+  app.querySelectorAll('[data-ls]').forEach(t=>t.onclick=()=>{LS=!LSe();render()});
+  app.style.width=AW()+'px';app.style.height=AH()+'px';
+  document.querySelectorAll('#size button').forEach(b=>b.classList.toggle('on',b.dataset.z===SZ));
+  if(V==='new')wireNew(app);
+  JUST=BACK=STKIN=null;
+  if(MAP!=null&&V==='new'&&W==='timeline')openMap(app,MAP,true);
+  app.querySelectorAll('[data-nav]').forEach(t=>t.onclick=()=>{W=t.dataset.nav;save();render()});
+  document.querySelectorAll('#view button').forEach(b=>b.classList.toggle('on',b.dataset.w===W));
+  document.querySelectorAll('#sht button').forEach(b=>b.classList.toggle('on',+b.dataset.s===+SHe()));
+  document.getElementById('mode').hidden=W!=='timeline';document.getElementById('sht').hidden=W!=='story'||V!=='new';
+  document.getElementById('notes-story').hidden=W!=='story';document.getElementById('notes-timeline').hidden=W!=='timeline';
+  app.querySelectorAll('[data-go]').forEach(t=>t.onclick=()=>{if(t.dataset.go==='kanban'||t.dataset.go==='line'){M=t.dataset.go;save();render()}});
+  document.querySelectorAll('#ver button').forEach(b=>b.classList.toggle('on',b.dataset.v===V));
+  document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===M));
+  fit()}
+function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M,W,PW,PI,SZ,SWID,FS,ML}))}catch(e){}}
+function fit(){const f=document.getElementById('frame'),a=document.getElementById('app');
+  f.classList.toggle('real',REAL);
+  if(REAL){a.style.transform='';f.style.height='';return}
+  const s=Math.min(1,f.clientWidth/AW());a.style.transform=`scale(${s})`;f.style.height=AH()*s+'px'}
+document.querySelectorAll('#ver button').forEach(b=>b.onclick=()=>{V=b.dataset.v;save();render()});
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{M=b.dataset.m;save();render()});
+document.querySelectorAll('#view button').forEach(b=>b.onclick=()=>{W=b.dataset.w;save();render()});
+document.querySelectorAll('#sht button').forEach(b=>b.onclick=()=>{SH=b.dataset.s==='1';render()});
+document.querySelectorAll('#size button').forEach(b=>b.onclick=()=>{SZ=b.dataset.z;SH=LS=null;save();render()});      // 화면을 바꾸면 다시 화면 폭을 따름
+document.getElementById('real').onclick=e=>{REAL=!REAL;e.target.textContent=REAL?'페이지에 맞추기':'실제 크기로 보기';fit()};
+addEventListener('resize',fit);
+const thm=t=>{t?document.documentElement.setAttribute('data-theme',t):document.documentElement.removeAttribute('data-theme');document.querySelectorAll('#thm button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));try{localStorage.setItem('sdsian-theme',t)}catch(e){}};
+document.querySelectorAll('#thm button').forEach(b=>b.onclick=()=>thm(b.dataset.t));
+let t0='';try{t0=localStorage.getItem('sdsian-theme')||''}catch(e){}thm(t0);
+render();
+</script>
+</body>
+</html>

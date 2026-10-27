@@ -41,7 +41,8 @@ const THEME_ALIAS={emerald:'forest',sky:'light',mint:'cotori',peach:'rose',sepia
   snow:'light',solarized:'cotori',moss:'cotori',plum:'midnight',olive:'forest',terminal:'forest',cyber:'midnight',hitel:'midnight'};      // 없어진 테마는 가장 비슷한 테마로 (2026-10 정리: 겹치거나 너무 튀는 테마를 뺌)
 function applySettings(){
   const s=S.settings,r=document.documentElement;
-  document.body.classList.toggle('ui2',s.uiStyle==='new');      // 화면 디자인: 기존 / 새 디자인 (기본은 기존)
+  document.body.classList.toggle('ui2',s.uiStyle==='new'||s.uiStyle==='fresh');      // 화면 디자인: 기존 / 새 디자인 / 새단장 (기본은 기존)
+  document.body.classList.toggle('ui3',s.uiStyle==='fresh');
   if(THEME_ALIAS[s.theme]){s.theme=THEME_ALIAS[s.theme];save()}
   if(!s.theme||s.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',s.theme);
   if(s.noteTheme)delete s.noteTheme;      // 예전 색 테마 설정은 정리
@@ -82,7 +83,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
   const T={
     look:[
       row('이름 목록 모양','왼쪽 인물 · 설정 목록',segOld([['text','글자 (｜로 구분)'],['chip','이름표']],s.leftStyle||'text',k=>{setSetting('leftStyle',k);renderLeft()})),
-      row('화면 디자인',null,segOld([['old','기존'],['new','새 디자인']],s.uiStyle==='new'?'new':'old',k=>{setSetting('uiStyle',k);renderAll();showSettings()})),
+      row('화면 디자인',null,segOld([['old','기존'],['new','새 디자인'],['fresh','새단장']],s.uiStyle==='new'||s.uiStyle==='fresh'?s.uiStyle:'old',k=>{setSetting('uiStyle',k);if(k==='fresh'){UIP.frLeftUser=false;frAutoLeft();saveUIP()}applyLayout();renderAll();showSettings()})),
       row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0]),U2()?null:h('span',{class:'muted',style:'font-size:.82em'},'기기의 밝게 · 어둡게 설정을 따라요')),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
       row('포스트잇 모양','기본',h('div',{class:'swgrid'},...SHAPES.map(([k,n])=>h('button',{class:'swb'+((s.noteShape||'')===k?' on':''),onclick:()=>setSetting('noteShape',k)},h('span',{class:'shp '+k},h('b'),k==='tape'||k==='bubble'?h('i'):null),n))),
         h('div',{class:'kshape'},h('span',{class:'muted'},'분류별로 다르게'),...S.kinds.map(k=>h('label',{class:'kshr'},h('i',{style:`background:${k.colorMode==='random'?RANDOM_BG:k.color}`}),k.name,

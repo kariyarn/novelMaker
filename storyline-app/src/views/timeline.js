@@ -9,6 +9,7 @@ function addEpisode(){      // 화 추가: 보고 있던 자리를 지키고, �
 
 function placeCard(cardId,epId,beforeId){
   {const c0=cardById(cardId);if(c0)ensureKindVisible(c0.kind)}
+  if(U3()&&!episodeOf(cardId))UI.landId=cardId;      // 새단장: 목록에서 처음 들어온 카드는 노란 종이가 하얀 카드로 바뀌며 자리를 잡음
   act(()=>{detach([cardId]);
     const ep=S.episodes.find(e=>e.id===epId);let i=beforeId?ep.cardIds.indexOf(beforeId):-1;if(i<0)i=ep.cardIds.length;ep.cardIds.splice(i,0,cardId)});
 }
@@ -160,7 +161,7 @@ function renderTimeline(m){
     (U2()?tabs:seg)([['kanban','칸반'],['line','한 줄'],['matrix','등장표'],['shelf','보관']],mode,k=>{UIP.tlMode=k;saveUIP();renderAll()}),
     U2()?h('span',{class:'sp'}):null,
     kindFilterBtn(),
-    ...(mode==='line'?brBar():[]),
+    ...(mode==='line'?(U3()?frLineBar():brBar()):[]),
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
     U2()?null:h('span',{class:'sp'}),
     U2()?tlRangeSel():h('span',{class:'muted'},!sc?`전체 ${E.length}화`:(sc.e!==undefined?`${sc.e+1}화`:grpLab(lo,hi))),
@@ -182,7 +183,7 @@ function renderTimeline(m){
   // 한 화의 머리(제목·메모)와 카드 목록: 칸반과 한 줄 모드가 같이 씀
   const build=(ep,idx)=>{
     const body=h('div',{class:'tlbody'});
-    const one=c=>mode==='line'&&brOn()&&brs(c).length?brFork(c,{epId:ep.id}):kcard(c,'tl',{epId:ep.id});      // 한 줄 보기 + 갈래 켬: 본선 옆에 갈래를 펼침
+    const one=c=>!U3()&&mode==='line'&&brOn()&&brs(c).length?brFork(c,{epId:ep.id}):kcard(c,'tl',{epId:ep.id});      // 한 줄 보기 + 갈래 켬: 본선 옆에 갈래를 펼침 (새단장은 갈래 지도에서)
     const cards=ep.cardIds.map(cardById).filter(Boolean).filter(kindOk).filter(c=>UI.tlChar==='all'||eff(c).includes(UI.tlChar));
     if(LAZY&&cards.length){      // 카드가 많으면 화면에 보일 때 채움
       body.style.minHeight=Math.min(cards.length*74,1600)+'px';
@@ -195,12 +196,13 @@ function renderTimeline(m){
     const folded=!!(UIP.tef&&UIP.tef[ep.id]);
     const fold=mode==='line'?h('button',{class:'cbtn foldb',title:folded?'펴기':'접기',onclick:()=>{UIP.tef=UIP.tef||{};UIP.tef[ep.id]=!folded;saveUIP();renderMid()}},folded?'▸':'▾'):null;
     const cnt=h('small',{class:'epcnt',title:'카드 수 · 공백 빼고 글자 수'},cntLabel(cards.map(c=>c.id),cards.length));
-    return [h('div',{class:'tlhead'},fold,h('b',{},`${idx+1}화`),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
+    return [h('div',{class:'tlhead'},U3()?null:fold,U3()?h('b',{class:'frno'},String(idx+1),h('small',{},'화')):h('b',{},`${idx+1}화`),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
         ep.cardIds.length?h('button',{class:'cbtn tlcopy',title:'이 화의 글을 원고로 이어 붙여서 복사',onclick:()=>copyEpisodeText(idx)},icon('copy')):null,
         (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기',onclick:()=>epMenu(b,idx)},icon('more'));return b})(),
         h('button',{class:'x',title:'화 삭제 (카드는 목록으로 돌아가요)',onclick:async()=>{if(ep.cardIds.length&&!await askConfirm(`${idx+1}화를 지울까요? 카드 ${ep.cardIds.length}장은 미배치로 돌아가요.`))return;act(()=>{S.episodes=S.episodes.filter(x=>x!==ep);if(!S.episodes.length)S.episodes.push(newEp());UI.tlScope=null})}},'✕')),
       h('textarea',{class:'tlmemo autofit',rows:1,placeholder:'한 줄 메모',oninput:e=>{edit(()=>ep.memo=e.target.value);fitOne(e.target)}},ep.memo),body];
   };
+  if(mode==='line'&&U3())return frRenderLine(m,E,lo,hi,build);      // 새단장: 원고 한 장 (features/fresh.js)
   if(mode==='line'){      // 한 줄: 세로로 쭉 이어짐 (오른쪽 사이드바를 넓게 씀)
     const inner=h('div',{class:'tllinein'});
     E.slice(lo,hi).forEach((ep,j)=>{if(!shown(lo+j))return;

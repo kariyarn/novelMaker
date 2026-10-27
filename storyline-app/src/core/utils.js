@@ -46,7 +46,8 @@ function sel(opts,val,onch,cls){
 }
 const segOld=(items,val,fn)=>h('span',{class:'seg'},...items.map(([k,l])=>h('button',{class:val===k?'on':'',onclick:()=>fn(k)},l)));
 /* 새 디자인: 화면을 바꾸는 탭은 밑줄 탭, 고르는 버튼이 3개 이상 나란히면 드롭다운 하나로 */
-const U2=()=>!!(S&&S.settings&&S.settings.uiStyle==='new');
+const U2=()=>!!(S&&S.settings&&(S.settings.uiStyle==='new'||S.settings.uiStyle==='fresh'));      // 새 디자인 (새단장도 새 디자인 위에 얹음)
+const U3=()=>!!(S&&S.settings&&S.settings.uiStyle==='fresh');      // 새단장: 정리 전은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고
 const seg=(items,val,fn)=>{
   if(!U2()||items.length<3)return segOld(items,val,fn);
   const i=Math.max(0,items.findIndex(([k])=>k===val));

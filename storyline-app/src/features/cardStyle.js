@@ -65,6 +65,7 @@ function kcard(card,mode,opt={}){
     });
   }else{
     el.append(bar,wrap,footEl(card));
+    if(U3()&&mode==='tl')frCard(el,card,bar);      // 새단장: 색인 카드 · 원고 문단 (features/fresh.js)
     {const le=mode==='pool'?linksEl(card):null;if(le)el.append(le)}
     bar.insertBefore(h('button',{class:'pinx'+(card.pin?' isp':''),title:'핀 · 꽂으면 코르크보드의 자동 배치에서 안 움직여요 (직접 끌어서는 옮길 수 있어요)',onclick:()=>act(()=>setPin(card,!card.pin))},'📌'),bar.querySelector('.sp'));
     // 편집 중이 아닐 때는 카드의 어느 부분을 잡아도 끌 수 있고, 더블클릭하면 편집
@@ -72,7 +73,7 @@ function kcard(card,mode,opt={}){
     el.draggable=true;
     el.addEventListener('dragstart',e=>{if(e.target!==el)return;DRAG={id:card.id};e.dataTransfer.setData('text/plain',card.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setDragImage(el,12,12);setTimeout(()=>el.classList.add('dragging'))});
     el.addEventListener('dragend',()=>{DRAG=null;document.querySelectorAll('.dragging,.drop-before,.drop-after,.over').forEach(x=>x.classList.remove('dragging','drop-before','drop-after','over'))});
-    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;enterEditList(el)});
+    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;if(U3()&&mode==='tl'&&lineMode()&&!opt.shelfId)return frFocus(card.id);enterEditList(el)});      // 새단장 한 줄 보기: 두 번 누르면 집중
     ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true;dropIfEmpty(card.id)});
     el.addEventListener('contextmenu',ev=>{if(ev.target.closest('input,select'))return;ev.preventDefault();ev.stopPropagation();      // 우클릭: 이 카드(또는 선택한 카드들)를 다른 화로
       const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
