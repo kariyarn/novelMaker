@@ -230,7 +230,7 @@
 .frav.sq{border-radius:12px}
 .frwho{flex:1;min-width:0}
 .frnm{display:flex;align-items:baseline;gap:10px}
-.ui3 .frnm b{font:700 24px/1.25 var(--fr-story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ui3 .frnm b{font:700 18px/1.3 var(--fr-story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frnm small{color:var(--sub);font-size:12.5px;white-space:nowrap}
 .frsum{margin:4px 0 0;color:var(--sub);font-size:13px;max-width:36em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frgoal{margin:4px 0 0;font-size:12.5px;cursor:pointer;max-width:36em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -291,10 +291,13 @@
 .ui3 .frch .kcard.tl.fr:not(.frmemo) .kwrap .ktext:not([readonly]){color:var(--ink)!important;caret-color:var(--ink)}
 
 /* 장면 나누기 */
-.frcut{position:absolute;left:50%;top:-9px;transform:translateX(-50%);z-index:4;font-size:11px;line-height:1;padding:3px 9px;border-radius:999px;border:0;background:var(--card);color:var(--sub);box-shadow:0 0 0 1px var(--line);opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap;min-height:0}
-.kcard.fr:hover>.frcut{opacity:.9;pointer-events:auto}
-.frcut:hover{color:var(--acc)}
-.kcard.fr:is(.dragging,.editing)>:is(.frcut,.frsep){display:none}
+.frcut{position:absolute;left:0;right:0;top:-9px;height:14px;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:flex-start;padding-left:24px}
+.frcut::before{content:"";position:absolute;left:16px;right:16px;top:50%;border-top:1px dashed var(--acc);opacity:0;transition:opacity .12s}
+.frcut span{position:relative;font-size:11px;line-height:1;padding:3px 9px;border-radius:999px;background:var(--card);color:var(--acc);box-shadow:0 0 0 1px var(--acc-soft);opacity:0;transition:opacity .12s;white-space:nowrap}
+.frcut:hover::before{opacity:.6}
+.frcut:hover span{opacity:1}
+body:has(.kcard.dragging) .frcut,.kcard.fr.editing>.frcut{display:none}
+.kcard.fr:is(.dragging,.editing)>.frsep{display:none}
 .ui3 .kcard.tl.fr.scst{margin-top:34px}
 .frsep{position:absolute;left:16px;right:16px;top:-34px;height:34px;display:flex;align-items:center}
 .frsep i{display:block;width:100%;border-top:1px dashed var(--line)}
@@ -322,3 +325,16 @@
 .frpg b{font:600 17px/1.3 var(--fr-story)}
 .frpg:hover{background:var(--acc-soft)}
 .frpg:hover b{color:var(--acc)}
+
+/* 보관함 나란히: 원고 | 보관 (따로 스크롤) */
+.ui3 .frline.frside{display:flex;gap:22px;overflow:hidden;padding:0 0 0 28px}
+.frside>.frlcol{flex:1 1 auto;min-width:0;overflow:auto;padding:24px 0 60px}
+.frshp{flex:0 0 340px;overflow:auto;padding:24px 22px 60px 18px;border-left:1px solid var(--line);background:var(--side)}
+.frshp .frshdiv{margin-top:0;padding-top:0;border-top:0;display:flex;align-items:baseline;gap:10px}
+.frshp .frshx{margin-left:auto;font-size:12px}
+.frshp .frch.shelf{margin:0 0 26px}
+.frshp .frch::before{display:none}
+.ui3 .frshp .frch .kcard.tl.fr .ktext,.ui3 .frshp .frch .kcard.tl.fr .kmir{font-size:14px;line-height:1.8}
+.ui3 .frshp .frch .kcard.tl.fr{margin:0 -8px}
+.ui3 .frshp .frch .kcard.tl.fr .frrow{display:none}
+.frshtg.on{color:var(--acc);background:var(--acc-soft)}
