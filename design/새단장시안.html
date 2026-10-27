@@ -325,7 +325,7 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 /* ============ 갈래: 같은 장면의 다른 버전 · 원고엔 ⑂ 표시만, 고르는 건 갈래 지도에서 ============ */
 .n .brm{position:absolute;left:-46px;top:9px;font:600 11.5px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 8px;cursor:pointer}
 .n .brm:hover{background:var(--br);color:var(--paper)}
-.n .ic .brc{font:600 11px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 7px;margin-left:8px}
+.n .ic .brc{white-space:nowrap;font:600 11px var(--ui);color:var(--br);background:var(--br-soft);border-radius:99px;padding:1px 7px;margin-left:8px}
 .n .pa.brin,.n .ic.brin{background:var(--br-soft);box-shadow:inset 0 0 0 2px var(--br)}
 /* 합치기 */
 .n .mg .zp{width:min(980px,90%)}
@@ -352,11 +352,11 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 /* 갈래 지도 */
 .n .bmap{display:block;background:color-mix(in srgb,var(--ground) 96%,transparent)}
 .n .bmap.quiet{animation:none}
-.n .bmap header{position:absolute;left:0;right:0;top:0;display:flex;align-items:baseline;gap:14px;padding:22px 32px}
+.n .bmap header{position:absolute;z-index:3;left:0;right:0;top:0;display:flex;align-items:baseline;gap:14px;padding:22px 32px}
 .n .bmap header b{font:700 20px var(--story)}
 .n .bmap header span{color:var(--sub);font-size:13px}
 .n .bmap header button{margin-left:auto;color:var(--sub);font-size:12.5px;padding:5px 12px;border-radius:9px;box-shadow:0 0 0 1px var(--hair);background:var(--paper)}
-.n .bmap .links{position:absolute;inset:0;width:100%;height:100%}
+.n .bmap .links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .n .mn{position:absolute;transform:translate(-50%,-50%);width:280px;border-radius:6px;padding:14px 16px 12px}
 .n .mn p{margin:4px 0 0;font:15px/1.8 var(--story);word-break:keep-all}
 .n .mn .who{font:500 12px var(--ui);margin-left:6px}
@@ -428,14 +428,37 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
 .n .sg .plus{margin-left:auto;font-weight:400;letter-spacing:0;opacity:0;cursor:pointer;transition:opacity .15s}
 .n .sg:hover .plus{opacity:1}
 .n .sg .plus:hover{color:var(--acc)}
-.n .fd{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 13px;margin:0 0 9px;line-height:1.5}
-.n .fd em{flex-basis:100%;font-style:normal;font-size:11px;color:var(--faint);margin-bottom:-1px}
-.n .nm2{font:14px var(--story);color:var(--ink);cursor:pointer;white-space:nowrap;border-bottom:1.5px solid transparent;padding-bottom:1px}
-.n .nm2[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);margin:0 5px 2px 0;vertical-align:middle}
+.n .fd{margin:0 0 10px;line-height:1.9}
+.n .fd em{display:block;font-style:normal;font-size:11px;color:var(--faint);line-height:1.4}
+.n .nm2{font:14px var(--story);color:var(--ink);cursor:pointer;white-space:nowrap}
+/* 줄 맨 앞의 | 는 왼쪽으로 밀어 잘라 냄 */
+.n .fd .nl{margin-left:-19px}
+.n .fd{overflow:hidden}
+.n .nm2{display:inline-block}
+.n .nm2::before{content:"|";display:inline-block;width:19px;text-align:center;color:var(--faint);opacity:.6;font-weight:400}
 .n .nm2:hover{color:var(--acc)}
-.n .nm2.on{font-weight:700;border-color:var(--c,var(--ink))}
+.n .nm2.on{font-weight:700;color:var(--c,var(--ink))}
 .n .loose{font-size:12.5px;color:var(--faint);margin-top:auto}
 .n .loose small{margin-left:4px}
+
+/* 갈래 지도 모양 고르기 */
+.n .bmap header .ml{display:flex;gap:16px;margin-left:28px;font-size:12.5px;color:var(--faint)}
+.n .bmap header .ml span{cursor:pointer;padding-bottom:3px;border-bottom:1.5px solid transparent}
+.n .bmap header .ml span:hover{color:var(--ink)}
+.n .bmap header .ml span.on{color:var(--br);border-color:var(--br);font-weight:600}
+.n .bmap .mn{transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1)}
+.n .mn .aa .del{color:var(--faint)}
+.n .mn .aa .del:hover{color:#d2453b;box-shadow:none}
+/* 폐기: 붉은 X가 그어지며 작아져 사라짐 */
+.n .tools .dc{cursor:pointer;color:var(--faint)}
+.n .tools .dc:hover{color:#d2453b}
+.n .discarding{position:relative;animation:disc .42s ease-in forwards}
+.n .discarding::after{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 48%,rgba(210,69,59,.7) 49%,rgba(210,69,59,.7) 51%,transparent 52%),linear-gradient(-45deg,transparent 48%,rgba(210,69,59,.7) 49%,rgba(210,69,59,.7) 51%,transparent 52%);pointer-events:none}
+@keyframes disc{0%{opacity:1;transform:none}40%{opacity:1;transform:scale(1.02)}100%{opacity:0;transform:scale(.85) rotate(-3deg)}}
+.n .mn.discarding{animation:discm .42s ease-in forwards}
+@keyframes discm{0%{opacity:1}40%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(.85) rotate(-3deg)}}
+.n .toast2{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:50;display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--paper);border-radius:10px;padding:9px 16px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);white-space:nowrap}
+.n .toast2 button{color:var(--paper);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 
 /* ============ 지금: 구상 (비교용) ============ */
 .o .slst{background:var(--o-side);border-right:.5px solid var(--o-line);padding:14px 10px;font-size:13px}
@@ -485,7 +508,7 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>보드에 자리를 돌려줬어요</b>13인치에서 목록 · 인물 시트 · 보드 · 오른쪽 목록 네 칸이 나란히 서면 보드가 430px밖에 안 남아요. 인물 시트를 기본으로 접고, 이름 · 역할 · 소개 · 목표만 보드 머리에 한 줄로 올렸어요.</li>
     <li><b>보드는 마구 붙여 두는 자리</b>포스트잇은 노랑 · 민트 · 분홍 종이에 바탕체 글씨로, 살짝 비뚤게 붙어요. 핀과 실도 그대로예요. 두꺼운 노란 테두리와 굵은 글씨는 뺐어요.</li>
     <li><b>시트는 필요할 때만</b>13인치에선 접혀 있고 27인치에선 저절로 펼쳐져요. “시트 펼치기”를 누르면 보드 옆에 인물 시트가 열려요. 입력 상자 대신 이름표와 바탕체 글로 읽히고, 칸 묶음은 접힌 채 개수만 보여요.</li>
-    <li><b>왼쪽은 이름만</b>웹소설은 인물 · 설정이 많아서 한 줄에 하나씩 두지 않고, 이름을 흐르듯 늘어놓고 묶음(주요 · 조연 · 장소 …)으로만 나눴어요. 인물은 색 점, 설정은 점 없이. 역할 · 개수 같은 글자는 빼고, ＋는 묶음에 마우스를 올릴 때만 보여요.</li>
+    <li><b>왼쪽은 이름만</b>웹소설은 인물 · 설정이 많아서 한 줄에 하나씩 두지 않고, <b>이도윤 | 서하린 | …</b>처럼 이름을 이어 놓고 묶음(주요 · 조연 · 장소 …)으로만 나눴어요. 고른 인물은 그 인물 색으로 굵게. 역할 · 개수 같은 글자는 빼고, ＋는 묶음에 마우스를 올릴 때만 보여요.</li>
     <li><b>오른쪽 목록은 넓힐 수 있어요</b>평소엔 한 줄이고, 정리할 포스트잇이 많을 때 <b>← 넓게</b>를 누르면 두 줄로 펼쳐져요. 가운데는 그만큼 좁아져요.</li>
     <li><b>그대로 둔 것</b>인물마다 자기 보드 · 포스트잇 · 핀과 실 · 집중 · 새 포스트잇 · 미사용 · 배치 · 확대 · 오른쪽 쓰고 싶은 장면 목록.</li>
   </ul>
@@ -496,6 +519,8 @@ h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px;text-wrap:balance}
     <li><b>포스트잇이 카드로 바뀌어요</b>오른쪽 포스트잇을 칸반의 화나 한 줄 보기의 장에 끌어다 놓아 보세요. 노란 종이가 하얀 카드로 바뀌며 자리를 잡아요.</li>
     <li><b>갈래는 원고에 펼치지 않아요</b>갈래가 있는 카드는 종이가 겹쳐 보이고 <b>⑂ 2</b> 표시만 붙어요. 원고와 칸반 흐름이 그대로라서 갈래가 몇 개든 화면이 흐트러지지 않아요.</li>
     <li><b>⑂ 표시를 누르면 갈래 지도</b>집중 모드처럼 창이 뜨고, 가운데 본선 둘레에 갈래가 마인드맵처럼 퍼져요. 여러 후보를 한눈에 보고 <b>이걸로 · 합치기 · ↩ 떼어내기 · ✕</b>로 정리해요.</li>
+    <li><b>지도 모양 고르기</b>갈래 지도 위쪽에서 <b>양쪽 · 오른쪽 · 아래로 · 둘레</b> 중에 고르면 갈래들이 미끄러지듯 자리를 옮겨요. 고른 모양은 기억해요.</li>
+    <li><b>안 쓸 건 바로 폐기</b>갈래 지도의 갈래, 칸반 카드, 한 줄 문단에서 <b>폐기</b>를 누르면 붉은 X가 그어지며 치워져요. 지우는 게 아니라서 구상 보드의 <b>폐기</b> 보기(⌥4)에서 되살릴 수 있고, 바로 <b>되돌리기</b>도 돼요.</li>
     <li><b>갈래 만들기</b>포스트잇을 카드나 문단 한가운데에 놓으면 그 카드 밑으로 겹쳐 들어가요. 문단의 <b>⑂ 갈래</b>를 누르면 지금 글을 복사해 새 갈래를 만들고 지도가 열려요.</li>
     <li><b>한 줄 보기에서 분류 바꾸기</b>문단에 마우스를 올리면 나오는 분류 이름(예: <b>메모 ⌄</b>)을 눌러 등록된 분류 중에서 고르세요. 메모로 바꾸면 회색 메모 상자가, 장면 · 대사로 바꾸면 원고 문단이 돼요. 칸반 카드도 같아요.</li>
     <li><b>오른쪽 목록은 작은 포스트잇 아이콘</b>평소엔 분류 색의 작은 포스트잇으로 모여 있다가, 마우스를 올리면 왼쪽에 반투명 미리보기가 떠요. 끌면 원래 크기 포스트잇이 떠서 따라와요. <b>크게</b>를 누르면 예전처럼 큰 포스트잇으로 보여요.</li>
@@ -533,10 +558,10 @@ const BRS={      // 갈래: 카드 번호 → 다른 버전들
   0:[{t:'새벽 골목, 도윤의 오토바이가 외제차 옆구리를 긁는다. 도윤은 고개 숙이는 대신 보험 처리부터 묻는다. 하린은 그런 사람을 처음 본다.',ago:'어제'}],
   1:[{t:'"사과는 공짜고 수리비는 아니잖아요. 사과만 받으세요." — 도윤',ago:'3일 전'},{t:'"죄송합니다. 그런데 돈은 없어요. 둘 중 뭘 원하세요?" — 도윤',ago:'지난주'}]};
 const brs=i=>BRS[i]||[];
-let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,MAP=null,PT='unused',PI=true,STKIN=null,REAL=false;
+let V='new',M='kanban',W='story',SH=null,LS=null,PW=false,SZ='13',SWID=720,FS=16.5,JUST=null,BACK=null,DISC=[],MAP=null,ML='both',PT='unused',PI=true,STKIN=null,REAL=false;
 const wide=()=>SZ==='27',SHe=()=>SH==null?wide():SH,LSe=()=>LS==null?wide():LS;      // 직접 고르기 전에는 화면 폭을 따름
 const AW=()=>wide()?2560:1440,AH=()=>wide()?1380:860;
-try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;PI=p.PI!==false;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
+try{const p=JSON.parse(localStorage.getItem('sdsian')||'{}');V=p.V||V;M=p.M||M;W=p.W||W;PW=!!p.PW;ML=p.ML||ML;PI=p.PI!==false;SZ=p.SZ||SZ;SWID=p.SWID||SWID;FS=p.FS||FS}catch(e){}
 
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const split=t=>{const m=t.match(/^"(.+)"\s*—\s*(.+)$/);return m?{q:'“'+m[1]+'”',who:m[2]}:{q:t,who:null}};
@@ -551,11 +576,11 @@ const stk=i=>{const n=brs(i).length;return (n?' stk'+Math.min(n,2):'')+(STKIN===
 function ic(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   return `<div class="ic${k==='memo'?' memo':''}${k==='fore'?' fore':''}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}"><p class="tx">${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
     <div class="ft"><span class="cast">${k==='memo'?'':ch.map(c=>`<i style="--c:${CH[c][2]}" title="${CH[c][0]}">${CH[c][1]}</i>`).join('')}${brs(i).length?`<span class="brc" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</span>
-    <span class="tools"><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span></div></div>`}
+    <span class="tools"><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span class="st">${stars(st)}</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span></div></div>`}
 function para(i){const [k,t,st,ch]=CARDS[i],s=split(t);
   const cls=(k==='memo'?'memo':s.who?'dlg':'')+(k==='fore'?' fore':'');
   return `<div class="pa ${cls}${JUST===i?' land':''}${stk(i)}" draggable="true" data-i="${i}" title="두 번 누르면 집중 모드 · 끌어서 옮기기"><p>${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}</p>
-    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</div>`}
+    <span class="tools"><span class="dots">${ch.map(c=>`<i style="--c:${CH[c][2]}"></i>`).join('')}</span><span class="st">${stars(st)}</span><span class="kd" data-kind="${i}" title="분류 바꾸기"><i style="background:${kcol(k)}"></i>${kname(k)} ⌄</span><span>두 번 눌러 집중</span><span data-mk="${i}" title="지금 글을 복사해 다르게 써 보기">⑂ 갈래</span><span class="bk" data-back="${i}" title="오른쪽 목록으로 돌려놓기">↩ 빼기</span><span class="dc" data-discard="${i}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</span></span>${brs(i).length?`<span class="brm" data-map="${i}" title="갈래 ${brs(i).length}개 · 눌러서 갈래 지도 열기">⑂ ${brs(i).length}</span>`:''}</div>`}
 function renderNew(kb){
   const lanes=EPS.map((e,n)=>{const full=e[2].length;
     return `<section class="lane${full?'':' empty'}" data-ep="${n}"><header class="lh"><span class="no">${n+1}<small>화</small></span><span class="ti">${e[0]||''}</span><span class="ct">${full?full+'장':''}</span><div class="me">${e[1]}</div></header>
@@ -619,7 +644,7 @@ function renderStoryNew(){
   // 왼쪽: 이름만 흐르듯 늘어놓고, 묶음(폴더)으로만 나눔 · 인물은 색 점, 설정은 점 없이
   const names=(arr,dot)=>arr.map(([n,c,on])=>`<span class="nm2${on?' on':''}"${dot?` style="--c:${c}"`:''}>${n}</span>`).join('');
   const grp=(t,cnt,folders,dot)=>`<section class="sg"><h5>${t}<small>${cnt}</small><span class="plus" title="${t} 추가">＋</span></h5>
-    ${folders.map(([f,arr])=>`<div class="fd">${f?`<em>${f}</em>`:''}${names(arr,dot)}</div>`).join('')}</section>`;
+    ${folders.map(([f,arr])=>`<div class="fd">${f?`<em>${f}</em>`:''}<div class="nl">${names(arr,dot)}</div></div>`).join('')}</section>`;
   const list=`<aside class="lst2">
     <label class="find2"><span aria-hidden="true">⌕</span><input placeholder="찾기" aria-label="이름으로 찾기"></label>
     <div class="note2">작품 노트</div>
@@ -705,6 +730,10 @@ function wireNew(app){
   app.querySelectorAll('[data-mk]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.mk;(BRS[i]=BRS[i]||[]).push({t:CARDS[i][1],ago:'방금'});MAP=i;render()});
   app.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{PT=b.dataset.pt;render()});
   app.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{PI=!PI;save();render()});
+  // 폐기: 지우지 않고 치워 둠 (오른쪽 목록 · 타임라인에서 빠지고, 구상 보드의 폐기 보기에서 되살림)
+  app.querySelectorAll('[data-discard]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.discard,el=b.closest('[data-i]');el?.classList.add('discarding');
+    setTimeout(()=>{const ep=EPS.findIndex(x=>x[2].includes(i)),at=ep<0?POOL.indexOf(i):EPS[ep][2].indexOf(i);detach(i);DISC.push({i});
+      render();toast(app,'폐기했어요 · 구상 보드 ▸ 폐기에서 되살릴 수 있어요',()=>{DISC.pop();(ep<0?POOL:EPS[ep][2]).splice(at,0,i);JUST=i;render()})},420)});      // 되돌리기는 원래 자리로
   // 분류 바꾸기: 등록된 분류 중에서
   app.querySelectorAll('[data-kind]').forEach(b=>b.onclick=e=>{e.stopPropagation();app.querySelector('.kmenu')?.remove();
     const i=+b.dataset.kind,sc=app.getBoundingClientRect().width/AW(),r=b.getBoundingClientRect(),a=app.getBoundingClientRect();
@@ -740,33 +769,45 @@ function openMap(app,i,quiet){
   app.querySelector('.bmap')?.remove();
   const ep=EPS.findIndex(e=>e[2].includes(i));if(ep<0){MAP=null;return}
   const bs=brs(i),nodes=[...bs.map((b,j)=>({b,j})),{add:true}];
-  const w=AW(),h=AH(),cx=w/2,cy=h/2+20,rx=Math.min(430,w*.3),gap=Math.min(230,(h-200)/Math.ceil(nodes.length/2));
-  const R=[],L=[];nodes.forEach((n,k)=>(k%2?L:R).push(n));
-  const place=(arr,side)=>arr.forEach((n,j)=>{n.x=cx+side*rx;n.y=cy+(j-(arr.length-1)/2)*gap;n.side=side});place(R,1);place(L,-1);
+  const w=AW(),h=AH(),N=nodes.length;let cx=w/2,cy=h/2+20;
+  // 지도 모양 (SimpleMind처럼): 양쪽 · 오른쪽 · 아래 · 둘레
+  if(ML==='both'){const rx=Math.min(430,w*.3),gap=Math.min(230,(h-200)/Math.ceil(N/2)),R=[],L=[];nodes.forEach((n,k)=>(k%2?L:R).push(n));
+    const place=(arr,side)=>arr.forEach((n,j)=>{n.x=cx+side*rx;n.y=cy+(j-(arr.length-1)/2)*gap;n.side=side});place(R,1);place(L,-1)}
+  else if(ML==='right'){cx=w*.27;const gap=Math.min(190,(h-180)/N);nodes.forEach((n,j)=>{n.x=w*.68;n.y=cy+(j-(N-1)/2)*gap;n.side=1})}
+  else if(ML==='down'){cy=230;const per=Math.min(N,4),gx=Math.min(320,(w-160)/per);nodes.forEach((n,j)=>{const r=Math.floor(j/per),c=j%per,cnt=Math.min(per,N-r*per);n.x=cx+(c-(cnt-1)/2)*gx;n.y=520+r*220})}
+  else{const rx=Math.min(470,w*.33),ry=Math.min(270,h*.33);nodes.forEach((n,j)=>{const a=-Math.PI/2+Math.PI*2*j/N+(N%2?0:Math.PI/N);n.x=cx+rx*Math.cos(a);n.y=cy+ry*Math.sin(a)})}
+  const link=n=>{if(ML==='down'){const y1=cy+70,y2=n.y-80,my=(y1+y2)/2;return `M${cx} ${y1} C ${cx} ${my}, ${n.x} ${my}, ${n.x} ${y2}`}
+    if(ML==='radial')return `M${cx} ${cy} L ${n.x} ${n.y}`;
+    const x1=cx+n.side*170,x2=n.x-n.side*140,mx=(x1+x2)/2;return `M${x1} ${cy} C ${mx} ${cy}, ${mx} ${n.y}, ${x2} ${n.y}`};
   const txt=t=>{const s=split(t);return `${esc(s.q)}${s.who?`<span class="who" style="color:${whoColor(s.who)}">${s.who}</span>`:''}`};
   const [k,t,st,ch]=CARDS[i];
   const z=document.createElement('div');z.className='zen bmap'+(quiet?' quiet':'');
-  z.innerHTML=`<header><b>갈래 지도</b><span>${ep+1}화 · ${EPS[ep][0]} · 갈래 ${bs.length}개</span><button data-x aria-label="닫기">닫기 · Esc</button></header>
-    <svg class="links" viewBox="0 0 ${w} ${h}" aria-hidden="true">${nodes.map(n=>{const x1=cx+n.side*170,x2=n.x-n.side*140,mx=(x1+x2)/2;
-      return `<path d="M${x1} ${cy} C ${mx} ${cy}, ${mx} ${n.y}, ${x2} ${n.y}" fill="none" stroke="var(--br)" stroke-width="1.5" stroke-dasharray="${n.add?'4 5':''}" opacity="${n.add?.4:.55}"/>`}).join('')}</svg>
+  z.innerHTML=`<header><b>갈래 지도</b><span>${ep+1}화 · ${EPS[ep][0]} · 갈래 ${bs.length}개</span><nav class="ml">${[['both','양쪽'],['right','오른쪽'],['down','아래로'],['radial','둘레']].map(([k,n])=>`<span class="${ML===k?'on':''}" data-ml="${k}">${n}</span>`).join('')}</nav><button data-x aria-label="닫기">닫기 · Esc</button></header>
+    <svg class="links" viewBox="0 0 ${w} ${h}" aria-hidden="true">${nodes.map(n=>{
+      return `<path d="${link(n)}" fill="none" stroke="var(--br)" stroke-width="1.5" stroke-dasharray="${n.add?'4 5':''}" opacity="${n.add?.4:.55}"/>`}).join('')}</svg>
     <div class="mn main" style="left:${cx}px;top:${cy}px"><div class="tag">본선 <span class="stars">${'★'.repeat(st)}</span></div><p>${txt(t)}</p>
       <div class="cast">${ch.map(c=>`<i style="--c:${CH[c][2]}">${CH[c][1]}</i>`).join('')}</div></div>
     ${nodes.map(n=>n.add?`<div class="mn add" data-new style="left:${n.x}px;top:${n.y}px">＋ 지금 본선을 복사해<br>새 갈래 쓰기</div>`
       :`<div class="mn alt" style="left:${n.x}px;top:${n.y}px"><div class="tag">갈래 ${n.j+1} <small>${n.b.ago||'방금'}</small></div><p>${txt(n.b.t)}</p>
-        <div class="aa"><button class="pick" data-pick="${n.j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${n.j}">합치기</button><button data-detach="${n.j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button><button class="del" data-del="${n.j}" title="휴지통으로">✕</button></div></div>`).join('')}
+        <div class="aa"><button class="pick" data-pick="${n.j}" title="본선과 자리 바꾸기 · 원래 본선은 갈래로 남아요">이걸로</button><button data-merge="${n.j}">합치기</button><button data-detach="${n.j}" title="따로 된 포스트잇으로 오른쪽 목록에">↩ 떼어내기</button><button class="del" data-disc="${n.j}" title="폐기 · 구상 보드의 폐기 보기에서 되살릴 수 있어요">폐기</button></div></div>`).join('')}
     <footer>이걸로 · 합치기 해도 원래 본선은 갈래로 남아요 · 원고 복사는 본선만 써요</footer>`;
   const close=()=>{MAP=null;z.remove();removeEventListener('keydown',key)};
   const key=e=>{if(e.key==='Escape'&&!app.querySelector('.mg'))close()};
   addEventListener('keydown',key);z._key=key;
-  z.querySelector('[data-x]').onclick=close;z.addEventListener('click',e=>{if(e.target===z||e.target.classList.contains('links'))close()});
+  z.querySelector('[data-x]').onclick=close;z.addEventListener('click',e=>{if(e.target===z)close()});
   const re=()=>{removeEventListener('keydown',key);render()};
   z.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const br=bs[+b.dataset.pick],old=CARDS[i][1];CARDS[i][1]=br.t;br.t=old;br.ago='방금 전 본선';re()});
-  z.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{bs.splice(+b.dataset.del,1);if(!bs.length)MAP=null;re()});
+  z.querySelectorAll('[data-ml]').forEach(b=>b.onclick=()=>{ML=b.dataset.ml;save();openMap(app,i,true)});
+  z.querySelectorAll('[data-disc]').forEach(b=>b.onclick=()=>{const node=b.closest('.mn');node.classList.add('discarding');
+    setTimeout(()=>{const br=bs.splice(+b.dataset.disc,1)[0];const j=+b.dataset.disc;DISC.push({t:br.t,from:'갈래'});if(!bs.length)MAP=null;re();
+      toast(app,'갈래를 폐기했어요 · 구상 보드 ▸ 폐기에서 되살릴 수 있어요',()=>{DISC.pop();bs.splice(j,0,br);BRS[i]=bs;MAP=i;render()})},420)});
   z.querySelectorAll('[data-detach]').forEach(b=>b.onclick=()=>{const br=bs.splice(+b.dataset.detach,1)[0],c=CARDS[i];CARDS.push([c[0],br.t,c[2],c[3].slice()]);POOL.unshift(CARDS.length-1);BACK=CARDS.length-1;if(!bs.length)MAP=null;re()});
   z.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>openMerge(app,i,+b.dataset.merge));
   z.querySelector('[data-new]').onclick=()=>{bs.push({t:CARDS[i][1],ago:'방금'});BRS[i]=bs;re()};
   app.querySelectorAll('.bmap').forEach(x=>{if(x._key)removeEventListener('keydown',x._key);x.remove()});
   app.append(z)}
+function toast(app,msg,undo){app.querySelector('.toast2')?.remove();const t=document.createElement('div');t.className='toast2';t.innerHTML=`<span>${msg}</span>${undo?'<button>되돌리기</button>':''}`;
+  if(undo)t.querySelector('button').onclick=()=>{t.remove();undo()};app.append(t);setTimeout(()=>t.remove(),4200)}
 function openMerge(app,i,j){      // 합치기: 문장을 누르면 아래 합친 글에 들어감 · 합친 글이 본선, 원래 본선은 갈래로 남음
   const inner=t=>{const m=t.match(/^"(.+)"\s*—/);return m?m[1]:t};      // 대사는 따옴표 안 글만
   const sent=t=>inner(t).split(/(?<=[.?!。”])\s+/).map(x=>`<span>${esc(x)}</span>`).join(' ');
@@ -812,7 +853,7 @@ function render(){
   document.querySelectorAll('#ver button').forEach(b=>b.classList.toggle('on',b.dataset.v===V));
   document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===M));
   fit()}
-function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M,W,PW,PI,SZ,SWID,FS}))}catch(e){}}
+function save(){try{localStorage.setItem('sdsian',JSON.stringify({V,M,W,PW,PI,SZ,SWID,FS,ML}))}catch(e){}}
 function fit(){const f=document.getElementById('frame'),a=document.getElementById('app');
   f.classList.toggle('real',REAL);
   if(REAL){a.style.transform='';f.style.height='';return}
