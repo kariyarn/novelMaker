@@ -1,9 +1,9 @@
 /* ---------- 오른쪽: 쓰고 싶은 장면·대사 ---------- */
-/* 오른쪽 목록 보기 기준: 분류(기본 장면 · 대사만) · 종류(인물 / 설정 / 미분류, 기본 미분류 제외) · 정렬(등록일 / 수정일) */
+/* 오른쪽 목록 보기 기준: 분류(기본 장면 · 대사만) · 종류(인물 / 설정 / 미분류, 기본 미분류 제외) · 정렬(쓸 시기 / 등록일 / 수정일, 기본 쓸 시기) */
 const poolKinds=()=>{const a=UIP.pk;if(Array.isArray(a)){const ids=a.filter(id=>S.kinds.some(k=>k.id===id));return ids.length?ids:S.kinds.map(k=>k.id)}
   return S.kinds.some(k=>k.id==='scene')?['scene']:S.kinds.map(k=>k.id)};
 const poolOwn=()=>Object.assign({char:true,setting:true,none:false},UIP.pown||{});
-const poolSort=()=>({by:UIP.psort==='updated'?'updated':'created',dir:UIP.pdir==='asc'?'asc':'desc'});
+const poolSort=()=>({by:['updated','created'].includes(UIP.psort)?UIP.psort:'when',dir:UIP.pdir==='asc'?'asc':'desc'});
 function cardOwners(c){const ids=eff(c);if(!ids.length)return {none:true};const o={};ids.forEach(id=>{const e=charById(id);if(e)o[e.kind==='setting'?'setting':'char']=true});return o}
 function poolPass(c){
   if(c.discarded||shelfOf(c.id))return false;      // 폐기한 카드 · 보관 칸에 둔 카드는 오른쪽 목록에 안 나옴      // 폐기한 카드는 오른쪽 목록에 안 나옴
@@ -11,7 +11,7 @@ function poolPass(c){
   if(UI.pnew&&UI.pnew.has(c.id))return true;      // 방금 이 목록에서 만든 카드는 종류와 상관없이 보임
   const own=poolOwn(),o=cardOwners(c);return (own.char&&o.char)||(own.setting&&o.setting)||(own.none&&o.none)||false;
 }
-const poolDefault=()=>{const k=poolKinds(),o=poolOwn(),s=poolSort();return k.length===1&&k[0]==='scene'&&o.char&&o.setting&&!o.none&&s.by==='created'&&s.dir==='desc'};
+const poolDefault=()=>{const k=poolKinds(),o=poolOwn(),s=poolSort();return k.length===1&&k[0]==='scene'&&o.char&&o.setting&&!o.none&&s.by==='when'};
 function renderPool(){
   const pl=$('pool'),st=pl.scrollTop,sig0=renderPool.sig;      // 카드를 옮겨도 오른쪽 목록의 보던 자리를 유지 (필터가 바뀌면 처음부터)
   const _fl=FLIPON?null:flipRecord();try{renderPool0();peekWrap('pool')}finally{flipPlay(_fl)}
@@ -78,29 +78,32 @@ function renderPool0(){
     popMenu(fb,()=>[{title:'보이는 노트'},...[['all','전체'],['unused','미사용'],['used','사용']].map(([k,n])=>({label:n,on:UI.pused===k,keep:true,fn:()=>{UI.pused=k;renderPool()}})),
       'sep',{title:'분류 (여러 개 함께)'},...S.kinds.map(k=>({label:k.name,sw:k.colorMode==='random'?RANDOM_BG:k.color,on:poolKinds().includes(k.id),keep:true,fn:()=>{const cur=new Set(poolKinds());if(cur.has(k.id)){if(cur.size>1)cur.delete(k.id)}else cur.add(k.id);UIP.pk=[...cur];saveUIP();renderPool()}})),
       'sep',{title:'노트 종류'},...[['char','인물'],['setting','설정'],['none','미분류']].map(([k,n])=>({label:n,on:!!poolOwn()[k],keep:true,fn:()=>{UIP.pown=Object.assign(poolOwn(),{[k]:!poolOwn()[k]});saveUIP();renderPool()}})),
-      'sep',{title:'정렬'},...[['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
-      ...[['desc','최신 순 ↓'],['asc','오래된 순 ↑']].map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
+      'sep',{title:'정렬'},...[['when','쓸 시기 (지금 · 곧 · 나중)'],['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
+      ...(poolSort().by==='when'?[]:[['desc','최신 순 ↓'],['asc','오래된 순 ↑']]).map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
       'sep',{title:'인물'},{node:sel([['','모든 인물'],...S.characters.map(c=>[c.id,c.name])],UI.pchar,v=>{UI.pchar=v;renderPool()},'psel')},{node:si},
       'sep',{title:'노트 크기'},...[['x','요약 (긴 글은 3줄까지)'],['s','소'],['m','중'],['l','대']].map(([k,n])=>({label:n,on:(UIP.ps||'m')===k,keep:true,fn:()=>{UIP.ps=k;saveUIP();renderPool()}})),
       ...((UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])]);
     setTimeout(()=>{if(UI.pq)si.focus()},0)}},icon('filter'),fOn?h('i',{class:'fdot'}):null);
   const icoB=U3()?h('button',{class:'cbtn frpico',title:frIcons()?'포스트잇을 크게 보기':'작은 포스트잇 아이콘으로 보기',onclick:()=>{UIP.pico=!frIcons();saveUIP();renderPool()}},frIcons()?'크게':'작게'):null;
   const left=U3()?S.cards.filter(c=>poolPass(c)&&!episodeOf(c.id)).length:0;      // 새단장: 지금 고른 분류 중 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭과 같은 수 · 줄어드는 만큼 정리된 것)
-  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),U3()?h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`):h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),icoB,fb,ptog('pool')));
-  else p.append(h('div',{class:'phead'},h('b',{},'쓰고 싶은 장면 · 대사'),h('span',{class:'sp'}),h('span',{class:'muted'},`${S.cards.length}장`),fb,ptog('pool')));
+  const triB=h('button',{class:'cbtn tribtn',title:'훑기 — 카드를 한 장씩 보며 쓸 시기(지금 · 곧 · 나중) 정하기',onclick:triageOpen},'훑기');
+  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),U3()?h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`):h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),icoB,triB,fb,ptog('pool')));
+  else p.append(h('div',{class:'phead'},h('b',{},'쓰고 싶은 장면 · 대사'),h('span',{class:'sp'}),h('span',{class:'muted'},`${S.cards.length}장`),triB,fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
       act(()=>{const c=newCard(quickKind(),v);autoLinkCard(c);S.cards.unshift(c);(UI.pnew=UI.pnew||new Set()).add(c.id);if(!poolKinds().includes(c.kind)){UIP.pk=[...poolKinds(),c.kind];saveUIP()}});setTimeout(()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()})}});
-  const sum=[UI.pused!=='all'&&!U2()?{all:'전체',unused:'미사용',used:'사용'}[UI.pused]:null,(poolKinds().length===1&&poolKinds()[0]==='scene')?null:(poolKinds().length<S.kinds.length?poolKinds().map(id=>kindOf(id).name).join('·'):'모든 분류'),(()=>{const o=poolOwn();return o.char&&o.setting&&!o.none?null:['char','setting','none'].filter(k=>o[k]).map(k=>({char:'인물',setting:'설정',none:'미분류'}[k])).join('·')||'종류 없음'})(),poolSort().by==='created'&&poolSort().dir==='desc'?null:`${poolSort().by==='updated'?'수정일':'등록일'} ${poolSort().dir==='asc'?'↑':'↓'}`,UI.pchar&&charById(UI.pchar)?charById(UI.pchar).name:null,UI.pq?`“${UI.pq}”`:null].filter(Boolean);
+  const sum=[UI.pused!=='all'&&!U2()?{all:'전체',unused:'미사용',used:'사용'}[UI.pused]:null,(poolKinds().length===1&&poolKinds()[0]==='scene')?null:(poolKinds().length<S.kinds.length?poolKinds().map(id=>kindOf(id).name).join('·'):'모든 분류'),(()=>{const o=poolOwn();return o.char&&o.setting&&!o.none?null:['char','setting','none'].filter(k=>o[k]).map(k=>({char:'인물',setting:'설정',none:'미분류'}[k])).join('·')||'종류 없음'})(),poolSort().by==='when'?null:`${poolSort().by==='updated'?'수정일':'등록일'} ${poolSort().dir==='asc'?'↑':'↓'}`,UI.pchar&&charById(UI.pchar)?charById(UI.pchar).name:null,UI.pq?`“${UI.pq}”`:null].filter(Boolean);
   if(U2()){qi.placeholder='한 줄 쓰고 Enter';qi.title=`Enter → ${kindOf(quickKind()).name}`}
-  p.append(h('div',{class:'pquick'},qi,U2()?tabs([['unused','미사용'],['used','사용'],['all','전체']],UI.pused,k=>{UI.pused=k;renderPool()}):null,sum.length?h('div',{class:'psum'},h('span',{},sum.join(' · ')),h('button',{class:'quiet',onclick:()=>{UI.pused='all';UI.pchar='';UI.pq='';UIP.pk=S.kinds.map(k=>k.id);UIP.pown={char:true,setting:true,none:true};UIP.psort='created';UIP.pdir='desc';saveUIP();renderAll()}},'모두 보기')):null));
+  p.append(h('div',{class:'pquick'},qi,U2()?tabs([['unused','미사용'],['used','사용'],['all','전체']],UI.pused,k=>{UI.pused=k;renderPool()}):null,sum.length?h('div',{class:'psum'},h('span',{},sum.join(' · ')),h('button',{class:'quiet',onclick:()=>{UI.pused='all';UI.pchar='';UI.pq='';UIP.pk=S.kinds.map(k=>k.id);UIP.pown={char:true,setting:true,none:true};UIP.psort='when';UIP.pdir='desc';saveUIP();renderAll()}},'모두 보기')):null));
   const list=h('div',{class:'plist'});
   const q=UI.pq.trim().toLowerCase();
   const sig=`${poolKinds().join()}|${JSON.stringify(poolOwn())}|${poolSort().by}${poolSort().dir}|${UI.pchar}|${UI.pused}|${UI.pq}`;if(renderPool.sig!==sig){UI.poolLimit=60;renderPool.sig=sig}      // 필터가 바뀌면 처음부터
   const ICON=frIcons(),lim=ICON?Math.max(UI.poolLimit||60,300):UI.poolLimit||60;      // 새단장 아이콘은 가벼워서 한 번에 더 많이
   const ps=poolSort(),pv=c=>ps.by==='updated'?(c.updated||c.created||0):(c.created||0),pd=ps.dir==='asc'?1:-1;
+  const cmp=ps.by==='when'?(a,b)=>whenRank(a[0])-whenRank(b[0])||(b[0].stars||0)-(a[0].stars||0)||(b[0].created||0)-(a[0].created||0)||a[1]-b[1]      // 쓸 시기 → 별점 → 최근 등록
+    :(a,b)=>(pv(a[0])-pv(b[0]))*pd||(a[1]-b[1])*(ps.dir==='asc'?-1:1);
   const items=S.cards.filter(c=>{const u=!!episodeOf(c.id);return poolPass(c)&&(!UI.pchar||eff(c).includes(UI.pchar))&&(UI.pused==='all'||(UI.pused==='used'?u:!u))&&(!q||c.text.toLowerCase().includes(q))})
-    .map((c,i)=>[c,i]).sort((a,b)=>(pv(a[0])-pv(b[0]))*pd||(a[1]-b[1])*(ps.dir==='asc'?-1:1)).map(x=>x[0]);
+    .map((c,i)=>[c,i]).sort(cmp).map(x=>x[0]);
   if(ICON){list.classList.add('frics');items.slice(0,lim).forEach(c=>list.append(frIcon(c)))}      // 새단장: 작은 포스트잇 아이콘 (features/fresh.js)
   else{const mrow=h('div',{class:'mrow'});list._cards=items.slice(0,lim).map(c=>kcard(c,'pool'));      // 많을 때는 나눠서 그림 (스크롤하면 더 불러옴)
   if(list._cards.length)list.append(mrow)}

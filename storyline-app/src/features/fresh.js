@@ -327,7 +327,7 @@ function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 �
 const frIcons=()=>U3()&&UIP.pico!==false;
 function frIcon(card){
   const used=episodeOf(card.id);
-  const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},
+  const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,'data-w':!used&&card.when||'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},
     ...Array.from({length:Math.min(3,frBars(card.text))},()=>h('i')),
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).slice(0,4).map(c=>h('b',{style:`--c:${c.color}`}))));
   el.addEventListener('mouseenter',()=>{if(!DRAG)frPeek(card,el.getBoundingClientRect(),'left')});

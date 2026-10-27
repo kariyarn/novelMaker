@@ -136,3 +136,24 @@ button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink)
 #syncbar>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #syncbar button{flex:none;font-size:12.5px;padding:4px 12px}
 @keyframes sbin{from{opacity:0;transform:translate(-50%,-6px)}}
+
+/* 훑기: 카드를 한 장씩 보며 쓸 시기 정하기 (features/triage.js) */
+.whenb{font-size:11px;line-height:1.5;padding:0 7px;border-radius:99px;white-space:nowrap;background:var(--wb);color:#fff}
+.whenb[data-w=now],.triw[data-w=now],.frico[data-w=now]{--wb:#e2533f}
+.whenb[data-w=soon],.triw[data-w=soon],.frico[data-w=soon]{--wb:#e39a1b}
+.whenb[data-w=later],.triw[data-w=later],.frico[data-w=later]{--wb:#6f8fb8}
+.frico:is([data-w=now],[data-w=soon],[data-w=later])::after{content:"";position:absolute;right:5px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--wb);box-shadow:0 0 0 1.5px rgba(255,255,255,.8)}
+.tribtn{font-size:12.5px;padding:3px 10px}
+.tribox{width:min(520px,92vw)}
+.trihd{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.trihd .sp,.trimeta .sp{flex:1}
+.tricard{background:var(--kc0);color:#222;border-radius:12px;padding:14px 16px;box-shadow:0 4px 14px rgba(0,0,0,.12);min-height:140px;display:flex;flex-direction:column;gap:10px}
+.trimeta{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.85}
+.tritext{white-space:pre-wrap;line-height:1.7;font-size:15px;max-height:48vh;overflow:auto;flex:1}
+.trichars{display:flex;flex-wrap:wrap;gap:4px}
+.tribtns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 8px}
+.triw{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;font-size:14px;border-radius:10px}
+.triw[data-w]{border-color:var(--wb);color:var(--wb)}
+.triw[data-w]:hover,.triw.cur{background:var(--wb);color:#fff}
+.triw kbd{font:11px/1 inherit;opacity:.6;border:1px solid currentColor;border-radius:4px;padding:2px 4px}
+.trifoot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
