@@ -130,3 +130,9 @@ button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink)
 .grtabs{display:flex;margin:4px 0 2px}
 .grtabs button{flex:1;font-size:.8em;padding:3px 6px;min-height:0}
 .grtabs small{opacity:.7;font-weight:400}
+
+/* 동기화: 다른 기기에서 고친 내용이 있을 때 위에 뜨는 띠 */
+#syncbar{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:8px 10px 8px 16px;border-radius:12px;background:var(--panel);color:var(--ink);box-shadow:0 0 0 .5px var(--line),0 10px 30px rgba(0,0,0,.14);font-size:13px;animation:sbin .2s ease-out}
+#syncbar>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#syncbar button{flex:none;font-size:12.5px;padding:4px 12px}
+@keyframes sbin{from{opacity:0;transform:translate(-50%,-6px)}}

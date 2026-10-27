@@ -332,3 +332,7 @@
 .frshp .frch.shelf .tlbody{background:transparent;padding:0;min-height:48px}
 .frshp .frch.shelf .tlbody.over{background:var(--acc-soft)}
 .frshtg.on{color:var(--acc);background:var(--acc-soft)}
+
+/* 접힌 시트 아이콘이 없으니 머리말을 왼쪽으로 (왼쪽 목록도 접혀 있으면 그 아이콘 자리만 비킴) */
+body.ui3 #app.m-story:has(#sheet.cl) .bhead.frprof{left:18px}
+body.ui3 #app.m-story:has(#left.cl):has(#sheet.cl) .bhead.frprof{left:58px}

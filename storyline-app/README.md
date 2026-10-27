@@ -16,7 +16,7 @@
 2. Settings → Developer settings → **Fine-grained tokens** → 새 토큰
    - Repository access: **그 저장소만** · Permissions: **Contents → Read and write** 하나만
 3. 앱 → 설정 → 데이터 → **GitHub 동기화 → 연결하기** 에 저장소(`아이디/이름`) 와 토큰을 넣어요. 두 컴퓨터 모두.
-- 앱을 켤 때 · 창으로 돌아올 때 · 고친 뒤 30초쯤 · 5분마다 · 끌 때 자동으로 맞춰요. (파일 메뉴 → 지금 동기화)
+- 올리기는 자동(고친 뒤 5초쯤 · 끌 때), 받기는 직접: 다른 기기에서 고친 게 있으면 위에 알림 띠가 뜨고 **받기**를 눌러야 받아요. (파일 메뉴 → 다른 기기 내용 받기)
 - 저장소의 `storyline/` 폴더에 작품 목록 · 앱 취향 · 작품 데이터가 올라가요. 자동 백업은 컴퓨터마다 따로.
 - 양쪽에서 같은 작품을 고쳤다면: 이 컴퓨터 것은 그대로 두고, 다른 컴퓨터 것은 **"작품 이름 (다른 기기 날짜)"** 사본 작품으로 남겨요. 지워지는 건 없어요.
 - 토큰은 그 컴퓨터 안에만 OS 열쇠고리(맥 키체인 · Windows 자격 증명)로 암호화해서 보관해요.
@@ -48,7 +48,7 @@
 | `main.js` | Electron 메인 프로세스, 메뉴, 저장소 연결 |
 | `store.js` | 파일 저장소 창구: `storage/` 모듈을 묶어 main.js 에 내놓음 |
 | `storage/` | 저장소 모듈: `layout`(폴더 구조) · `files`(원자적 쓰기) · `library`(작품 목록) · `legacy`(예전 구조 옮기기) · `works`(작품 데이터) · `backups`(압축 백업) · `prefs`(앱 전체 취향) |
-| `storage/sync.js` | GitHub 동기화 (GitHub API 로 주고받기 · 충돌 시 사본 작품) |
+| `storage/sync.js` | GitHub 동기화 (GitHub API 로 올리기 `push` · 확인 `check` · 받기 `sync` · 양쪽에서 고치면 카드 단위로 합침) |
 | `note/` | 포스트잇 창 (작은 창 화면 · 다리) |
 | `build/icon.png` | Windows · 맥 앱 아이콘 (electron-builder) |
 | `test/` | 저장소 · 동기화 테스트 (`npm test`) |

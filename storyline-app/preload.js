@@ -25,7 +25,9 @@ contextBridge.exposeInMainWorld('appShell',{
   sync:{
     getConfig:()=>ipcRenderer.sendSync('sync:getConfig'),      // {repo, branch, hasToken, last, secure} 또는 null
     setConfig:c=>ipcRenderer.sendSync('sync:setConfig',c),     // null 이면 연결 끊기
-    now:()=>ipcRenderer.invoke('sync:now'),
+    now:()=>ipcRenderer.invoke('sync:now'),      // 받기 (+ 올리기)
+    check:()=>ipcRenderer.invoke('sync:check'),      // 다른 기기에서 고친 게 있는지 확인만
+    dismiss:sig=>ipcRenderer.sendSync('sync:dismiss',sig),      // '나중에'
   },
   note:{show:()=>ipcRenderer.sendSync('shell:showNote')},
   update:{
