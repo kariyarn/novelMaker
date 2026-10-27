@@ -327,14 +327,13 @@ body:has(.kcard.dragging) .frcut,.kcard.fr.editing>.frcut{display:none}
 .frpg:hover b{color:var(--acc)}
 
 /* 보관함 나란히: 원고 | 보관 (따로 스크롤) */
-.ui3 .frline.frside{display:flex;gap:22px;overflow:hidden;padding:0 0 0 28px}
-.frside>.frlcol{flex:1 1 auto;min-width:0;overflow:auto;padding:24px 0 60px}
-.frshp{flex:0 0 340px;overflow:auto;padding:24px 22px 60px 18px;border-left:1px solid var(--line);background:var(--side)}
-.frshp .frshdiv{margin-top:0;padding-top:0;border-top:0;display:flex;align-items:baseline;gap:10px}
+/* 보관함 나란히: 원고 한 장 | 보관 한 장 (같은 종이 · 따로 스크롤) */
+.ui3 .frline.frside{display:flex;gap:24px;overflow:hidden;padding:0 20px}
+.frside>.frlcol{flex:1 1 0;min-width:0;overflow:auto;padding:24px 0 60px}
+.frside .frsheet{padding:48px 52px 56px}
+.frside .frsheet .freg{display:none}
+.frshp .frshdiv{margin-top:0;padding-top:0;border-top:0}
 .frshp .frshx{margin-left:auto;font-size:12px}
-.frshp .frch.shelf{margin:0 0 26px}
-.frshp .frch::before{display:none}
-.ui3 .frshp .frch .kcard.tl.fr .ktext,.ui3 .frshp .frch .kcard.tl.fr .kmir{font-size:14px;line-height:1.8}
-.ui3 .frshp .frch .kcard.tl.fr{margin:0 -8px}
-.ui3 .frshp .frch .kcard.tl.fr .frrow{display:none}
+.frshp .frch.shelf .tlbody{background:transparent;padding:0;min-height:48px}
+.frshp .frch.shelf .tlbody.over{background:var(--acc-soft)}
 .frshtg.on{color:var(--acc);background:var(--acc-soft)}
