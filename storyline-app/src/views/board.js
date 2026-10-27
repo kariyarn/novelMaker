@@ -43,7 +43,8 @@ function applyView(){
   const view=document.querySelector('.bview');if(!view)return;
   const v=getView(UI.sel),pat=(S.settings&&S.settings.boardPat)||'dot',g=24*v.k;
   view.classList.add('moving');clearTimeout(applyView.mt);applyView.mt=setTimeout(()=>view.classList.remove('moving'),180);
-  view.firstChild.style.transform=`translate(${v.x}px,${v.y}px) scale(${v.k})`;
+  const dp=devicePixelRatio||1,px=n=>Math.round(n*dp)/dp;      // 화면 픽셀에 딱 맞춰야 글자가 번지지 않음
+  view.firstChild.style.transform=`translate(${px(v.x)}px,${px(v.y)}px) scale(${v.k})`;
   let img='none',size='auto';
   if(pat==='dot'){img='radial-gradient(var(--dot) 1.3px,transparent 1.7px)';size=`${g}px ${g}px`}
   else if(pat==='grid'){img='linear-gradient(transparent 95.5%,var(--dot) 95.5%),linear-gradient(90deg,transparent 95.5%,var(--dot) 95.5%)';size=`${g}px ${g}px`}
