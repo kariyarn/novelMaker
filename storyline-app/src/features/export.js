@@ -16,6 +16,59 @@ function exportTimelineMd(){
   if(un.length){L.push('## 아직 배치하지 않은 카드','');un.forEach(card);L.push('')}
   dlBlob(`${fileBase()}-timeline-${todayStr()}.md`,new Blob([L.join('\n')],{type:'text/markdown'}));toast('타임라인을 Markdown으로 내보냈어요');
 }
+/* 원고 .txt: 화에 넣은 카드의 본선 글만 화 순서대로 (보관 칸 · 오른쪽 목록 · 무덤 카드는 빠짐). 장면 구분은 * * * */
+const MS_SEP='* * *';
+function epManuscript(ep){
+  const seps=new Set(ep.seps||[]),out=[];
+  ep.cardIds.map(cardById).filter(Boolean).forEach(c=>{
+    const t=(c.text||'').replace(/^\s*\n/,'').replace(/\s+$/,'');if(!t.trim())return;
+    if(out.length&&seps.has(c.id))out.push(MS_SEP);
+    out.push(t);
+  });
+  return out.join('\n\n');
+}
+function manuscriptText(lo,hi,titles){
+  const parts=[];let eps=0,cards=0,len=0;
+  S.episodes.slice(lo,hi).forEach((ep,k)=>{
+    const body=epManuscript(ep);if(!body)return;
+    eps++;len+=body.split(MS_SEP).join('').replace(/\s/g,'').length;cards+=ep.cardIds.map(cardById).filter(c=>c&&(c.text||'').trim()).length;
+    parts.push(titles?`${lo+k+1}화${ep.title&&ep.title.trim()?' · '+ep.title.trim():''}\n\n${body}`:body);
+  });
+  return {txt:parts.join(titles?'\n\n\n':'\n\n'+MS_SEP+'\n\n')+(parts.length?'\n':''),eps,cards,len};
+}
+function exportManuscriptTxt(lo,hi,titles=true){
+  const E=S.episodes,{txt,eps,cards,len}=manuscriptText(lo,hi,titles);
+  if(!eps)return toast('내보낼 원고가 없어요'),false;
+  const rng=lo===0&&hi===E.length?'전체':(hi-lo===1?`${lo+1}화`:`${lo+1}-${hi}화`);
+  dlBlob(`${fileBase()}-원고-${rng}-${todayStr()}.txt`,new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  toast(`원고를 내보냈어요 · ${eps}화 · 카드 ${cards}장 · 공백 빼고 ${len.toLocaleString()}자`);
+  return true;
+}
+/* 원고 내보내기 창: 전체 / 몇 화부터 몇 화까지 + 화 제목 넣기. 처음 범위는 지금 타임라인에서 보는 범위 */
+function showManuscriptExport(range){
+  const E=S.episodes,N=E.length;if(!N)return toast('아직 화가 없어요');
+  const [lo0,hi0]=range||(typeof tlRange==='function'?tlRange():[0,N]);
+  const num=v=>h('input',{type:'number',class:'msnum',min:1,max:N,value:v,oninput:upd});
+  const a=num(lo0+1),b=num(hi0),tt=h('input',{type:'checkbox',checked:UIP.msNoTitle?false:true,onchange:upd});
+  const info=h('div',{class:'muted msinfo'});
+  const rng=()=>{let x=Math.max(1,Math.min(N,parseInt(a.value,10)||1)),y=Math.max(1,Math.min(N,parseInt(b.value,10)||N));if(x>y)[x,y]=[y,x];return [x-1,y]};
+  function upd(){const [x,y]=rng(),r=manuscriptText(x,y,tt.checked);info.textContent=r.eps?`${x+1}~${y}화 중 글이 있는 ${r.eps}화 · 카드 ${r.cards}장 · 공백 빼고 ${r.len.toLocaleString()}자`:'이 범위에는 내보낼 글이 없어요'}
+  const quick=(label,x,y)=>h('button',{class:'quiet',onclick:()=>{a.value=x+1;b.value=y;upd()}},label);
+  const o=h('div',{class:'dlg',role:'dialog','aria-modal':'true'});
+  const close=()=>{o.remove();document.removeEventListener('keydown',key,true)};
+  const go=()=>{const [x,y]=rng();UIP.msNoTitle=!tt.checked;saveUIP();if(exportManuscriptTxt(x,y,tt.checked))close()};
+  const key=e=>{if(e.isComposing)return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close()}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();go()}};
+  o.append(h('div',{class:'dlgbox msdlg'},
+    h('div',{class:'dlgmsg'},h('b',{},'원고 .txt로 내보내기'),'\n화에 넣은 카드의 글만 화 순서대로 이어 붙여요. 보관 칸 · 아직 안 쓴 카드는 빠져요.'),
+    h('div',{class:'msrow'},a,h('span',{},'화부터'),b,h('span',{},'화까지')),
+    h('div',{class:'msrow'},quick(`전체 ${N}화`,0,N),...(range||(lo0===0&&hi0===N)?[]:[quick('지금 보는 범위',lo0,hi0)])),
+    h('label',{class:'msrow'},tt,'화마다 “1화 · 제목” 머리말 넣기'),
+    info,
+    h('div',{class:'dlgrow'},h('button',{onclick:close},'취소'),h('button',{class:'on',onclick:go},'내보내기'))));
+  o.addEventListener('mousedown',e=>{if(e.target===o)close()});
+  document.addEventListener('keydown',key,true);
+  document.body.append(o);upd();a.focus();a.select();
+}
 function exportSheetsMd(){
   const L=['# 인물 · 설정','',`> 내보낸 날짜: ${new Date().toLocaleString()}`,''];
   S.characters.forEach(c=>{
