@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('noteApi',{
   openWork:id=>ipcRenderer.invoke('note:openWork',id),         // 다른 작품으로 바꾸기 (큰 창도 같이 바뀜)
   hide:()=>ipcRenderer.invoke('note:hide'),
   openMain:()=>ipcRenderer.invoke('note:openMain'),
+  quit:()=>ipcRenderer.invoke('note:quit'),                    // 앱 끄기 (쓰던 글은 먼저 저장)
+  moveTo:(x,y)=>ipcRenderer.send('note:moveTo',x,y),           // Alt+끌기로 창 옮기기
   onShown:fn=>ipcRenderer.on('note:shown',()=>fn()),
   onFlush:fn=>ipcRenderer.on('note:flush',()=>fn()),
 });
