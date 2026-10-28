@@ -27,8 +27,6 @@
 .kwrap{position:relative;flex:none}
 .kmir{display:none;position:absolute;left:0;top:0;right:0;bottom:0;margin:0;border:0;padding:6px 12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;overflow:hidden;pointer-events:none;color:var(--ink)}
 .kcard.board .kmir{padding:2px 14px 6px;font-size:1.04em;color:#1d1d1f}
-.kcard.board[data-stars="2"] .kmir{font-weight:560}
-.kcard.board[data-stars="3"] .kmir{font-weight:680}
 .hl-on .kmir{display:block}
 .hl-on .kwrap .ktext{position:relative;z-index:1;color:transparent!important;caret-color:var(--ink);scrollbar-width:none}
 .hl-on .kcard.board .kwrap .ktext{caret-color:#1d1d1f}

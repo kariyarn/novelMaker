@@ -1,7 +1,7 @@
 /* ---------- 가운데: 코르크보드 (무한 패닝 · 확대/축소 · 미니맵) ---------- */
-const boardMap=key=>key==='none'?S.noneBoard:(key==='all'?S.allBoard:(key==='work'?{}:charById(key).board));
+const boardMap=key=>key==='none'?S.noneBoard:(key==='all'?S.allBoard:(key==='grave'?S.graveBoard:(key==='work'?{}:charById(key).board)));
 const onBoard=()=>UI.mode==='story'||UI.mode==='all';
-const validSel=()=>UI.sel==='none'||UI.sel==='all'||!!charById(UI.sel);
+const validSel=()=>UI.sel==='none'||UI.sel==='all'||UI.sel==='grave'||!!charById(UI.sel);
 const CH=130;      // 높이 추정값 (실제 높이는 내용에 따라 측정)
 const noteW=()=>NOTE_W[(S.settings&&S.settings.noteWk)||'m']||300;      // 포스트잇 기본 너비
 const noteMinH=()=>NOTE_MINH[(S.settings&&S.settings.noteHk)||'s']||0;      // 포스트잇 기본 최소 높이

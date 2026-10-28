@@ -1,7 +1,8 @@
 /* ============ 단축키 ============ */
 document.addEventListener('keydown',e=>{
-  if(e.altKey&&!e.metaKey&&!e.ctrlKey&&/^Digit[1234]$/.test(e.code||'')&&onBoard()&&!$('modal').classList.contains('on')){      // ⌥1 · ⌥2 · ⌥3 · ⌥4: 보드에 보일 포스트잇 (전체 · 미사용 · 사용 · 폐기)
-    const a=document.activeElement;if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'&&!a.readOnly))){e.preventDefault();const k=['all','unused','used','disc'][+e.code.slice(5)-1];setSetting('useFilter',k);toast('보기: '+{all:'전체',unused:'미사용',used:'사용',disc:'폐기한 포스트잇'}[k]);return}
+  if(e.altKey&&!e.metaKey&&!e.ctrlKey&&/^Digit[1234]$/.test(e.code||'')&&onBoard()&&!$('modal').classList.contains('on')){      // ⌥1 · ⌥2 · ⌥3: 보드에 보일 포스트잇 (전체 · 미사용 · 사용) · ⌥4: 무덤 보드 열기 · 닫기
+    const a=document.activeElement;if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'&&!a.readOnly))){e.preventDefault();if(e.code==='Digit4'){if(UI.mode!=='story')UI.mode='story';setSel(UI.sel==='grave'?firstEntity():'grave');return}
+      const k=['all','unused','used'][+e.code.slice(5)-1];setSetting('useFilter',k);toast('보기: '+{all:'전체',unused:'미사용',used:'사용'}[k]);return}
   }
   if(e.altKey&&!e.metaKey&&!e.ctrlKey&&/^Key[FTRS]$/.test(e.code||'')&&onBoard()&&!$('modal').classList.contains('on')){      // ⌥F 맞춤 · ⌥T 정리 · ⌥R 랜덤 · ⌥S 스프레드
     const a=document.activeElement;if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'&&!a.readOnly))){e.preventDefault();const k=e.code.slice(3);

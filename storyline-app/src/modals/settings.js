@@ -99,6 +99,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       row('말 표시','따옴표 · 괄호 속 대사',seg([['off','끄기'],['inset','음각'],['raised','양각'],['bubble','말풍선']],s.hlStyle||'bubble',k=>setSetting('hlStyle',k))),
       (s.hlStyle||'bubble')==='bubble'?row('말풍선 세기','기본은 은은하게',seg([['1','은은하게'],['2','보통'],['3','뚜렷하게']],s.bubbleLv||'1',k=>setSetting('bubbleLv',k))):null,
       row('보드에 보일 포스트잇',null,seg([['all','전체'],['unused','미사용'],['used','사용']],useMode(),k=>setSetting('useFilter',k))),
+      row('카드 무덤','화나 보관 칸에 안 넣은 카드는 이 기간이 지나면 무덤으로 가요 · 3일 전부터 D-3 표시 · 별 붙인 카드는 안 가요',seg([['3','3일'],['7','7일'],['14','14일'],['30','30일'],['0','끄기']],String(graveDays()),k=>{setSetting('graveDays',+k);if(graveTick())save();renderAll()})),
       row('새 포스트잇 크기',null,h('span',{class:'muted'},'가로'),seg([['s','소'],['m','중'],['l','대']],s.noteWk||'m',k=>setSetting('noteWk',k)),h('span',{class:'muted'},'세로'),seg([['s','소'],['m','중'],['l','대']],s.noteHk||'s',k=>setSetting('noteHk',k))),
       ...more('write',
         h('div',{class:'srow'},h('div',{class:'sl'},'카드 분류 · 색 · 단축키',h('span',{class:'muted'},'⌘ + 키로 그 분류의 포스트잇을 바로 만들어요')),
@@ -127,7 +128,7 @@ function showTrash(){
     !S.trash.length?h('p',{class:'muted'},'비어 있어요.'):null,
     ...[...S.trash].reverse().map(t=>h('div',{class:'mrow'},
       h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
-      h('button',{onclick:()=>{act(()=>{if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else S.cards.unshift(t.data);S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
+      h('button',{onclick:()=>{act(()=>{if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
       h('button',{onclick:async()=>{if(await askConfirm('완전히 삭제할까요? 되돌릴 수 없어요.')){S.trash=S.trash.filter(x=>x!==t);save();renderTop();showTrash()}}},'✕'))),
     closeRow(S.trash.length?h('button',{style:'color:var(--warn)',onclick:async()=>{if(await askConfirm('휴지통을 모두 비울까요?')){S.trash=[];save();renderTop();showTrash()}}},'휴지통 비우기'):null));
 }

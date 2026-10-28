@@ -36,13 +36,13 @@ let lastRandCol=null;
 const randomCardColor=()=>{let c;do{c=CARD_PALETTE[Math.floor(Math.random()*CARD_PALETTE.length)]}while(c===lastRandCol);lastRandCol=c;return c};
 const RANDOM_BG='conic-gradient(#fff1a6,#ffc9d6,#d7c4ff,#bfe3ff,#b9ecd2,#fff1a6)';
 const newCard=(kind,text)=>{
-  const c={id:uid(),kind,text:text||'',chars:[],autoChars:[],offChars:[],stars:0,created:Date.now()};
+  const c={id:uid(),kind,text:text||'',chars:[],autoChars:[],offChars:[],created:Date.now()};c.clock=c.created;      // clock: 무덤 타이머 시작 (features/grave.js)
   const ks=(typeof S==='object'&&S&&S.kinds)||[],k=ks.find(x=>x.id===kind);
   if(k&&k.colorMode==='random')c.color=randomCardColor();
   return c;
 };
 const cardColor=c=>c.color||kindOf(c.kind).color;
-const stamp=c=>{c.updated=Date.now()};      // 수정일 (글 · 분류 · 인물 연결 · 별점을 고칠 때)
+const stamp=c=>{c.updated=Date.now()};      // 수정일 (글 · 분류 · 인물 연결 · 별을 고칠 때)
 const newEp=()=>({id:uid(),title:'',memo:'',cardIds:[]});
 
 function seed(){
@@ -71,7 +71,7 @@ function seed(){
     ['memo','하린은 사람들이 돈이 아닌 자신을 봐 주길 바라지만 정작 먼저 돈 얘기를 한다.',1],
     ['scene','도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.',3],
     ['memo','아비투스가 부딪히는 순간 찾기: 같은 물건(우산, 도시락)을 두 사람이 서로 다르게 쓰는 장면',0]];
-  const cards=T.map(([k,t,s])=>{const c=newCard(k,t);c.stars=s;return c});
+  const cards=T.map(([k,t,s])=>{const c=newCard(k,t);if(s>=3)c.star=true;return c});
   const eps=Array.from({length:12},newEp);
   eps[0].title='새벽의 접촉사고';eps[1].title='반지하';eps[2].title='봉투';
   eps[0].memo='둘의 아비투스가 처음 충돌';

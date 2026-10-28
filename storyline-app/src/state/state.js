@@ -41,13 +41,18 @@ function migrate(st){
   st.characters.forEach(c=>{c.aliases=c.aliases||[];c.kind=c.kind||'char';if(c.kind==='char'){c.longGoal=c.longGoal||'';c.goals=Array.isArray(c.goals)?c.goals:[]}c.fields=c.fields||(c.kind==='setting'?[]:defFields());if(c.kind==='setting'&&c.memo===undefined)c.memo='';c.relations=c.relations||[];c.board=c.board||{};c.color=c.color||PAL[0]});
   st.characters.forEach(c=>c.relations.forEach(r=>{if(r.type&&!Array.isArray(r.types))r.types=[r.type];delete r.type}));      // 관계: 하나(type) → 여러 개(types)
   st.relTags=Array.isArray(st.relTags)?st.relTags.filter(t=>t&&t.k&&t.l):[];      // 직접 만든 관계 종류
-  st.cards.forEach(c=>{c.chars=c.chars||[];c.autoChars=c.autoChars||[];c.offChars=c.offChars||[];c.stars=c.stars||0;
-    if(c.branches!==undefined){c.branches=(Array.isArray(c.branches)?c.branches:[]).filter(b=>b&&b.id).map(b=>Object.assign({text:'',stars:0,chars:[],offChars:[]},b));if(!c.branches.length)delete c.branches}});      // 갈래 (branches.js)
+  // 별점(0~3) → 별 하나(꼭 쓸 것): 별 3개였던 카드만 별 · 쓸 시기(지금 · 곧 · 나중)는 없앰 (카드 무덤이 대신함, features/grave.js)
+  const oldMarks=c=>{if(!c)return;if(c.stars!==undefined){if(c.stars>=3)c.star=true;delete c.stars}if(c.star!==true)delete c.star;delete c.when;delete c.whenAt};
+  st.cards.forEach(c=>{c.chars=c.chars||[];c.autoChars=c.autoChars||[];c.offChars=c.offChars||[];oldMarks(c);
+    if(c.branches!==undefined){c.branches=(Array.isArray(c.branches)?c.branches:[]).filter(b=>b&&b.id).map(b=>{oldMarks(b);return Object.assign({text:'',chars:[],offChars:[]},b)});if(!c.branches.length)delete c.branches}});      // 갈래 (branches.js)
+  st.trash.forEach(t=>{if(t&&t.type==='card')oldMarks(t.data)});
+  st.graveBoard=st.graveBoard||{};      // 무덤 보드의 포스트잇 자리
+  if(st.settings.useFilter==='disc')st.settings.useFilter='unused';      // 예전 보기 '폐기만'은 무덤 보드로 바뀜
   return st;
 }
 let S,UIP={};
 // 앱 전체 취향(작품을 바꿔도 그대로): 화면 · 글꼴 · 핀 · 줄 · 말 강조 · 패널 너비. 나머지는 작품마다 따로 저장
-const GLOBAL_SET=['theme','font','family','hlStyle','hlTouched','pinColor','stringStyle','stringW','stringColor','showStrings','boardPat','boardBg','noteWk','noteHk','noteShape','bubbleLv','bubbleShape','pinAlways'];
+const GLOBAL_SET=['graveDays','theme','font','family','hlStyle','hlTouched','pinColor','stringStyle','stringW','stringColor','showStrings','boardPat','boardBg','noteWk','noteHk','noteShape','bubbleLv','bubbleShape','pinAlways'];
 
 const GLOBAL_UI=['sw','rw','rwl','rwr','tlw','tll','cl','mm','ps','pc','toured','mfs','zenOp','zenFs'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o&&o[k]!==undefined)r[k]=o[k]});return r};

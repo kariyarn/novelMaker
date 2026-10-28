@@ -1,17 +1,17 @@
 /* ---------- 갈래: 비슷한 카드를 따로 두지 않고 한 카드의 갈래로 모아서, 한 줄 보기에서 나란히 비교 ----------
-   본선은 카드 자신(card.text …), 갈래는 card.branches=[{id,text,stars,chars,offChars,created,updated,note}]
+   본선은 카드 자신(card.text …), 갈래는 card.branches=[{id,text,star,chars,offChars,created,updated,note}]
    갈래는 지우기 전까지 남음: 이걸로(본선과 자리 바꾸기) · 합치기(합친 글이 본선, 원래 본선은 갈래로) · 떼어내기(오른쪽 목록으로) · ✕(휴지통)
    원고 복사 · 내보내기 · 검색은 본선만 봄 */
 let BRDRAG=null;      // 끌고 있는 갈래 {card,bid} — 카드 끌기(DRAG)와 따로 두어서 화 · 보관 칸 · 보드에는 놓이지 않게
 const brs=c=>c&&Array.isArray(c.branches)?c.branches:[];
-const BR_F=['text','stars','chars','offChars','created','updated'];
-const brCopy=(from,to)=>{BR_F.forEach(k=>{const v=from[k];if(v!==undefined)to[k]=Array.isArray(v)?v.slice():v});return to};
+const BR_F=['text','star','chars','offChars','created','updated'];
+const brCopy=(from,to)=>{BR_F.forEach(k=>{const v=from[k];if(v!==undefined)to[k]=Array.isArray(v)?v.slice():v;else if(k==='star')delete to[k]});return to};      // 별은 없으면 지움 (본선 ↔ 갈래 바꿀 때 남지 않게)
 const brSnap=c=>brCopy(c,{id:uid()});
 const brPrune=c=>{if(c&&Array.isArray(c.branches)&&!c.branches.length)delete c.branches};
 const brFind=(id,bid)=>{const c=cardById(id),b=brs(c).find(x=>x.id===bid);return c&&b?{c,b}:null};
 /* 갈래 → 따로 된 카드 (떼어내기 · 휴지통): 분류 · 색은 본선 카드를 따름 */
 function brToCard(c,b){
-  const n=newCard(c.kind,b.text||'');n.stars=b.stars||0;n.chars=(b.chars||[]).slice();n.offChars=(b.offChars||[]).slice();
+  const n=newCard(c.kind,b.text||'');if(b.star)n.star=true;n.chars=(b.chars||[]).slice();n.offChars=(b.offChars||[]).slice();
   n.created=b.created||Date.now();if(b.updated)n.updated=b.updated;if(c.color)n.color=c.color;autoLinkCard(n);return n;
 }
 /* 갈래에 보이는 인물: 직접 연결 + 글에 이름이 있는 인물 (뺀 인물 제외) */
@@ -74,7 +74,7 @@ function brMerge(id,bid){
   const ta=h('textarea',{class:'brmt',spellcheck:false},c.text||'');
   const ins=s=>{const a=ta.selectionStart,e=ta.selectionEnd,v=ta.value,pre=v.slice(0,a),sep=pre&&!/\s$/.test(pre)?' ':'';ta.value=pre+sep+s+v.slice(e);const p=(pre+sep+s).length;ta.focus();ta.setSelectionRange(p,p)};
   const col=(lab,cls,t)=>h('div',{class:'brmcol'},h('div',{class:'brmh'},h('span',{class:cls},lab)),...brSplit(t).map(s=>h('button',{class:'brms',title:'눌러서 합친 글의 커서 자리에 넣기',onclick:e=>{ins(s);e.currentTarget.classList.add('used')}},s)));
-  const chars=[...new Set([...eff(c),...brChars(b)])].map(charById).filter(Boolean),stars=Math.max(c.stars||0,b.stars||0);
+  const chars=[...new Set([...eff(c),...brChars(b)])].map(charById).filter(Boolean),star=!!(c.star||b.star);
   const o=h('div',{class:'dlg brmerge',role:'dialog','aria-modal':'true'});
   const close=()=>{o.remove();document.removeEventListener('keydown',key,true)};
   const key=e=>{if(e.key==='Escape'&&!e.isComposing){e.preventDefault();e.stopPropagation();close()}};
@@ -82,14 +82,14 @@ function brMerge(id,bid){
     act(()=>{const y=brFind(id,bid);if(!y)return;const {c,b}=y;
       if(t&&t!==(c.text||'').trim()){const old=brSnap(c);old.note='이전 본선';c.branches.unshift(old);c.text=t}
       brChars(b).forEach(cid=>{if(!eff(c).includes(cid)&&!c.chars.includes(cid))c.chars.push(cid)});c.offChars=c.offChars.filter(cid=>!c.chars.includes(cid));
-      c.stars=Math.max(c.stars||0,b.stars||0);stamp(c);autoLinkCard(c)});
+      if(b.star)c.star=true;stamp(c);autoLinkCard(c)});
     toast('합친 글을 본선으로 · 원래 본선과 갈래는 그대로 남겨 뒀어요',{undo:true})};
   o.append(h('div',{class:'dlgbox brmbox'},
     h('div',{class:'brmt0'},'갈래 합치기'),
     h('div',{class:'muted'},'갈래 쪽 문장을 누르면 아래 합친 글의 커서 자리에 들어가요. 확정하면 합친 글이 본선이 되고, 원래 본선과 갈래는 갈래로 그대로 남아요.'),
     h('div',{class:'brmcols'},col('본선','brlbl main',c.text),col(`갈래 ${c.branches.indexOf(b)+2}`,'brlbl',b.text)),
     h('div',{class:'brmh'},'합친 글 (본선이 돼요)'),ta,
-    h('div',{class:'brmmeta muted'},'인물 연결: ',...chars.map(ch=>h('span',{class:'kchip',style:`--cc:${ch.color}`},ch.name)),` · 별점은 큰 쪽 ${'★'.repeat(stars)||'없음'}`),
+    h('div',{class:'brmmeta muted'},'인물 연결: ',...chars.map(ch=>h('span',{class:'kchip',style:`--cc:${ch.color}`},ch.name)),` · 별 ${star?'★ (한쪽이라도 붙었으면)':'없음'}`),
     h('div',{class:'dlgrow'},h('button',{onclick:close},'취소'),h('button',{class:'on',onclick:ok},'합쳐서 본선으로'))));
   o.addEventListener('mousedown',e=>{if(e.target===o)close()});
   document.addEventListener('keydown',key,true);document.body.append(o);
@@ -98,7 +98,7 @@ function brMerge(id,bid){
 
 /* ---- 그리기 ---- */
 function brCard(card,b,i){
-  const el=h('div',{class:'kcard tl brcard','data-bid':b.id,'data-stars':b.stars||0,style:`--kc0:${cardColor(card)}`});
+  const el=h('div',{class:'kcard tl brcard','data-bid':b.id,'data-stars':b.star?1:0,style:`--kc0:${cardColor(card)}`});
   const ta=h('textarea',{class:'ktext autofit',rows:1,readonly:true,placeholder:'더블클릭해서 쓰기',
     oninput:e=>{edit(()=>{b.text=e.target.value;b.updated=Date.now()});fitOne(e.target)}},b.text||'');
   const mir=h('div',{class:'kmir','aria-hidden':'true'});hlFill(mir,b.text||'');
@@ -107,7 +107,7 @@ function brCard(card,b,i){
   ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true});
   const foot=()=>h('div',{class:'kfoot'},...brChars(b).map(id=>{const ch=charById(id);return h('span',{class:'kchip'+((b.chars||[]).includes(id)?'':' auto'),style:`--cc:${ch.color}`},ch.name)}));
   ta.addEventListener('change',()=>{const f=el.querySelector('.kfoot');if(f)f.replaceWith(foot())});      // 글을 다 고치면 이름 자동 연결을 다시
-  const st=h('span',{class:'stars',title:'쓰고 싶은 정도 (다시 누르면 해제)'},...[1,2,3].map(n=>h('span',{onclick:()=>act(()=>{const y=brFind(card.id,b.id);if(y)y.b.stars=y.b.stars===n?0:n})},(b.stars||0)>=n?'★':'☆')));
+  const st=starsEl(b,()=>act(()=>{const y=brFind(card.id,b.id);if(!y)return;if(y.b.star)delete y.b.star;else y.b.star=true}));
   el.append(
     h('div',{class:'khead'},h('span',{class:'grip',title:'끌어서 오른쪽 목록에 놓으면 떼어내기 · 다른 카드 가운데에 놓으면 그 카드의 갈래로'},'⠿'),
       h('span',{class:'brlbl'},`갈래 ${i+2}`+(b.note?' · '+b.note:'')),st,h('span',{class:'sp'}),

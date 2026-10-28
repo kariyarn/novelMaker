@@ -12,7 +12,7 @@ function onSyncResult(r){
   const touched=r.pulled.some(mine)||r.pulled.includes('prefs.json')||(r.merged||[]).some(mine);
   if(touched){      // 이 작품을 다른 기기에서 고쳤거나 합쳤음: 다시 읽음 (그사이 여기서 쓴 게 있으면 먼저 저장 → 저장소 쪽에서 받은 글과 합쳐짐)
     if(saveT)flushWork();
-    const sel=UI.sel,mode=UI.mode;initWork();resetHistory();UI.mode=mode;UI.sel=sel;fixSel();applySettings();
+    const sel=UI.sel,mode=UI.mode;initWork();if(graveTick())save();resetHistory();UI.mode=mode;UI.sel=sel;fixSel();applySettings();
   }
   if(touched||r.pulled.length||(r.merged||[]).length){afterWorkChange();renderAll()}      // 받은 게 없으면 화면을 다시 그리지 않음 (쓰던 글 · 열린 칸이 닫히지 않게)
   syncBar(null);      // 받았으니 알림 띠는 닫음

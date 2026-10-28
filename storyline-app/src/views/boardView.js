@@ -2,28 +2,29 @@
 function renderBoard(m){
   if(UI.sel==='work'&&UI.mode==='story')return renderWorkBoard(m);
   const key=UI.sel,c=charById(key),cards=boardCards(key),hidden=usedHidden(key);
-  const name=key==='all'?'전체 코르크보드':(key==='none'?'미분류':(c?c.name:''));
-  const full=document.body.classList.contains('full'),uf=useMode(),asList=uf==='used'&&!UI.usedAsBoard;      // 사용 카드는 정리 목록으로 (가볍고 한눈에)
+  const name=key==='all'?'전체 코르크보드':(key==='none'?'미분류':key==='grave'?'무덤':(c?c.name:''));
+  const full=document.body.classList.contains('full'),uf=useMode(),asList=uf==='used'&&!UI.usedAsBoard&&key!=='grave';      // 사용 카드는 정리 목록으로 (가볍고 한눈에)
   const trig=(label,items,title)=>{const b=h('button',{class:'menubtn','data-pop':'1',title,onclick:()=>popMenu(b,items())},label,h('span',{class:'caret'},'▾'));return b};
   const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')+(UI.bdef&&!asList?' bdef':'')}),world=h('div',{class:'bworld'});
   view.append(world);m.append(view);
   // 왼쪽 위: 보드 이름 · 장수 (목표 알약도 여기에)
-  const RO=UI.mode==='all',on=kindsOn();
-  const bhead=UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null);
+  const RO=UI.mode==='all',GR=key==='grave',on=kindsOn();      // GR: 무덤 보드 (새로 만들지 않음)
+  const bhead=UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null,
+    GR&&cards.length?h('button',{class:'quiet gvall',title:'무덤 카드를 모두 오른쪽 목록으로 (타이머는 처음부터)',onclick:()=>reviveCards(cards.map(x=>x.id))},'모두 되살리기'):null);
   view.append(bhead);
   { const gs=m.querySelector('.goalstrip.mini');if(gs)bhead.append(gs); }
   // 아래 가운데: 도구 독 (새 포스트잇 · 보기 · 배치 · 배율 · 꾸미기)
   const pop=(b,items)=>popMenu(b,items);
   const dbtn=(ic,label,title,fn,cls)=>{const b=h('button',{class:'dk-b'+(cls?' '+cls:''),'data-pop':'1',title,onclick:()=>fn(b)},icon(ic),label?h('span',{},label):null);return b};
-  const ufLabel={all:'전체',unused:'미사용',used:'사용',disc:'폐기'}[uf];
+  const ufLabel={all:'전체',unused:'미사용',used:'사용'}[uf]||'미사용';
   const viewLabel=ufLabel+(on.length?` · ${on.map(id=>kindOf(id).name).join('·')}`:'');
   const dock=h('div',{class:'bdock'},
-    RO?null:dbtn('zen','집중','집중 모드 — 포스트잇 한 장씩 크게 (⌥Z)',()=>zenOpen(),'dk-zen'),
-    RO?null:dbtn('plusc','새 포스트잇','새 포스트잇 (빈 곳 더블클릭 · ⌘N)',b=>pop(b,[{title:'새 포스트잇'},...S.kinds.map(k=>({label:k.name,sw:k.colorMode==='random'?RANDOM_BG:k.color,hint:k.key?hk(k.key):'',fn:()=>addBoardCard(k.id)}))]),'dk-new'),
-    dbtn('eye',viewLabel,'보이는 포스트잇 고르기 (사용 여부 · 분류)',b=>pop(b,()=>[{title:'보이는 포스트잇'},...[['all','전체','⌥1'],['unused','미사용 (타임라인에 안 쓴 것)','⌥2'],['used','사용','⌥3']].map(([k,n,hk2])=>({label:n,hint:hk2,on:useMode()===k,keep:true,fn:()=>setSetting('useFilter',k)})),
-      'sep',{label:'폐기한 포스트잇만 모아 보기',hint:'⌥4',on:useMode()==='disc',keep:true,fn:()=>setSetting('useFilter',useMode()==='disc'?'unused':'disc')},
-      'sep',{label:'핀 꽂은 카드는 사용했어도 계속 보이기',on:!!S.settings.pinAlways,keep:true,fn:()=>setSetting('pinAlways',!S.settings.pinAlways)},
-      'sep',{title:'분류 (여러 개 함께)'},...S.kinds.map(k=>({label:k.name,sw:k.colorMode==='random'?RANDOM_BG:k.color,on:!kindsOn().length||kindsOn().includes(k.id),keep:true,fn:()=>toggleKind(k.id)}))]),(uf!=='all'||on.length)?'dk-on':''),
+    RO||GR?null:dbtn('zen','집중','집중 모드 — 포스트잇 한 장씩 크게 (⌥Z)',()=>zenOpen(),'dk-zen'),
+    RO||GR?null:dbtn('plusc','새 포스트잇','새 포스트잇 (빈 곳 더블클릭 · ⌘N)',b=>pop(b,[{title:'새 포스트잇'},...S.kinds.map(k=>({label:k.name,sw:k.colorMode==='random'?RANDOM_BG:k.color,hint:k.key?hk(k.key):'',fn:()=>addBoardCard(k.id)}))]),'dk-new'),
+    dbtn('eye',GR?(on.length?on.map(id=>kindOf(id).name).join('·'):'전체'):viewLabel,'보이는 포스트잇 고르기 (사용 여부 · 분류)',b=>pop(b,()=>[...(GR?[]:[{title:'보이는 포스트잇'},...[['all','전체','⌥1'],['unused','미사용 (타임라인에 안 쓴 것)','⌥2'],['used','사용','⌥3']].map(([k,n,hk2])=>({label:n,hint:hk2,on:useMode()===k,keep:true,fn:()=>setSetting('useFilter',k)}))]),
+      ...(GR?[]:['sep']),{label:GR?'무덤 닫기':'무덤 보기',hint:'⌥4',fn:()=>setSel(GR?firstEntity():'grave')},
+      ...(GR?[]:['sep',{label:'핀 꽂은 카드는 사용했어도 계속 보이기',on:!!S.settings.pinAlways,keep:true,fn:()=>setSetting('pinAlways',!S.settings.pinAlways)}]),
+      'sep',{title:'분류 (여러 개 함께)'},...S.kinds.map(k=>({label:k.name,sw:k.colorMode==='random'?RANDOM_BG:k.color,on:!kindsOn().length||kindsOn().includes(k.id),keep:true,fn:()=>toggleKind(k.id)}))]),(GR?on.length:(uf!=='all'||on.length))?'dk-on':''),
     asList?null:dbtn('grid','배치','카드 배치 바꾸기',b=>pop(b,[{title:'배치 (원점 기준)'},{label:'맞춤 — 모두 한눈에',hint:'⌥F',fn:()=>fitView(key,true)},{label:'정리 — 격자로 가지런히',hint:'⌥T',fn:tidyBoard},{label:'랜덤 — 중앙 근처에 흩기',hint:'⌥R',fn:()=>scatterBoard('random')},{label:'스프레드 — 겹치지 않게 펼치기',hint:'⌥S',fn:()=>scatterBoard('spread')}])),
     h('span',{class:'dk-sep'}),
     asList?null:h('span',{class:'dk-zoom'},
@@ -58,7 +59,7 @@ function renderBoard(m){
     anchor.remove();
   });
   world.append(strings);
-  if(!cards.length)view.append(h('div',{class:'bempty'},uf==='disc'?'폐기한 포스트잇이 없어요.':key==='none'?'미분류 카드가 없어요.':(key==='all'?'아직 포스트잇이 없어요.':'아직 카드가 없어요.'),h('br'),'빈 곳을 더블클릭하거나 ⌘N, 또는 오른쪽 목록의 카드를 끌어다 놓으세요.',h('br'),UI.mode==='all'?null:h('button',{class:'on',style:'pointer-events:auto;margin-top:12px',onclick:()=>newNoteShortcut()},'＋ 새 포스트잇')));
+  if(!cards.length)view.append(h('div',{class:'bempty'},key==='grave'?'무덤이 비었어요.':key==='none'?'미분류 카드가 없어요.':(key==='all'?'아직 포스트잇이 없어요.':'아직 카드가 없어요.'),h('br'),GR?'화나 보관 칸에 안 넣고 기한이 지난 카드 · 폐기한 카드가 여기 모여요.':'빈 곳을 더블클릭하거나 ⌘N, 또는 오른쪽 목록의 카드를 끌어다 놓으세요.',h('br'),UI.mode==='all'||GR?null:h('button',{class:'on',style:'pointer-events:auto;margin-top:12px',onclick:()=>newNoteShortcut()},'＋ 새 포스트잇')));
   const mm=h('div',{class:'minimap'});view.append(mm);bindMinimap(mm);
   if(UI.mode==='all')view.classList.add('ro');
   view.append(h('button',{class:'bfull','data-pop':'1',title:full?'전체 화면 끝내기 (Esc)':'전체 화면 — 패널을 치우고 크게 (⌘.)',onclick:()=>setFull(!full)},icon(full?'shrink':'expand')));
@@ -73,7 +74,7 @@ function renderBoard(m){
   });
   view.addEventListener('dblclick',e=>{
     if(e.target!==view&&e.target!==world)return;
-    if(UI.mode==='all')return;      // 전체 보기는 보기 전용
+    if(UI.mode==='all'||key==='grave')return;      // 전체 보기는 보기 전용 · 무덤에는 새로 만들지 않음
     const r=view.getBoundingClientRect(),v=getView(key);
     addBoardCard(kindOf(quickKind()).id,(e.clientX-r.left-v.x)/v.k,(e.clientY-r.top-v.y)/v.k);
   });
@@ -92,6 +93,7 @@ function renderBoard(m){
     const card=cardById(DRAG.id);DRAG=null;if(!card)return;
     const r=view.getBoundingClientRect(),v=getView(key),wx=(e.clientX-r.left-v.x)/v.k,wy=(e.clientY-r.top-v.y)/v.k;
     if(key==='none'&&eff(card).length)return toast('이미 인물에 연결된 카드예요. 인물 보드로 옮겨 주세요');
+    if(key==='grave'){if(!card.discarded){buryCards([card.id]);toast('무덤으로 보냈어요',{undo:true})}return}      // 무덤 보드에 놓으면 무덤으로
     act(()=>{if(key!=='none'&&key!=='all'&&!eff(card).includes(key)){card.chars.push(key);card.offChars=card.offChars.filter(x=>x!==key)}
       const B=boardMap(key),old=B[card.id]||{};B[card.id]={x:Math.round(wx-(old.w||noteW())/2),y:Math.round(wy-20),w:old.w||noteW(),h:old.h||CH,z:++S.z}});
   });
@@ -117,6 +119,7 @@ function reflowAll(){
 }
 function addBoardCard(kindId,wx,wy){
   if(UI.mode==='all')return toast('전체 보기에서는 만들 수 없어요 — 인물 보드나 오른쪽 목록에서 만들어 주세요');
+  if(UI.sel==='grave')return toast('무덤에는 새로 만들 수 없어요 — 인물 보드나 오른쪽 목록에서 만들어 주세요');
   ensureKindVisible(kindId);
   const key=UI.sel,v=getView(key),{W,H}=viewSize(),w=noteW();
   let moveTo=null;

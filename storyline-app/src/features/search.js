@@ -33,7 +33,8 @@ function goToCard(id){      // 카드가 있는 보드로 가서 보여줌 (필�
   UI.folderView=null;
   if(!(onBoard()&&validSel()&&cardsOf(UI.sel).some(x=>x.id===id))){
     if(UI.mode==='tl')UI.mode='story';
-    const ids=eff(c);UI.sel=ids[0]||'none';sheetFor(UI.sel);saveUIP();
+    const ids=eff(c);UI.sel=c.discarded?'grave':(ids[0]||'none');      // 무덤 카드는 무덤 보드에서
+   sheetFor(UI.sel);saveUIP();
   }
   if(onBoard()&&!boardCards(UI.sel).some(x=>x.id===id)){S.settings.useFilter='all';S.settings.kindFilter=[];toast('보기를 “전체”로 바꿨어요')}
   UI.pused='all';renderAll();setTimeout(()=>revealCard(id),60);

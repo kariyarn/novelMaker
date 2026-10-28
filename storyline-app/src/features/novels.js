@@ -6,7 +6,7 @@ const shortDate=t=>{const d=new Date(t||Date.now());return `${d.getMonth()+1}/${
 function afterWorkChange(){refreshLib();document.title=`${workName()} — 캐릭터 스토리라인`}
 function flushWork(){cancelPendingSave();if(UI.noSave)return;saveNow();saveUIPNow()}      // 작품을 바꾸기 전: 동기로 바로 저장
 function enterWork(opts){
-  initWork(opts);resetUI();resetHistory();
+  initWork(opts);if(graveTick())save();resetUI();resetHistory();
   afterWorkChange();renderAll();
   if(pendingConflicts().length)setTimeout(showSyncConflicts,300);      // 다른 기기와 다르게 고친 글이 남아 있으면 고르게
 }

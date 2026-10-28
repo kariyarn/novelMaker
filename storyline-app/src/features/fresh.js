@@ -22,16 +22,16 @@ function frCard(el,card,bar){
   const row=h('div',{class:'frrow'},frCast(eff(card)));
   const bb=bar.querySelector('.brbadge');if(bb)row.append(bb);
   el.insertBefore(row,el.querySelector('.kfoot'));
-  // 도구: 휴지통 대신 ↩ 빼기 · 폐기
+  // 도구: 휴지통 대신 ↩ 빼기 · 폐기(무덤으로)
   const x=bar.querySelector(':scope>.x');
   const tools=[h('button',{class:'frbk',title:'오른쪽 목록으로 돌려놓기',onclick:e=>{e.stopPropagation();unplaceCard(card.id);toast('오른쪽 목록으로 돌려놨어요',{undo:true})}},'↩',h('span',{class:'frlb'},' 빼기')),
-    h('button',{class:'frdc',title:'폐기 — 지우지 않고 치워 둬요 · 구상 보드 ▸ 폐기(⌥4)에서 되살릴 수 있어요',onclick:e=>{e.stopPropagation();frDiscard(card.id)}},'폐기')];
+    h('button',{class:'frdc',title:'폐기 — 지우지 않고 무덤으로 보내요 · 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',onclick:e=>{e.stopPropagation();frDiscard(card.id)}},'폐기')];
   if(x)x.replaceWith(...tools);else bar.append(...tools);
 }
 function frDiscard(id){
   const c=cardById(id);if(!c)return;
   const el=document.querySelector(`#mid .kcard[data-id="${id}"]`);
-  const go=()=>{act(()=>{stamp(c);c.discarded=true;detach([id])});toast('폐기했어요 · 구상 보드 ▸ 폐기(⌥4)에서 되살릴 수 있어요',{undo:true})};
+  const go=()=>{buryCards([id]);toast('무덤으로 보냈어요 · 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true})};
   if(el&&!matchMedia('(prefers-reduced-motion: reduce)').matches){el.classList.add('frout');setTimeout(go,380)}else go();      // 붉은 X가 그어지며 작아져 사라짐
 }
 
@@ -224,7 +224,7 @@ function frMapDraw(first){
   const txt=(val,save)=>{const ta=h('textarea',{class:'frnt autofit',rows:1,readonly:true,spellcheck:false,title:'두 번 눌러 고치기',oninput:e=>{edit(()=>save(e.target.value));fitOne(e.target)}},val||'');
     ta.addEventListener('dblclick',()=>{ta.readOnly=false;ta.focus()});ta.addEventListener('blur',()=>{ta.readOnly=true});return ta};
   const mainN=h('div',{class:'frn main',style:`left:${cx}px;top:${cy}px`},
-    h('div',{class:'frtag'},'본선',h('span',{class:'st'},'★'.repeat(c.stars||0))),
+    h('div',{class:'frtag'},'본선',h('span',{class:'st'},c.star?'★':'')),
     txt(c.text,v=>{c.text=v;stamp(c)}),frCast(eff(c)));
   const live=L.filter(b=>!b.discarded).length;
   o.append(h('header',{},h('b',{},'갈래 지도'),h('span',{},`${pl?`${pl.i+1}화${pl.ep.title?' · '+pl.ep.title:''} · `:''}갈래 ${live}개${live<L.length?` · 폐기 ${L.length-live}`:''}`),
@@ -272,7 +272,7 @@ const frRot=id=>{let x=0;for(const ch of String(id))x=(x*31+ch.charCodeAt(0))>>>
 function frDefLayer(card){      // 보드 포스트잇 안에 넣어 두는 모양 층 (작게 보기에서만 보임)
   return h('div',{class:'kdf','aria-hidden':'true'},...Array.from({length:frBars(card.text)},()=>h('i')),
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).map(c=>h('b',{style:`--c:${c.color}`}))),
-    h('span',{class:'ds'},...Array.from({length:card.stars||0},()=>h('b'))));
+    h('span',{class:'ds'},card.star?h('b'):null));
 }
 const frDefOn=()=>onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
 function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준에서, 키울 땐 12% 더 커져야 돌아옴 (경계에서 깜빡이지 않게)
@@ -294,7 +294,7 @@ function frPeek(card,r,prefer){
   if(FRFL)return;let p=document.querySelector('.frpk:not(.open)');
   if(!p){p=h('div',{class:'frpk','aria-hidden':'true'});document.body.append(p)}
   const k=kindOf(card.kind);p.style.setProperty('--bg',cardColor(card));p.innerHTML='';
-  p.append(h('small',{},h('span',{},k.name),h('span',{class:'s'},'★'.repeat(card.stars||0))),h('p',{},card.text||'(빈 포스트잇)'),
+  p.append(h('small',{},h('span',{},k.name),h('span',{class:'s'},card.star?'★':''),card.discarded?h('span',{class:'dday gone'},'무덤'):ddayEl(card)),h('p',{},card.text||'(빈 포스트잇)'),
     h('div',{class:'who'},...eff(card).map(charById).filter(Boolean).map(c=>h('span',{},h('i',{style:`--c:${c.color}`}),c.name))));
   frPlace(p,r,prefer);requestAnimationFrame(()=>{frPlace(p,r,prefer);p.classList.add('on')});
 }
@@ -316,7 +316,7 @@ function frOpen(id,prefer){
 function frFloatFill(){      // 분류 · 별 · 지우기 · 인물 줄 (데이터가 바뀌면 다시 채움, 글 칸은 그대로라 쓰던 자리 유지)
   if(!FRFL)return;const card=cardById(FRFL.id);if(!card)return frClose(true);
   FRFL.el.style.setProperty('--bg',cardColor(card));
-  FRFL.head.replaceChildren(...[kindSelect(card),starsEl(card),h('span',{class:'sp'}),episodeOf(card.id)?null:whenEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕')].filter(Boolean));
+  FRFL.head.replaceChildren(...[kindSelect(card),starsEl(card),h('span',{class:'sp'}),card.discarded?reviveBtn(card):ddayEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕')].filter(Boolean));
   FRFL.foot.replaceChildren(footEl(card));
 }
 onStateChange(()=>{if(FRFL)frFloatFill()});
@@ -339,8 +339,8 @@ function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 �
 /* ---------- 오른쪽 목록: 같은 모양의 작은 포스트잇 아이콘 ---------- */
 const frIcons=()=>UIP.pico!==false;
 function frIcon(card){
-  const used=episodeOf(card.id);
-  const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,'data-w':!used&&card.when||'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},
+  const used=episodeOf(card.id),dd=graveLeft(card);
+  const el=h('div',{class:'frico'+(used?' used':'')+(dd?' wilt':'')+(card.discarded?' gone':''),'data-id':card.id,'data-dd':dd?'D-'+dd:'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:dd?`${dd}일 뒤 무덤으로 — 화나 보관 칸에 넣거나 별을 붙이면 안 가요`:card.discarded?'무덤 — 눌러서 되살리기':''},
     ...Array.from({length:Math.min(3,frBars(card.text))},()=>h('i')),
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).slice(0,4).map(c=>h('b',{style:`--c:${c.color}`}))));
   el.addEventListener('mouseenter',()=>{if(!DRAG)frPeek(card,el.getBoundingClientRect(),'left')});

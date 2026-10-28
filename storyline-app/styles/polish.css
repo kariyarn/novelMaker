@@ -185,13 +185,7 @@ kbd{font:inherit;font-size:.74em;opacity:.55;margin-left:7px;letter-spacing:0}
 .kcard.board .placed.use{background:#e5484d;color:#fff}
 /* 별표가 많을수록 강조 */
 .kcard[data-stars="1"].pool,.kcard[data-stars="1"].tl{box-shadow:inset 3px 0 0 rgba(240,166,10,.8)}
-.kcard[data-stars="2"].pool,.kcard[data-stars="2"].tl{box-shadow:inset 4px 0 0 #f0a60a,0 2px 10px rgba(240,166,10,.2)}
-.kcard[data-stars="3"].pool,.kcard[data-stars="3"].tl{box-shadow:inset 6px 0 0 #f0a60a,0 4px 18px rgba(240,166,10,.38);background:linear-gradient(90deg,rgba(240,166,10,.1),transparent 60%),var(--card)}
 .kcard.board[data-stars="1"]{box-shadow:0 0 0 1.5px rgba(232,160,20,.75),0 10px 18px -10px rgba(0,0,0,.35)}
-.kcard.board[data-stars="2"]{box-shadow:0 0 0 2.5px rgba(232,160,20,.95),0 0 16px rgba(240,170,20,.45),0 10px 18px -10px rgba(0,0,0,.35)}
-.kcard.board[data-stars="3"]{box-shadow:0 0 0 3.5px #f0a60a,0 0 30px 3px rgba(255,180,20,.7),0 12px 22px -10px rgba(0,0,0,.4)}
-.kcard.board[data-stars="2"] .ktext{font-weight:560}
-.kcard.board[data-stars="3"] .ktext{font-weight:680}
 .kcard.board:not([data-stars="0"])::before{content:attr(data-sl);position:absolute;top:6px;right:9px;font-size:.8em;color:#c98100;letter-spacing:1px;z-index:1;pointer-events:none;transition:opacity .15s}
 .kcard.board:hover::before,.kcard.board.editing::before{opacity:0}
 .kcard.board.editing[data-stars]{box-shadow:0 0 0 3px rgba(0,113,227,.6),0 14px 24px -10px rgba(0,0,0,.4)}

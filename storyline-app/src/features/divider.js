@@ -19,7 +19,7 @@ function zenDraw(){
   const side=(cc,dir)=>cc?h('div',{class:'zside '+(dir<0?'zl':'zr'),title:dir<0?'이전 카드 (⌥←)':'다음 카드 (⌥→)',style:`--kc0:${cardColor(cc)}`,onclick:()=>zenGo(i+dir)},h('div',{class:'zst'},(cc.text||'').replace(/\n{2,}/g,'\n').trim()||'(빈 카드)')):h('div',{class:'zside zghost '+(dir<0?'zl':'zr')},dir>0?h('div',{class:'zgh',onclick:()=>zenNew()},'＋ 새 카드',h('small',{},'⌘N')):null);
   const k=kindOf(c.kind),names=eff(c).map(id=>charById(id)).filter(Boolean);
   const kb=h('button',{class:'zkind','data-pop':'1',title:'분류 바꾸기',onclick:()=>popMenu(kb,S.kinds.map(kk=>({label:kk.name,sw:kk.colorMode==='random'?RANDOM_BG:kk.color,on:kk.id===c.kind,fn:()=>{edit(()=>{c.kind=kk.id});zenDraw()}})))},h('i',{style:`background:${k.colorMode==='random'?cardColor(c):k.color}`}),k.name);
-  const stars=h('span',{class:'zstars',title:'쓰고 싶은 정도'},...[1,2,3].map(n=>h('span',{onclick:()=>{edit(()=>{c.stars=c.stars===n?0:n});zenDraw()}},(c.stars||0)>=n?'★':'☆')));
+  const stars=h('span',{class:'zstars',title:c.star?'꼭 쓸 것 — 다시 누르면 해제':'꼭 쓸 것 표시 — 붙이면 무덤에 안 가요'},h('span',{onclick:()=>{edit(()=>{if(c.star)delete c.star;else c.star=true});zenDraw()}},c.star?'★':'☆'));
   const rid=c.id,U0=zUnit(rid);
   const ta=h('textarea',{class:'fval zta',placeholder:'생각나는 대로 적어요…  (--- 를 치면 구분선 · 이어서 쓰면 새 카드가 핀으로 이어져요)',spellcheck:false,
     oninput:e=>{

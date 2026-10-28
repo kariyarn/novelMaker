@@ -12,7 +12,7 @@ function saveAsyncNow(){clearTimeout(saveT);saveT=null;if(UI.noSave)return;
   Repo.writeAsync(KEY,JSON.stringify(S)).then(ok=>notifySave(ok?'saved':'fail')).catch(()=>notifySave('fail'));savePrefs()}
 function save(){clearTimeout(saveT);saveT=setTimeout(saveAsyncNow,400);notifySave('saving')}
 const cancelPendingSave=()=>{clearTimeout(saveT);saveT=null};
-function commit(){save();notifyChange()}      // 되돌리기 기록 없이 바꾼 뒤: 저장하고 다시 그림
+function commit(){graveTick();save();notifyChange()}      // 되돌리기 기록 없이 바꾼 뒤: 저장하고 다시 그림 (그 전에 무덤 타이머를 맞춤, features/grave.js)
 addEventListener('beforeunload',()=>{if(saveT)saveNow();if(uipT)saveUIPNow()});
 const ser=()=>JSON.stringify(S,(k,v)=>k==='settings'?undefined:v);
 function loadSer(str){const keep=S.settings;S=JSON.parse(str);S.settings=keep}
@@ -23,4 +23,4 @@ function act(fn){snap();fn();idxClear();commit()}
 function edit(fn){if(Date.now()-lastEdit>1000)snap();lastEdit=Date.now();fn();idxClear();save()}
 function undo(){if(!undoS.length)return toast('되돌릴 게 없어요');redoS.push(ser());loadSer(undoS.pop());fixSel();commit()}
 function redo(){if(!redoS.length)return;undoS.push(ser());loadSer(redoS.pop());fixSel();commit()}
-function fixSel(){if(UI.sel==='all'&&UI.mode==='all')return;if(UI.sel==='work'&&UI.mode==='story')return;if(UI.sel!=='none'&&!charById(UI.sel))UI.sel=firstEntity()}
+function fixSel(){if(UI.sel==='all'&&UI.mode==='all')return;if(UI.sel==='work'&&UI.mode==='story')return;if(UI.sel!=='none'&&UI.sel!=='grave'&&!charById(UI.sel))UI.sel=firstEntity()}

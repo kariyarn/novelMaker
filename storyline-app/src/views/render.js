@@ -71,7 +71,7 @@ function renderAll0(){
 function goMode(k){
   UI.folderView=null;if(k==='graph'&&UI.mode!=='graph'){UI.prevMode=UI.mode;GC.reset()}      // 처음 열 때는 새로 자리 잡기
   if(k==='all'){if(UI.sel!=='all')UI.prevSel=UI.sel;UI.sel='all';UIP.pc=UIP.pc||{};UIP.pc.all=true}      // 전체 보기는 오른쪽 목록을 접고 시작
-  else if(UI.sel==='all')UI.sel=(UI.prevSel&&(UI.prevSel==='none'||charById(UI.prevSel)))?UI.prevSel:firstEntity();
+  else if(UI.sel==='all')UI.sel=(UI.prevSel&&(UI.prevSel==='none'||UI.prevSel==='grave'||charById(UI.prevSel)))?UI.prevSel:firstEntity();
   frLeftSwap(UI.mode,k);      // 새단장: 타임라인의 화 목록은 구상의 인물 목록과 따로 접고 폄
   UI.mode=k;renderAll();
 }
