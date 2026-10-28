@@ -198,6 +198,8 @@ app.whenReady().then(()=>{
   ipcMain.handle('note:fontSize',(e,v)=>{note.fontSize=Math.max(11,Math.min(32,Math.round(+v)||15));writeJson(NOTE(),note)});
   ipcMain.handle('note:hide',()=>hideNote());
   ipcMain.handle('note:openMain',()=>openMain());
+  ipcMain.handle('note:quit',()=>app.quit());
+  ipcMain.on('note:moveTo',(e,x,y)=>{if(noteWin&&Number.isFinite(x)&&Number.isFinite(y))noteWin.setPosition(Math.round(x),Math.round(y))});
   ipcMain.on('shell:showNote',e=>{showNote();e.returnValue=true});
   if(!globalShortcut.register(NOTE_KEY,toggleNote))console.warn('포스트잇 단축키를 등록하지 못했어요:',NOTE_KEY);
 
@@ -226,10 +228,15 @@ app.whenReady().then(()=>{
   }else app.dock.setMenu(Menu.buildFromTemplate([{label:'포스트잇 모드',click:showNote}]));
   app.on('activate',()=>{if(!win)createWindow();else if(!(noteWin&&noteWin.isVisible())){noteMode()?showNote():win.show()}});
 });
-// 끌 때: 마지막으로 한 번 올리고 끔 (최대 6초)
-let finalSynced=false;
+// 끌 때: 포스트잇에 쓰던 글을 먼저 저장하고(최대 2초), 마지막으로 한 번 올리고 끔 (최대 6초)
+let finalSynced=false,noteFlushed=false;
 app.on('before-quit',e=>{
   quitting=true;
+  if(!noteFlushed&&noteWin&&!noteWin.webContents.isLoading()){
+    e.preventDefault();noteFlushed=true;
+    Promise.race([noteWin.webContents.executeJavaScript('flush()'),new Promise(r=>setTimeout(r,2000))]).catch(()=>{}).finally(()=>app.quit());
+    return;
+  }
   if(finalSynced||!syncConfig()||!sync)return;
   e.preventDefault();finalSynced=true;
   Promise.race([runPush(),new Promise(r=>setTimeout(r,6000))]).finally(()=>app.quit());      // 올리기만 (끄는 중에 받아서 바꾸지 않음)

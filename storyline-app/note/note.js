@@ -52,6 +52,7 @@ $('hide').onclick=async()=>{await flush();noteApi.hide()};
 document.addEventListener('keydown',e=>{
   const mod=isMac?e.metaKey:e.ctrlKey;
   if(e.key==='Escape'){e.preventDefault();flush().then(()=>noteApi.hide());return}
+  if(mod&&!e.altKey&&!e.shiftKey&&e.code==='KeyQ'){e.preventDefault();flush().then(()=>noteApi.quit());return}      // 앱 끄기 (한글 입력 중에도 되게 e.code 로)
   if(mod&&e.key==='Enter'){e.preventDefault();fresh();return}      // 다 썼음 → 새 포스트잇
   if(mod&&!e.altKey&&(e.key==='='||e.key==='+')){e.preventDefault();setFs(fs+1);return}      // 글자 크게 · 작게 · 기본
   if(mod&&!e.altKey&&(e.key==='-'||e.key==='_')){e.preventDefault();setFs(fs-1);return}
@@ -59,6 +60,17 @@ document.addEventListener('keydown',e=>{
   if(e.altKey&&!mod&&e.key==='ArrowLeft'){e.preventDefault();go(i+1);return}
   if(e.altKey&&!mod&&e.key==='ArrowRight'){e.preventDefault();go(i-1);return}
 });
+
+/* 창 옮기기: Alt(⌥)를 누른 채 어디든 끌면 창이 따라옴 (위 · 아래 막대는 그냥 끌어도 됨) */
+let mv=null;
+const note=$('note');
+note.addEventListener('pointerdown',e=>{if(!e.altKey||e.button!==0)return;e.preventDefault();mv={x:e.screenX-window.screenX,y:e.screenY-window.screenY};note.setPointerCapture(e.pointerId);note.classList.add('moving')});
+note.addEventListener('pointermove',e=>{if(mv)noteApi.moveTo(e.screenX-mv.x,e.screenY-mv.y)});
+const mvEnd=()=>{if(!mv)return;mv=null;note.classList.remove('moving');ta.focus()};
+note.addEventListener('pointerup',mvEnd);note.addEventListener('pointercancel',mvEnd);
+addEventListener('keydown',e=>{if(e.key==='Alt')note.classList.add('alt')});
+addEventListener('keyup',e=>{if(e.key==='Alt')note.classList.remove('alt')});
+addEventListener('blur',()=>note.classList.remove('alt'));
 
 /* 작품 고르기: 쓰던 걸 저장하고 큰 창의 작품을 바꾼 뒤, 그 작품의 새 글로 */
 function paintWorks(w){
@@ -78,7 +90,7 @@ async function refresh(){      // 창을 꺼낼 때마다 최신 목록 (큰 창
   if(!kind||!kinds.some(k=>k.id===kind))kind=d.defaultKind;
   paintWorks(d.works);
   const k=isMac?'⌘':'Ctrl+';
-  $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김`;
+  $('hint').textContent=`${k}Enter 새 글 · Alt+←→ · Esc 숨김 · ${k}Q 끄기`;
   const busy=dirty||(!cur.id&&ta.value.trim());      // 쓰던 중 · 카드로 만드는 중
   const j=cur.id?list.findIndex(x=>x.id===cur.id):-1;
   if(j>=0)list[j]=busy?cur:Object.assign(cur,list[j]);      // 보던 포스트잇은 같은 객체로 (저장 중인 것과 어긋나지 않게)

@@ -296,6 +296,9 @@ button.quiet:hover{background:var(--acc-soft)}
 .dlgin{width:100%;padding:8px 11px;margin-bottom:14px}
 .dlgrow{display:flex;gap:8px;justify-content:flex-end}
 .dlgrow button{min-width:72px;padding:6px 14px}
+.msrow{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.msnum{width:72px;padding:6px 9px}
+.msinfo{margin:2px 0 16px;font-size:.92em}
 button.on.danger{background:var(--warn)}
 @keyframes dlgin{from{opacity:0}to{opacity:1}}
 .tgrid{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}

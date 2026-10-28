@@ -13,6 +13,8 @@ html,body{margin:0;height:100%;background:transparent;font:14px/1.6 -apple-syste
 body.flat{background:var(--bg)}body.flat .note{inset:0;border-radius:0;box-shadow:none}      /* Windows: 불투명 창이라 종이를 창에 꽉 채움 */
 .bar{display:flex;align-items:center;gap:2px;padding:4px 6px 2px 8px;-webkit-app-region:drag;user-select:none;min-height:30px}
 .bar button,.bar .kind,.bar input{-webkit-app-region:no-drag}
+.foot{-webkit-app-region:drag}.foot select{-webkit-app-region:no-drag}      /* 아래 줄도 잡고 옮기기 */
+.note.alt,.note.alt *{cursor:move!important}.note.moving textarea{user-select:none}      /* Alt 누르면 어디든 잡고 옮기기 */
 .opw{display:flex;align-items:center;gap:4px;color:var(--muted);padding:0 4px}
 input[type=range]{-webkit-appearance:none;appearance:none;width:64px;height:16px;background:transparent;margin:0;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:var(--line)}
@@ -50,7 +52,7 @@ textarea::placeholder{color:var(--muted)}
     <span class="fsw"><button id="fsm" title="글자 작게 (Ctrl+-)">가<sub>−</sub></button><button id="fsp" title="글자 크게 (Ctrl+=)">가<sup>+</sup></button></span>
     <button id="top" title="항상 위에 두기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/></svg></button>
     <button id="main" title="큰 창 열기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>
-    <button id="hide" title="숨기기 (Esc)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button>
+    <button id="hide" title="숨기기 (Esc) · 끄기는 Ctrl+Q"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></svg></button>
   </div>
   <textarea id="ta" class="nta" placeholder="떠오른 걸 적어요"></textarea>
   <div class="foot"><select id="work" title="작품 바꾸기"></select><span id="hint"></span><span class="sp"></span><span class="st" id="st"></span></div>

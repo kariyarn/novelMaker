@@ -143,7 +143,7 @@ function mergeEpisode(a,b){      // b화를 a화 뒤에 이어 붙이고 b화는
 function epMenu(btn,idx){
   const E=S.episodes,ep=E[idx],n=ep.cardIds.filter(cardById).length;
   popMenu(btn,[{title:`${idx+1}화${ep.title?' · '+ep.title:''}`},
-    ...(n?[{label:`카드 ${n}장 모두 보내기…`,fn:()=>setTimeout(()=>msMenu(btn,ep.cardIds.filter(cardById)),0)}]:[]),
+    ...(n?[{label:`카드 ${n}장 모두 보내기…`,fn:()=>setTimeout(()=>msMenu(btn,ep.cardIds.filter(cardById)),0)},{label:'이 화 원고 .txt로 내보내기',fn:()=>exportManuscriptTxt(idx,idx+1)}]:[]),
     'sep',{title:'화 순서'},
     ...(idx>0?[{label:`앞으로 한 칸 (${idx}화 자리)`,fn:()=>moveEpisode(idx,idx-1)}]:[]),
     ...(idx<E.length-1?[{label:`뒤로 한 칸 (${idx+2}화 자리)`,fn:()=>moveEpisode(idx,idx+1)}]:[]),
@@ -170,6 +170,7 @@ function renderTimeline(m){
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
     tlRangeSel(),
     mode==='kanban'?h('label',{class:'frwctl',title:'화 칸 너비'},'칸 폭',h('input',{type:'range',min:200,max:480,step:10,value:UIP.tlw||250,oninput:e=>{UIP.tlw=+e.target.value;applyLayout()},onchange:saveUIP})):null,
+    h('button',{class:'quiet',title:'원고 .txt로 내보내기 (전체 · 몇 화부터 몇 화까지)',onclick:()=>showManuscriptExport()},icon('download'),'원고'),
     h('button',{class:'quiet',onclick:()=>addEpisode()},icon('plus'),'화')));
   if(mode==='matrix')return renderMatrix(m,lo,hi);
   if(mode==='shelf')return renderShelf(m);
@@ -195,7 +196,7 @@ function renderTimeline(m){
     const cnt=h('small',{class:'epcnt',title:'카드 수 · 공백 빼고 글자 수'},cntLabel(cards.map(c=>c.id),cards.length));
     return [h('div',{class:'tlhead'},h('b',{class:'frno'},String(idx+1),h('small',{},'화')),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
         ep.cardIds.length?h('button',{class:'cbtn tlcopy',title:'이 화의 글을 원고로 이어 붙여서 복사',onclick:()=>copyEpisodeText(idx)},icon('copy')):null,
-        (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기',onclick:()=>epMenu(b,idx)},icon('more'));return b})(),
+        (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기 · 원고 내보내기',onclick:()=>epMenu(b,idx)},icon('more'));return b})(),
         h('button',{class:'x',title:'화 삭제 (카드는 목록으로 돌아가요)',onclick:async()=>{if(ep.cardIds.length&&!await askConfirm(`${idx+1}화를 지울까요? 카드 ${ep.cardIds.length}장은 미배치로 돌아가요.`))return;act(()=>{S.episodes=S.episodes.filter(x=>x!==ep);if(!S.episodes.length)S.episodes.push(newEp());UI.tlScope=null})}},'✕')),
       h('textarea',{class:'tlmemo autofit',rows:1,placeholder:'한 줄 메모',oninput:e=>{edit(()=>ep.memo=e.target.value);fitOne(e.target)}},ep.memo),body];
   };
