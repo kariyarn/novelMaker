@@ -6,6 +6,7 @@
 //   평소에는 올리기만 자동(push) · 받기는 사용자가 누를 때만(sync). 다른 기기에서 고친 게 있는지는 check 로 확인만 함
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {atomicWrite}=require('./files');
+const {logError}=require('./log');
 
 const ROOT='storyline/';
 const gitSha=t=>crypto.createHash('sha1').update(`blob ${Buffer.byteLength(t,'utf8')}\0`).update(t,'utf8').digest('hex');      // git 이 파일에 붙이는 지문과 같은 계산
@@ -17,7 +18,7 @@ class SyncError extends Error{constructor(msg,status){super(msg);this.status=sta
 
 function createSync({store,fetch,getConfig,statePath}){
   const readState=()=>{try{return JSON.parse(fs.readFileSync(statePath,'utf8'))}catch(e){return {}}};
-  const writeState=st=>{try{atomicWrite(statePath,JSON.stringify(st,null,1))}catch(e){}};
+  const writeState=st=>{try{atomicWrite(statePath,JSON.stringify(st,null,1))}catch(e){logError('동기화 상태 저장',e)}};
   let running=null;
 
   async function api(cfg,method,p,body){
@@ -80,7 +81,7 @@ function createSync({store,fetch,getConfig,statePath}){
         const text=await getBlob(cfg,Rs);
         if(rel==='library.json'){store.syncWrite(rel,text);changed=true}      // 합침
         else if(/\/storyline\.json$/.test(rel)){
-          let baseText=null;if(B)try{baseText=await getBlob(cfg,B)}catch(e){}      // 마지막으로 맞춘 버전: 누가 무엇을 바꿨는지 가르는 기준
+          let baseText=null;if(B)try{baseText=await getBlob(cfg,B)}catch(e){logError('동기화: 지난 버전 받기',e)}      // 마지막으로 맞춘 버전: 누가 무엇을 바꿨는지 가르는 기준
           const m=store.syncConflict(rel,text,baseText);
           if(m){res.merged.push(rel);if(m.asks)res.conflicts.push({rel,name:m.name,asks:m.asks})}
           changed=true;

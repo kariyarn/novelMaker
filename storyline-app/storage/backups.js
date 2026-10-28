@@ -2,6 +2,7 @@
 const fs=require('fs'),path=require('path'),zlib=require('zlib');
 const {valid,okState,atomicWrite,stamp,readText}=require('./files');
 const {BK,bdirOf}=require('./layout');
+const {logError}=require('./log');
 
 function createBackups(dirs,now=Date.now){
   const lastBackup={};
@@ -19,9 +20,9 @@ function createBackups(dirs,now=Date.now){
         const recent=i<40;                       // 최근 40개는 전부
         const firstOfDay=!keepDay.has(day);keepDay.add(day);
         const age=(t0-fs.statSync(path.join(bd,n)).mtimeMs)/864e5;
-        if(!recent&&!(firstOfDay&&age<90))try{fs.unlinkSync(path.join(bd,n))}catch(e){}
+        if(!recent&&!(firstOfDay&&age<90))try{fs.unlinkSync(path.join(bd,n))}catch(e){logError('오래된 백업 지우기',e)}
       });
-    }catch(e){}
+    }catch(e){logError('자동 백업',e)}
   }
   function list(id){
     const bd=bdirOf(dirs,id);let names=[];try{names=fs.readdirSync(bd).filter(n=>BK.test(n))}catch(e){}
@@ -34,7 +35,7 @@ function createBackups(dirs,now=Date.now){
   }
   function read(id,name){if(!BK.test(String(name)))return null;try{return readText(path.join(bdirOf(dirs,id),name))}catch(e){return null}}
   function force(id,text){const o=valid(text);if(!okState(o))return false;lastBackup[id]=0;backup(id,text);return true}
-  const dir=id=>{const d=bdirOf(dirs,id);try{fs.mkdirSync(d,{recursive:true})}catch(e){}return d};
+  const dir=id=>{const d=bdirOf(dirs,id);try{fs.mkdirSync(d,{recursive:true})}catch(e){logError('백업 폴더 만들기',e)}return d};
   return {backup,list,read,force,dir};
 }
 module.exports={createBackups};

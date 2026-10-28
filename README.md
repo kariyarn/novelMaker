@@ -137,8 +137,10 @@ main 에 올라가기 전의 시험판은 **[Actions](../../actions) → `build`
 |---|---|---|
 | 작품 | `iCloud Drive/캐릭터 스토리라인/` (iCloud 가 없으면 `~/Documents/캐릭터 스토리라인/`) | `문서\캐릭터 스토리라인\` |
 | 로컬 사본 | `~/Library/Application Support/캐릭터 스토리라인/data/` | `%APPDATA%\캐릭터 스토리라인\data\` |
+| 오류 기록 | `~/Library/Application Support/캐릭터 스토리라인/logs/app.log` | `%APPDATA%\캐릭터 스토리라인\logs\app.log` |
 
 작품마다 `works/<작품>/` 폴더에 데이터와 백업이 있어요. 앱을 지우거나 새 버전으로 바꿔도 그대로예요.
+저장 · 백업 · 동기화 · 업데이트가 실패하면 오류 기록에 남아요. 설정 → 데이터 → 폴더 → **오류 기록 폴더 열기** (또는 파일 메뉴)로 열어요.
 
 ## 개발
 

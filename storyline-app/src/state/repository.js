@@ -4,16 +4,16 @@ const NS=window.nativeStore;
 const Repo=NS?{
   native:true,
   read:k=>{const r=NS.load(k)||{};return {text:r.text||null,fresh:!!r.fresh}},      // 작품마다 따로: 작품 데이터 · 보기 상태
-  write:(k,t)=>{try{return NS.save(k,t).ok}catch(e){return false}},
+  write:(k,t)=>{try{return NS.save(k,t).ok}catch(e){logErr('저장 '+k,e);return false}},
   writeAsync:NS.saveAsync?(k,t)=>NS.saveAsync(k,t).then(r=>!!(r&&r.ok)):null,      // 화면을 멈추지 않는 저장 (순서는 그대로 지켜짐)
   prefs:NS.savePrefs?{load:()=>NS.loadPrefs(),save:t=>NS.savePrefs(t),saveAsync:NS.savePrefsAsync?t=>NS.savePrefsAsync(t):null}:null,
   novels:NS.library?{list:()=>NS.library(),create:n=>NS.createNovel(n),open:id=>NS.openNovel(id),rename:(id,n)=>NS.renameNovel(id,n),
     duplicate:(id,n)=>NS.duplicateNovel(id,n),archive:id=>NS.archiveNovel(id),restore:id=>NS.restoreNovel(id),remove:id=>NS.deleteNovel(id)}:null,
   backups:NS.backups?{list:()=>NS.backups(),read:n=>NS.readBackup(n),force:t=>NS.forceBackup(t)}:null,
-  openFolder:NS.openDir?w=>NS.openDir(w):null,      // 'data' · 'backups'
+  openFolder:NS.openDir?w=>NS.openDir(w):null,      // 'data' · 'backups' · 'logs'
 }:{
   native:false,
   read:k=>({text:localStorage.getItem(k),fresh:false}),
-  write:(k,t)=>{try{localStorage.setItem(k,t);return true}catch(e){return false}},      // 앱이 아닐 때만 브라우저 저장소를 씀 (작품이 섞이지 않게)
+  write:(k,t)=>{try{localStorage.setItem(k,t);return true}catch(e){logErr('저장 '+k,e);return false}},      // 앱이 아닐 때만 브라우저 저장소를 씀 (작품이 섞이지 않게)
   writeAsync:null,prefs:null,novels:null,backups:null,openFolder:null,
 };

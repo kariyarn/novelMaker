@@ -86,11 +86,11 @@ function savePrefs(sync){      // 평소엔 비동기, 창을 닫거나 작품�
   if(!Repo.prefs||UI.noSave)return;
   const t=JSON.stringify({settings:pick(S.settings,GLOBAL_SET),ui:pick(UIP,GLOBAL_UI)});
   if(t===PREFS_LAST)return;
-  if(!sync&&Repo.prefs.saveAsync){PREFS_LAST=t;Repo.prefs.saveAsync(t).then(ok=>{if(!ok&&PREFS_LAST===t)PREFS_LAST=null}).catch(()=>{if(PREFS_LAST===t)PREFS_LAST=null});return}
-  try{if(Repo.prefs.save(t))PREFS_LAST=t}catch(e){}
+  if(!sync&&Repo.prefs.saveAsync){PREFS_LAST=t;Repo.prefs.saveAsync(t).then(ok=>{if(!ok&&PREFS_LAST===t)PREFS_LAST=null}).catch(e=>{logErr('취향 저장',e);if(PREFS_LAST===t)PREFS_LAST=null});return}
+  try{if(Repo.prefs.save(t))PREFS_LAST=t}catch(e){logErr('취향 저장',e)}
 }
 let uipT=0;
-const saveUIPNow=()=>{clearTimeout(uipT);uipT=0;if(UI.noSave)return;const t=JSON.stringify(UIP);if(Repo.writeAsync)Repo.writeAsync(UKEY,t).catch(()=>{});else wr(UKEY,t);savePrefs()};
+const saveUIPNow=()=>{clearTimeout(uipT);uipT=0;if(UI.noSave)return;const t=JSON.stringify(UIP);if(Repo.writeAsync)Repo.writeAsync(UKEY,t).catch(e=>logErr('보기 상태 저장',e));else wr(UKEY,t);savePrefs()};
 const saveUIP=()=>{if(UI.noSave)return;clearTimeout(uipT);uipT=setTimeout(saveUIPNow,300)};      // 보기 상태는 잠깐 모아서 저장
 function replaceWork(data,extra){const keep=S.settings;S=migrate(data);S.settings=Object.assign({},S.settings,keep);Object.assign(S,extra)}      // 불러오기 · 복구 · 예시: 화면 취향은 그대로 두고 작품 내용만 바꿈
 function firstEntity(){const c=S.characters.find(x=>x.kind!=='setting')||S.characters[0];return c?c.id:'none'}

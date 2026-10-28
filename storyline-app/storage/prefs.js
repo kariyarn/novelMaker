@@ -2,6 +2,7 @@
 const fs=require('fs'),path=require('path');
 const {valid,atomicWrite}=require('./files');
 const {PREF}=require('./layout');
+const {logError}=require('./log');
 
 function createPrefs(dirs){
   function load(){
@@ -10,8 +11,8 @@ function createPrefs(dirs){
   }
   function save(text){
     if(!valid(text))return false;
-    try{atomicWrite(path.join(dirs.mirror,PREF),text)}catch(e){}
-    try{atomicWrite(path.join(dirs.main,PREF),text)}catch(e){return false}
+    try{atomicWrite(path.join(dirs.mirror,PREF),text)}catch(e){logError('취향 저장 (로컬 사본)',e)}
+    try{atomicWrite(path.join(dirs.main,PREF),text)}catch(e){logError('취향 저장 (저장 폴더)',e);return false}
     return true;
   }
   return {load,save};

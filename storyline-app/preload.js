@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('appShell',{
     dismiss:sig=>ipcRenderer.sendSync('sync:dismiss',sig),      // '나중에'
   },
   note:{show:()=>ipcRenderer.sendSync('shell:showNote')},
+  log:(where,msg)=>ipcRenderer.send('app:log',where,msg),      // 오류 기록 (logs/app.log)
   update:{
     info:()=>ipcRenderer.sendSync('update:info'),      // {bundled, running, latest, ready, needInstaller, error, ...}
     check:()=>ipcRenderer.invoke('update:check'),

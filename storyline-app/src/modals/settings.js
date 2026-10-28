@@ -23,7 +23,7 @@ const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('storyline',1);r.on
 const idbGet=async k=>{const db=await idb();return new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
 const idbSet=async(k,v)=>{const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
 async function registerFont(f){const ff=new FontFace('UF_'+f.id,f.data);await ff.load();document.fonts.add(ff);if(!FONTS.some(x=>x.id===f.id))FONTS.push({id:f.id,name:f.name,ff})}
-async function loadFonts(){try{for(const f of (await idbGet('fonts'))||[]){try{await registerFont(f)}catch(e){}}}catch(e){}applySettings();requestAnimationFrame(()=>{fitAll();hlLayoutAll()})}
+async function loadFonts(){try{for(const f of (await idbGet('fonts'))||[]){try{await registerFont(f)}catch(e){logErr('글꼴 불러오기 '+f.name,e)}}}catch(e){logErr('글꼴 목록 읽기',e)}applySettings();requestAnimationFrame(()=>{fitAll();hlLayoutAll()})}
 async function addFontFile(file){
   if(!file)return;if(file.size>20*1024*1024)return notice('20MB 이하의 글꼴 파일만 올릴 수 있어요');
   const f={id:uid(),name:file.name.replace(/\.[^.]+$/,''),data:await file.arrayBuffer()};
@@ -33,7 +33,7 @@ async function addFontFile(file){
 }
 async function delFont(id){
   if(!await askConfirm('이 글꼴을 목록에서 지울까요?'))return;
-  try{await idbSet('fonts',((await idbGet('fonts'))||[]).filter(f=>f.id!==id))}catch(e){}
+  try{await idbSet('fonts',((await idbGet('fonts'))||[]).filter(f=>f.id!==id))}catch(e){logErr('글꼴 지우기',e)}
   const i=FONTS.findIndex(f=>f.id===id);if(i>=0){document.fonts.delete(FONTS[i].ff);FONTS.splice(i,1)}
   if(S.settings.family==='u:'+id)S.settings.family='';saveNow();applySettings();showSettings();
 }
@@ -115,7 +115,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       ...appUpdRows(row),
       row('내보내기',null,h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
       row('정리',null,h('button',{onclick:showTrash},`휴지통 (${S.trash.length})`),S.demo?h('button',{onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지울까요?')){closeModal();clearDemo()}}},'예시 지우고 시작'):null),
-      ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'))):[])]};
+      ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'),h('button',{title:'저장 · 백업 · 동기화가 실패하면 여기에 기록돼요',onclick:()=>Repo.openFolder('logs')},'오류 기록 폴더 열기'))):[])]};
   openModal(h('h3',{class:'mtitle'},'설정'),
     h('div',{class:'stabs'},tabs([['look','겉모습'],['write','글쓰기'],['data','데이터']],tab,k=>{UI.setTab=k;showSettings()})),
     ...T[tab],
