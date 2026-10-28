@@ -335,3 +335,14 @@
 /* 접힌 시트 아이콘이 없으니 머리말을 왼쪽으로 (왼쪽 목록도 접혀 있으면 그 아이콘 자리만 비킴) */
 body.ui3 #app.m-story:has(#sheet.cl) .bhead.frprof{left:18px}
 body.ui3 #app.m-story:has(#left.cl):has(#sheet.cl) .bhead.frprof{left:58px}
+
+/* 한 줄 보기 · 카드 모양: 원고 위에서도 카드가 한 장씩 구분되게 (보관과 같은 색인 카드) */
+.ui3 .frsheet.sccard .frch .kcard.tl.fr{background:var(--card);margin:0 0 10px;border-radius:8px;box-shadow:0 0 0 1px var(--line),0 2px 6px -3px rgba(0,0,0,.12)}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr:hover{background:var(--card);box-shadow:0 0 0 1px var(--acc),0 2px 6px -3px rgba(0,0,0,.12)}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr:is(.editing,.selc){box-shadow:0 0 0 1.5px var(--acc)}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr .ktext,.ui3 .frsheet.sccard .frch .kcard.tl.fr .kmir{text-indent:0;line-height:1.8;padding:12px 16px 4px}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr .frrow{position:static;padding:4px 16px 10px;min-height:20px}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr .frrow .frcast{display:flex}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo{background:var(--fill);box-shadow:none;outline:1px dashed var(--line);margin:0 0 10px}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo .ktext,.ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo .kmir{text-indent:2.8em}
+.ui3 .frsheet.sccard .frch .kcard.tl.fr.scst{margin-top:22px}

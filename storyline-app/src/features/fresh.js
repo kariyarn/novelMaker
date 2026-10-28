@@ -37,9 +37,11 @@ function frDiscard(id){
 
 /* ---------- 한 줄 보기: 원고 한 장 ---------- */
 const frW=()=>UIP.frw||720,frFs=()=>UIP.frfs||16.5;
+const frSc=()=>['line','box'].includes(UIP.frsc)?UIP.frsc:'card';      // 한 줄 보기 모양: 원고(문단으로 이어짐) · 묶음(장면별 상자) · 카드(한 장씩 구분, 기본)
+const frScCls=()=>({box:' scbox',card:' sccard'})[frSc()]||'';
 function frSetW(w){UIP.frw=Math.max(520,Math.min(1100,Math.round(w/10)*10));const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frw',UIP.frw+'px');const r=document.querySelector('#frwr');if(r)r.value=UIP.frw}
 function frLineBar(){
-  return [h('span',{class:'frscm',title:'장면 구분을 어떻게 보여줄지'},seg([['line','구분선'],['box','묶음']],UIP.frsc==='box'?'box':'line',k=>{UIP.frsc=k;saveUIP();renderMid()})),
+  return [h('span',{class:'frscm',title:'한 줄 보기 모양 — 원고: 문단으로 이어 읽기 · 묶음: 장면별 상자 · 카드: 한 장씩 구분'},segOld([['line','원고'],['box','묶음'],['card','카드']],frSc(),k=>{UIP.frsc=k;saveUIP();renderMid()})),
     h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox')),
     h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
     h('span',{class:'frfsz',title:'글자 크기'},
@@ -47,7 +49,7 @@ function frLineBar(){
       h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'))];
 }
 function frRenderLine(m,E,lo,hi,build){
-  const sheet=h('div',{class:'frsheet'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
+  const sheet=h('div',{class:'frsheet'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
   ['l','r'].forEach(side=>{const g=h('span',{class:'freg '+side,title:'끌어서 글 폭 조절'});sheet.append(g);
     g.addEventListener('pointerdown',e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');const x0=e.clientX,w0=frW(),dir=side==='r'?1:-1;
       const mv=ev=>frSetW(w0+dir*2*(ev.clientX-x0)),up=()=>{g.classList.remove('on');g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);saveUIP()};
@@ -70,7 +72,7 @@ function frRenderLine(m,E,lo,hi,build){
   frPager(sheet);
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
   if(UIP.frshs){      // 보관함을 원고 옆에 나란히 (따로 스크롤)
-    const side=h('div',{class:'frsheet frshp'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
+    const side=h('div',{class:'frsheet frshp'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
     m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),h('div',{class:'frlcol'},side)));return}
   if(!UI.tlScope)frShelves(sheet);      // 한 화 · 한 묶음만 볼 때는 원고 아래에 보관을 붙이지 않음 (위쪽 보관함 아이콘으로 열기)
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
