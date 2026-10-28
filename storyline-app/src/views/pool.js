@@ -92,18 +92,18 @@ function renderPool0(){
       ...(poolSort().by==='when'?[]:[['desc','최신 순 ↓'],['asc','오래된 순 ↑']]).map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
       ...(frIcons()?[]:['sep',{title:'노트 크기'},...[['x','요약 (긴 글은 3줄까지)'],['s','소'],['m','중'],['l','대']].map(([k,n])=>({label:n,on:(UIP.ps||'m')===k,keep:true,fn:()=>{UIP.ps=k;saveUIP();renderPool()}}))]),      // 작은 아이콘일 때는 노트 크기가 상관없음
       ...(!frIcons()&&(UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])])},icon('sort'));
-  const sb=h('button',{class:'cbtn psbtn'+(UI.pq?' fon':''),title:'검색',onclick:()=>{UI.psOpen=!UI.psOpen;if(!UI.psOpen)UI.pq='';renderPool();if(UI.psOpen)setTimeout(()=>{const i=document.querySelector('#pool .psearch');if(i)i.focus()})}},icon('search'));
-  const left=S.cards.filter(c=>poolPass(c)&&!episodeOf(c.id)).length;      // 새단장: 지금 고른 분류 중 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭과 같은 수 · 줄어드는 만큼 정리된 것)
+  const sb=h('button',{class:'cbtn psbtn'+(UI.pq?' fon':''),title:'이 목록에서 찾기 (전체 검색은 위쪽 돋보기 · ⌘F)',onclick:()=>{UI.psOpen=!UI.psOpen;if(!UI.psOpen)UI.pq='';renderPool();if(UI.psOpen)setTimeout(()=>{const i=document.querySelector('#pool .psearch');if(i)i.focus()})}},icon('search'));
+  const left=S.cards.filter(c=>poolMatch(c)&&!episodeOf(c.id)).length;      // 지금 조건에서 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭에 붙임 · 줄어드는 만큼 정리된 것)
   const tn=triageCards().filter(c=>!c.when).length;
   const triB=h('button',{class:'cbtn tribtn',title:'훑기 — 지금 보이는 분류의 카드를 한 장씩 보며 쓸 시기(지금 · 곧 · 나중) 정하기'+(tn?` · 안 정한 카드 ${tn}장`:''),onclick:triageOpen},'훑기',tn?h('i',{class:'trin'},tn>99?'99+':tn):null);
-  p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`),h('span',{class:'sp'}),triB,sb,vb,fb,ptog('pool')));
+  p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('span',{class:'sp'}),triB,sb,vb,fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
       act(()=>{const c=newCard(quickKind(),v);autoLinkCard(c);S.cards.unshift(c);(UI.pnew=UI.pnew||new Set()).add(c.id);if(!poolKinds().includes(c.kind)){UIP.pk=[...poolKinds(),c.kind];saveUIP()}});setTimeout(()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()})}});
   qi.placeholder='한 줄 쓰고 Enter';qi.title=`Enter → ${kindOf(quickKind()).name}`;
-  const si=UI.psOpen||UI.pq?h('input',{class:'psearch',placeholder:'검색 (Esc 닫기)',value:UI.pq,oninput:e=>{UI.pq=e.target.value;clearTimeout(renderPool.t);renderPool.t=setTimeout(()=>{const a=document.activeElement===e.target,s=e.target.selectionStart;renderPool();if(a){const i=document.querySelector('#pool .psearch');if(i){i.focus();i.setSelectionRange(s,s)}}},220)},
+  const si=UI.psOpen||UI.pq?h('input',{class:'psearch',placeholder:'이 목록에서 찾기 (Esc 닫기)',value:UI.pq,oninput:e=>{UI.pq=e.target.value;clearTimeout(renderPool.t);renderPool.t=setTimeout(()=>{const a=document.activeElement===e.target,s=e.target.selectionStart;renderPool();if(a){const i=document.querySelector('#pool .psearch');if(i){i.focus();i.setSelectionRange(s,s)}}},220)},
     onkeydown:e=>{if(e.key==='Escape'&&!e.isComposing){e.stopPropagation();UI.pq='';UI.psOpen=false;renderPool()}}}):null;
-  p.append(h('div',{class:'pquick'},qi,si,tabs([['unused','미사용'],['used','사용'],['all','전체']],UI.pused,k=>{UI.pused=k;renderPool()}),kindChips()));
+  p.append(h('div',{class:'pquick'},qi,si,tabs([['unused',`미사용 ${left}`],['used','사용'],['all','전체']],UI.pused,k=>{UI.pused=k;renderPool()}),kindChips()));
   const list=h('div',{class:'plist'});
   const sig=`${poolKinds().join()}|${JSON.stringify(poolOwn())}|${poolSort().by}${poolSort().dir}|${UI.pchar}|${UI.pused}|${UI.pq}`;if(renderPool.sig!==sig){UI.poolLimit=60;renderPool.sig=sig}      // 필터가 바뀌면 처음부터
   const ICON=frIcons(),lim=ICON?Math.max(UI.poolLimit||60,300):UI.poolLimit||60;      // 새단장 아이콘은 가벼워서 한 번에 더 많이
@@ -116,8 +116,9 @@ function renderPool0(){
   else{const mrow=h('div',{class:'mrow'});list._cards=items.slice(0,lim).map(c=>kcard(c,'pool'));      // 많을 때는 나눠서 그림 (스크롤하면 더 불러옴)
   if(list._cards.length)list.append(mrow)}
   if(items.length>lim)list.append(h('button',{class:'quiet morebtn',style:'width:100%;margin-top:10px',onclick:()=>{const st=$('pool').scrollTop;UI.poolLimit=lim+(ICON?300:80);renderPool();$('pool').scrollTop=st}},`＋ ${items.length-lim}장 더 보기`));
-  if(!list.children.length)list.append(h('div',{class:'empty'},S.cards.length?'조건에 맞는 카드가 없어요.':'쓰고 싶은 장면이나 대사를 위에 한 줄씩 적어 보세요.',
-    S.cards.length?h('div',{},h('button',{class:'quiet',style:'margin-top:8px',onclick:()=>{UI.pchar='';UI.pq='';UI.psOpen=false;UI.pused='all';UIP.pk=S.kinds.map(k=>k.id);delete UIP.pown;saveUIP();renderPool()}},'필터 모두 풀기')):h('div',{},h('button',{class:'on',style:'margin-top:10px',onclick:()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()}},'첫 카드 쓰기'))));
+  const tidy=UI.pused==='unused'&&S.cards.length&&!S.cards.some(c=>!c.discarded&&!shelfOf(c.id)&&!episodeOf(c.id));      // 필터 때문이 아니라 다 정리해서 빈 것
+  if(!list.children.length)list.append(h('div',{class:'empty'},tidy?'다 정리했어요. 남은 카드를 모두 화나 보관 칸에 넣었어요.':S.cards.length?'조건에 맞는 카드가 없어요.':'쓰고 싶은 장면이나 대사를 위에 한 줄씩 적어 보세요.',
+    tidy?null:S.cards.length?h('div',{},h('button',{class:'quiet',style:'margin-top:8px',onclick:()=>{UI.pchar='';UI.pq='';UI.psOpen=false;UI.pused='all';UIP.pk=S.kinds.map(k=>k.id);delete UIP.pown;saveUIP();renderPool()}},'필터 모두 풀기')):h('div',{},h('button',{class:'on',style:'margin-top:10px',onclick:()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()}},'첫 카드 쓰기'))));
   list.addEventListener('dragover',e=>{if(BRDRAG||DRAG&&(episodeOf(DRAG.id)||shelfOf(DRAG.id))){e.preventDefault();list.classList.add('over')}});
   list.addEventListener('dragleave',e=>{if(!list.contains(e.relatedTarget))list.classList.remove('over')});
   list.addEventListener('drop',e=>{e.preventDefault();list.classList.remove('over');if(BRDRAG)return brDropPool();if(DRAG){const id=DRAG.id;DRAG=null;unplaceCard(id)}});

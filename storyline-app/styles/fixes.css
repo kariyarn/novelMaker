@@ -170,4 +170,5 @@ button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink)
 .pkchip.on i{box-shadow:0 0 0 1.5px var(--panel)}
 .pquick .psearch{width:100%;margin:0;background:var(--panel);box-shadow:var(--shadow);border-radius:11px;padding:6px 12px}
 .pquick .seg.tabs{justify-self:start}
-.phead .pcnt,.phead>.muted{white-space:nowrap}
+/* 알릴 것이 있는 버튼은 마우스를 안 올려도 보임: 훑기 남은 장수 · 목록 검색 중 */
+.panel>.phead .tribtn:has(.trin),.panel>.phead .psbtn.fon{opacity:1}

@@ -48,7 +48,6 @@
 .ui2 .kcard:not(.board):hover .kpill,.ui2 .kcard:not(.board):focus-within .kpill,.ui2 .kcard:not(.board):hover .grip{opacity:1}
 .ui2 .tlmemo:placeholder-shown:not(:focus):not(:hover)::placeholder{color:transparent}
 /* 오른쪽 목록 */
-.ui2 .pcnt{color:var(--sub);font-weight:400;margin-left:2px}
 .ui2 .pquick .seg.tabs{display:flex;gap:16px;margin-top:10px;border-bottom:.5px solid var(--line);width:100%;height:auto}
 .ui2 .pquick .seg.tabs button{padding:4px 1px 7px;font-size:.9em}
 .ui2 .popsl{padding:4px 12px 8px}
