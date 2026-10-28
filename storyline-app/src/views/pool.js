@@ -88,20 +88,19 @@ function renderPool0(){
       'sep',{title:'연결된 노트'},...[['char','인물 노트'],['setting','설정 노트'],['none','연결 없음']].map(([k,n])=>({label:n,on:!!poolOwn()[k],keep:true,fn:()=>{UIP.pown=Object.assign(poolOwn(),{[k]:!poolOwn()[k]});saveUIP();renderPool()}})),
       ...(fOn?['sep',{label:'초기화',fn:()=>{UI.pchar='';delete UIP.pown;saveUIP();renderPool()}}]:[])])},icon('filter'),fOn?h('i',{class:'fdot'}):null);
   const vb=h('button',{class:'cbtn pvbtn','data-pop':'1',title:'보기 — 정렬 · 노트 크기',onclick:()=>
-    popMenu(vb,()=>[...(U3()?[{title:'모양'},...[[true,'작은 포스트잇 아이콘'],[false,'크게 (글까지)']].map(([v,n])=>({label:n,on:frIcons()===v,keep:true,fn:()=>{UIP.pico=v;saveUIP();renderPool()}})),'sep']:[]),{title:'정렬'},...[['when','쓸 시기 (지금 · 곧 · 나중)'],['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
+    popMenu(vb,()=>[{title:'모양'},...[[true,'작은 포스트잇 아이콘'],[false,'크게 (글까지)']].map(([v,n])=>({label:n,on:frIcons()===v,keep:true,fn:()=>{UIP.pico=v;saveUIP();renderPool()}})),'sep',{title:'정렬'},...[['when','쓸 시기 (지금 · 곧 · 나중)'],['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
       ...(poolSort().by==='when'?[]:[['desc','최신 순 ↓'],['asc','오래된 순 ↑']]).map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
       ...(frIcons()?[]:['sep',{title:'노트 크기'},...[['x','요약 (긴 글은 3줄까지)'],['s','소'],['m','중'],['l','대']].map(([k,n])=>({label:n,on:(UIP.ps||'m')===k,keep:true,fn:()=>{UIP.ps=k;saveUIP();renderPool()}}))]),      // 작은 아이콘일 때는 노트 크기가 상관없음
       ...(!frIcons()&&(UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])])},icon('sort'));
   const sb=h('button',{class:'cbtn psbtn'+(UI.pq?' fon':''),title:'검색',onclick:()=>{UI.psOpen=!UI.psOpen;if(!UI.psOpen)UI.pq='';renderPool();if(UI.psOpen)setTimeout(()=>{const i=document.querySelector('#pool .psearch');if(i)i.focus()})}},icon('search'));
-  const left=U3()?S.cards.filter(c=>poolPass(c)&&!episodeOf(c.id)).length:0;      // 새단장: 지금 고른 분류 중 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭과 같은 수 · 줄어드는 만큼 정리된 것)
+  const left=S.cards.filter(c=>poolPass(c)&&!episodeOf(c.id)).length;      // 새단장: 지금 고른 분류 중 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭과 같은 수 · 줄어드는 만큼 정리된 것)
   const tn=triageCards().filter(c=>!c.when).length;
   const triB=h('button',{class:'cbtn tribtn',title:'훑기 — 지금 보이는 분류의 카드를 한 장씩 보며 쓸 시기(지금 · 곧 · 나중) 정하기'+(tn?` · 안 정한 카드 ${tn}장`:''),onclick:triageOpen},'훑기',tn?h('i',{class:'trin'},tn>99?'99+':tn):null);
-  if(U2())p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),U3()?h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`):h('small',{class:'pcnt'},S.cards.length),h('span',{class:'sp'}),triB,sb,vb,fb,ptog('pool')));
-  else p.append(h('div',{class:'phead'},h('b',{},'쓰고 싶은 장면 · 대사'),h('span',{class:'sp'}),h('span',{class:'muted'},`${S.cards.length}장`),triB,sb,vb,fb,ptog('pool')));
+  p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('small',{class:'pcnt',title:'지금 고른 분류 중 화 · 보관 칸에 아직 안 넣은 장수 (미사용 탭에 보이는 수)'},`${left}장 남음`),h('span',{class:'sp'}),triB,sb,vb,fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
       act(()=>{const c=newCard(quickKind(),v);autoLinkCard(c);S.cards.unshift(c);(UI.pnew=UI.pnew||new Set()).add(c.id);if(!poolKinds().includes(c.kind)){UIP.pk=[...poolKinds(),c.kind];saveUIP()}});setTimeout(()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()})}});
-  if(U2()){qi.placeholder='한 줄 쓰고 Enter';qi.title=`Enter → ${kindOf(quickKind()).name}`}
+  qi.placeholder='한 줄 쓰고 Enter';qi.title=`Enter → ${kindOf(quickKind()).name}`;
   const si=UI.psOpen||UI.pq?h('input',{class:'psearch',placeholder:'검색 (Esc 닫기)',value:UI.pq,oninput:e=>{UI.pq=e.target.value;clearTimeout(renderPool.t);renderPool.t=setTimeout(()=>{const a=document.activeElement===e.target,s=e.target.selectionStart;renderPool();if(a){const i=document.querySelector('#pool .psearch');if(i){i.focus();i.setSelectionRange(s,s)}}},220)},
     onkeydown:e=>{if(e.key==='Escape'&&!e.isComposing){e.stopPropagation();UI.pq='';UI.psOpen=false;renderPool()}}}):null;
   p.append(h('div',{class:'pquick'},qi,si,tabs([['unused','미사용'],['used','사용'],['all','전체']],UI.pused,k=>{UI.pused=k;renderPool()}),kindChips()));

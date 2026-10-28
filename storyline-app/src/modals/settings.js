@@ -41,8 +41,7 @@ const THEME_ALIAS={emerald:'forest',sky:'light',mint:'cotori',peach:'rose',sepia
   snow:'light',solarized:'cotori',moss:'cotori',plum:'midnight',olive:'forest',terminal:'forest',cyber:'midnight',hitel:'midnight'};      // 없어진 테마는 가장 비슷한 테마로 (2026-10 정리: 겹치거나 너무 튀는 테마를 뺌)
 function applySettings(){
   const s=S.settings,r=document.documentElement;
-  document.body.classList.toggle('ui2',s.uiStyle==='new'||s.uiStyle==='fresh');      // 화면 디자인: 기존 / 새 디자인 / 새단장 (기본은 기존)
-  document.body.classList.toggle('ui3',s.uiStyle==='fresh');
+  document.body.classList.add('ui2','ui3');      // 화면 디자인은 새단장 하나 (예전 CSS가 ui2 · ui3 아래에 있음)
   if(THEME_ALIAS[s.theme]){s.theme=THEME_ALIAS[s.theme];save()}
   if(!s.theme||s.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',s.theme);
   if(s.noteTheme)delete s.noteTheme;      // 예전 색 테마 설정은 정리
@@ -70,8 +69,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
   const SHAPES=[['','포스트잇'],['index','인덱스 카드'],['tape','테이프 메모'],['spiral','스프링 노트'],['round','둥근 카드'],['polaroid','폴라로이드'],['washi','마스킹 테이프'],['bubble','말풍선'],['dogear','접힌 모서리'],['receipt','영수증']];
   const MORE_T={look:'보드 · 핀 · 줄 · 글꼴',write:'카드 분류',data:'폴더'};
   const more=(key,...items)=>{const open=!!(UI.setMore&&UI.setMore[key]),tg=()=>{UI.setMore=UI.setMore||{};UI.setMore[key]=!open;showSettings()};
-    if(U2())return [h('button',{class:'sfold',onclick:tg},icon(open?'chevD':'chevR'),h('span',{},MORE_T[key]),h('small',{},key==='write'?S.kinds.length:key==='data'?2:items.filter(Boolean).length)),...(open?items:[])];      // 새 디자인: 접힌 한 줄 (제목 + 개수)
-    return [h('button',{class:'quiet smore',onclick:tg},open?'▾ 접기':'▸ 더 보기'),...(open?items:[])]};
+    return [h('button',{class:'sfold',onclick:tg},icon(open?'chevD':'chevR'),h('span',{},MORE_T[key]),h('small',{},key==='write'?S.kinds.length:key==='data'?2:items.filter(Boolean).length)),...(open?items:[])]};      // 접힌 한 줄 (제목 + 개수)
   const kinds=S.kinds.map(k=>h('div',{class:'krow'},
     h('input',{type:'color',value:k.color,title:k.colorMode==='random'?'랜덤 색 사용 중':'포스트잇 색',style:k.colorMode==='random'?'opacity:.3':'',disabled:k.colorMode==='random',onchange:e=>{act(()=>k.color=e.target.value);showSettings()},oninput:e=>edit(()=>k.color=e.target.value)}),
     h('input',{value:k.name,class:'kname',onchange:e=>{const v=e.target.value.trim();if(!v||S.kinds.some(x=>x!==k&&nameKey(x.name)===nameKey(v))){e.target.value=k.name;return toast('이름이 비었거나 이미 있어요')}act(()=>k.name=v);showSettings()}}),
@@ -84,9 +82,8 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
   const T={
     look:[
       row('이름 목록 모양','왼쪽 인물 · 설정 목록',segOld([['text','글자 (｜로 구분)'],['chip','이름표']],s.leftStyle||'text',k=>{setSetting('leftStyle',k);renderLeft()})),
-      row('화면 디자인',null,segOld([['old','기존'],['new','새 디자인'],['fresh','새단장']],s.uiStyle==='new'||s.uiStyle==='fresh'?s.uiStyle:'old',k=>{setSetting('uiStyle',k);if(k==='fresh'){UIP.frLeftUser=false;frAutoLeft();saveUIP()}applyLayout();renderAll();showSettings()})),
-      ...(U3()?[row('작게 보기','구상 보드를 줄여 글자가 이보다 작아지면 포스트잇을 모양만',segOld([['0','끄기'],['6','6px'],['8','8px'],['10','10px']],String(frDefPx()),k=>{setSetting('defPx',+k);applyView()}))]:[]),
-      row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0]),U2()?null:h('span',{class:'muted',style:'font-size:.82em'},'기기의 밝게 · 어둡게 설정을 따라요')),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
+      row('작게 보기','구상 보드를 줄여 글자가 이보다 작아지면 포스트잇을 모양만',segOld([['0','끄기'],['6','6px'],['8','8px'],['10','10px']],String(frDefPx()),k=>{setSetting('defPx',+k);applyView()})),
+      row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0])),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
       row('포스트잇 모양','기본',h('div',{class:'swgrid'},...SHAPES.map(([k,n])=>h('button',{class:'swb'+((s.noteShape||'')===k?' on':''),onclick:()=>setSetting('noteShape',k)},h('span',{class:'shp '+k},h('b'),k==='tape'||k==='bubble'?h('i'):null),n))),
         h('div',{class:'kshape'},h('span',{class:'muted'},'분류별로 다르게'),...S.kinds.map(k=>h('label',{class:'kshr'},h('i',{style:`background:${k.colorMode==='random'?RANDOM_BG:k.color}`}),k.name,
           sel([['global','기본 모양'],...SHAPES,['random','랜덤']],k.shape===undefined||k.shape===null?'global':k.shape,v=>{act(()=>{if(v==='global')delete k.shape;else k.shape=v});showSettings()}))))),
@@ -106,7 +103,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       ...more('write',
         h('div',{class:'srow'},h('div',{class:'sl'},'카드 분류 · 색 · 단축키',h('span',{class:'muted'},'⌘ + 키로 그 분류의 포스트잇을 바로 만들어요')),
 
-        h('div',{class:'klist'},...kinds,U2()?null:h('div',{class:'muted',style:'padding:2px 2px 4px'},'색: 고정 = 정한 한 가지 색 · 랜덤 = 만들 때마다 읽기 좋은 밝은 색 중에서 무작위 (글자가 잘 보이는 색만 써요)'),h('button',{class:'kadd2',onclick:async()=>{
+        h('div',{class:'klist'},...kinds,h('button',{class:'kadd2',onclick:async()=>{
         const name=((await askText('새 분류 이름'))||'').trim();if(!name)return;
         if(S.kinds.some(k=>nameKey(k.name)===nameKey(name)))return toast('이미 있는 분류예요');
         const free=HOTKEYS.find(x=>x&&!S.kinds.some(k=>k.key===x))||'';

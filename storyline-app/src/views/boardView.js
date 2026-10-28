@@ -5,12 +5,11 @@ function renderBoard(m){
   const name=key==='all'?'전체 코르크보드':(key==='none'?'미분류':(c?c.name:''));
   const full=document.body.classList.contains('full'),uf=useMode(),asList=uf==='used'&&!UI.usedAsBoard;      // 사용 카드는 정리 목록으로 (가볍고 한눈에)
   const trig=(label,items,title)=>{const b=h('button',{class:'menubtn','data-pop':'1',title,onclick:()=>popMenu(b,items())},label,h('span',{class:'caret'},'▾'));return b};
-  if(c&&c.kind==='char'&&UI.mode==='story'&&!(U3())&&!(U2()&&!UIP.cl.sheet&&!(c.longGoal||(c.goals||[]).some(g=>g.state==='active'))))m.append(goalStripEl(c));      // 새 디자인: 시트가 열려 있으면 빈 “목표 적기”는 시트의 목표 줄로 대신
-  const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')+(U3()&&UI.bdef&&!asList?' bdef':'')}),world=h('div',{class:'bworld'});
+  const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')+(UI.bdef&&!asList?' bdef':'')}),world=h('div',{class:'bworld'});
   view.append(world);m.append(view);
   // 왼쪽 위: 보드 이름 · 장수 (목표 알약도 여기에)
   const RO=UI.mode==='all',on=kindsOn();
-  const bhead=U3()&&UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null);
+  const bhead=UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null);
   view.append(bhead);
   { const gs=m.querySelector('.goalstrip.mini');if(gs)bhead.append(gs); }
   // 아래 가운데: 도구 독 (새 포스트잇 · 보기 · 배치 · 배율 · 꾸미기)

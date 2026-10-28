@@ -323,12 +323,12 @@ function renderGraph(m){
     seg([['global','전체'],['local','로컬']],local?'local':'global',k=>{UIP.gscope=k;saveUIP();renderMid()}),
     local?seg([[1,'1단계'],[2,'2단계'],[3,'3단계']],depth,k=>{UIP.gdepth=+k;saveUIP();renderMid()}):null,
     seg([['node','노드'],['circle','원형']],style,k=>{UIP.gstyle=k;saveUIP();renderMid()}),
-    seg(U2()?[['all','인물 + 설정'],['char','인물만'],['setting','설정만']]:[['all','전체'],['char','인물'],['setting','설정']],type,k=>{UIP.gtype=k;UIP.gsel=null;saveUIP();renderMid()}),
+    seg([['all','인물 + 설정'],['char','인물만'],['setting','설정만']],type,k=>{UIP.gtype=k;UIP.gsel=null;saveUIP();renderMid()}),
     h('span',{class:'gcore',title:'핵심: 노드마다 가장 가까운 3개만 선으로 · 전체: 함께 나온 모든 연결'},seg([[true,'핵심'],[false,'전체 연결']],UIP.gcore!==false,k=>{UIP.gcore=k===true||k==='true';saveUIP();rebuild();bar.querySelectorAll('.gcore .seg button').forEach(b=>b.classList.toggle('on',(b.textContent==='핵심')===(UIP.gcore!==false)))})),
     h('label',{class:'muted gstrl',title:'함께 나온 횟수가 이 값 이상인 연결만 반영해요 (포스트잇에 같이 나오면 1회, 같은 화에 같이 쓰이면 0.5회로 셈)'},'함께 나온 횟수',minIn,strLab),
     relSel,labChk,campChk,searchIn,h('span',{class:'sp'}),
     h('span',{class:'seg gzoom'},h('button',{title:'축소 ( − )',onclick:()=>zoomBy(.8)},'−'),h('button',{title:'화면에 맞추기 ( 0 )',onclick:()=>{auto=true;kick()}},'맞춤'),h('button',{title:'확대 ( + )',onclick:()=>zoomBy(1.25)},'＋')));
-  if(U2()){      // 새 디자인: 검색 · 대상 드롭다운 · “보기 옵션” 한 곳 · 확대/축소는 캔버스 오른쪽 위
+  {      // 검색 · 대상 드롭다운 · “보기 옵션” 한 곳 · 확대/축소는 캔버스 오른쪽 위
     const kids=[...bar.children],pick=sel=>kids.find(x=>x.matches&&x.matches(sel));
     const typeEl=kids[3+(local?1:0)],zoomEl=pick('.gzoom');      // [제목, 범위, (단계), 배치, 대상, 연결, 횟수, 검색, 빈칸, 확대]
     const optEls=kids.slice(1,3+(local?1:0));
@@ -351,14 +351,11 @@ function renderGraph(m){
     if(zoomEl){zoomEl.classList.add('gzoom-n');box.append(zoomEl)}
   }
   wrap.append(bar);
-  if(nEp&&U2()){      // 아래쪽 바 하나: 재생 · 시점 · 배속 (설명은 툴팁으로)
+  if(nEp){      // 아래쪽 바 하나: 재생 · 시점 · 배속 (설명은 툴팁으로)
     const spd=sel([1,2,5,10].map(v=>[String(v),'×'+v]),String(speed),v=>{UIP.gspeed=+v;saveUIP();if(GC.playT){clearInterval(GC.playT);GC.playT=0;pb.textContent='▶ 재생'}},'seg2');
     pb.classList.add('gplay-n');
     wrap.append(h('div',{class:'gbar2 gbar2-n'},pb,h('span',{class:'muted',title:'1화부터 어디까지 쌓였는지 · 쌓일수록 가까워져요'},'시점'),tIn,tlab,spd));
   }
-  else if(nEp)wrap.append(h('div',{class:'gbar2'},h('span',{class:'muted'},'시점'),tIn,tlab,pb,
-    h('span',{class:'seg gspd',title:'재생 속도'},...[1,2,5,10].map(v=>h('button',{class:v===speed?'on':'',onclick:e=>{UIP.gspeed=v;saveUIP();bar.parentNode&&wrap.querySelectorAll('.gspd button').forEach(b=>b.classList.toggle('on',b.textContent==='×'+v));if(GC.playT){clearInterval(GC.playT);GC.playT=0;pb.textContent='▶ 재생'}}},'×'+v))),
-    h('span',{class:'muted',style:'font-size:.82em'},'1화부터 어디까지 쌓였는지 · 쌓일수록 가까워져요')));
   wrap.append(box,info,tip);
   /* ---- 입력 ---- */
   canvas.addEventListener('wheel',e=>{e.preventDefault();

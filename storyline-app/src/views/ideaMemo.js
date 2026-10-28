@@ -30,12 +30,10 @@ function renderSettingSheet(p,c){
       const v=e.target.value.trim(),d=v&&dupName(v,c.id);
       if(!v||d){e.target.value=c.name;return toast(!v?'이름은 비워둘 수 없어요':`'${d.name}'은(는) 이미 있는 이름이에요`)}
       act(()=>{c.name=v;autoLinkAll()})}}),
-    U2()?null:folderSel(c),
     h('label',{class:'fl'},'한 줄 정의',h('span',{class:'muted'},'사전처럼 한 줄이면 충분해요')),
     h('textarea',{class:'ghost box autofit',rows:1,placeholder:'한 줄 정의',style:'resize:none;overflow:hidden',oninput:e=>{edit(()=>c.summary=e.target.value);fitOne(e.target)}},c.summary),
     h('label',{class:'fl'},'별칭',h('span',{class:'muted'},'쉼표로 구분 · 글에 나오면 카드가 자동으로 연결돼요')),
-    h('textarea',{class:'ghost box autofit',rows:1,placeholder:'예: 지하, 월세방',style:'resize:none;overflow:hidden',onchange:e=>act(()=>{c.aliases=e.target.value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);autoLinkAll()}),oninput:e=>fitOne(e.target)},c.aliases.join(', ')),
-    U2()?null:h('div',{class:'row',style:'margin-top:4px'},...PAL.map(col=>h('button',{class:'sw'+(c.color===col?' on':''),style:`background:${col}`,title:'색',onclick:()=>act(()=>c.color=col)})))));
+    h('textarea',{class:'ghost box autofit',rows:1,placeholder:'예: 지하, 월세방',style:'resize:none;overflow:hidden',onchange:e=>act(()=>{c.aliases=e.target.value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);autoLinkAll()}),oninput:e=>fitOne(e.target)},c.aliases.join(', '))));
   sheetProps(p.lastChild,c);
   p.append(h('div',{class:'sgrp'},
     h('label',{class:'fl'},'설정 메모',h('span',{class:'muted'},'세계관 · 장소 · 조직 · 규칙 … 자유롭게')),

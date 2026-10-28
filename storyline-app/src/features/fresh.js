@@ -1,5 +1,5 @@
 /* ============ 새단장: 정리 전은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고 ============
-   설정 → 겉모습 → 화면 디자인 → 새단장 일 때만 씀 (U3). 데이터는 그대로 두고 그리는 방법만 바꿈.
+   앱의 화면 디자인 (하나뿐). 데이터는 그대로 두고 그리는 방법만 바꿈.
    - 칸반: 상자 없는 화 레인 + 색인 카드 (인물은 첫 글자 동그라미, 도구는 마우스를 올릴 때만)
    - 한 줄: 원고 한 장 (화 = 장, 카드 = 문단) · 글 폭 · 글자 크기 · 문단을 두 번 누르면 집중
    - 갈래: 원고엔 겹친 종이 + ⑂ 표시만, 누르면 갈래 지도 (양쪽 · 오른쪽 · 아래로 · 둘레)
@@ -244,7 +244,7 @@ function frLeftSwap(from,to){
   if(kt==='tl'&&!UIP.frLeftUser)UIP.cl.left=innerWidth<FR_NARROW;
 }
 function frAutoLeft(){      // 직접 접거나 편 적이 없으면: 좁은 창에선 접고, 넓은 창에선 폄
-  if(!U3()||UI.mode!=='tl'||UIP.frLeftUser)return false;
+  if(UI.mode!=='tl'||UIP.frLeftUser)return false;
   const want=innerWidth<FR_NARROW;if(!!UIP.cl.left===want)return false;
   UIP.cl.left=want;return true;
 }
@@ -261,7 +261,7 @@ function frDefLayer(card){      // 보드 포스트잇 안에 넣어 두는 모�
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).map(c=>h('b',{style:`--c:${c.color}`}))),
     h('span',{class:'ds'},...Array.from({length:card.stars||0},()=>h('b'))));
 }
-const frDefOn=()=>U3()&&onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
+const frDefOn=()=>onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
 function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준에서, 키울 땐 12% 더 커져야 돌아옴 (경계에서 깜빡이지 않게)
   const T=frDefPx(),was=!!UI.bdef;
   const px=(S.settings.font||14)*1.04*k,on=!!T&&(was?px<T*1.12:px<T);
@@ -324,7 +324,7 @@ function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 �
 }
 
 /* ---------- 오른쪽 목록: 같은 모양의 작은 포스트잇 아이콘 ---------- */
-const frIcons=()=>U3()&&UIP.pico!==false;
+const frIcons=()=>UIP.pico!==false;
 function frIcon(card){
   const used=episodeOf(card.id);
   const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,'data-w':!used&&card.when||'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},

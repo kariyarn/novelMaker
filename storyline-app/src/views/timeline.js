@@ -9,7 +9,7 @@ function addEpisode(){      // 화 추가: 보고 있던 자리를 지키고, �
 
 function placeCard(cardId,epId,beforeId){
   {const c0=cardById(cardId);if(c0)ensureKindVisible(c0.kind)}
-  if(U3()&&!episodeOf(cardId))UI.landId=cardId;      // 새단장: 목록에서 처음 들어온 카드는 노란 종이가 하얀 카드로 바뀌며 자리를 잡음
+  if(!episodeOf(cardId))UI.landId=cardId;      // 새단장: 목록에서 처음 들어온 카드는 노란 종이가 하얀 카드로 바뀌며 자리를 잡음
   act(()=>{detach([cardId]);
     const ep=S.episodes.find(e=>e.id===epId);let i=beforeId?ep.cardIds.indexOf(beforeId):-1;if(i<0)i=ep.cardIds.length;ep.cardIds.splice(i,0,cardId)});
 }
@@ -155,8 +155,7 @@ function epMenu(btn,idx){
 function renderTimeline(m){
   const E=S.episodes,mode=UIP.tlMode||'kanban',[lo,hi]=tlRange(),sc=UI.tlScope;
   const chip=(label,on,fn,col)=>h('span',{class:'chip'+(on?' on':''),onclick:fn},col&&!on?h('i',{style:`display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-right:5px`}):null,label);
-  const slider=(key,min,max,lab)=>h('label',{class:'muted',style:'display:flex;align-items:center;gap:6px'},lab,h('input',{type:'range',min,max,step:10,value:UIP[key]||(key==='tll'?420:250),style:'width:100px;padding:0;background:transparent;border:0',oninput:e=>{UIP[key]=+e.target.value;applyLayout()},onchange:saveUIP}));
-  const tlRangeSel=()=>{      // 새 디자인: 전체 / 묶음 / 한 화 범위를 드롭다운 하나로 (왼쪽 화 목록과 같은 동작)
+  const tlRangeSel=()=>{      // 전체 / 묶음 / 한 화 범위를 드롭다운 하나로 (왼쪽 화 목록과 같은 동작)
     const gps=tlGroups(),useG=gps.length>1&&(UIP.gs===undefined?10:UIP.gs)>0;
     const opts=[['all',`전체 ${E.length}화`],...(useG?gps.map(([a,b],gi)=>['g'+gi,grpLab(a,b)]):[])];
     let cur=!sc?'all':(sc.g!==undefined?'g'+sc.g:'e');
@@ -164,26 +163,16 @@ function renderTimeline(m){
     return sel(opts,cur,v=>{if(v==='all')UI.tlScope=null;else if(v[0]==='g'){const gi=+v.slice(1);gps.forEach((_,k)=>{UIP.tg[k]=true});UIP.tg[gi]=false;UI.tlScope={g:gi}}saveUIP();renderAll()},'seg2');
   };
   m.append(h('div',{class:'mbar'},
-    U2()?null:h('b',{},'타임라인'),
-    (U2()?tabs:seg)([['kanban','칸반'],['line','한 줄'],['matrix','등장표'],['shelf','보관']],mode,k=>{UIP.tlMode=k;saveUIP();renderAll()}),
-    U2()?h('span',{class:'sp'}):null,
+    tabs([['kanban','칸반'],['line','한 줄'],['matrix','등장표'],['shelf','보관']],mode,k=>{UIP.tlMode=k;saveUIP();renderAll()}),
+    h('span',{class:'sp'}),
     kindFilterBtn(),
-    ...(mode==='line'?(U3()?frLineBar():brBar()):[]),
+    ...(mode==='line'?frLineBar():[]),
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
-    U2()?null:h('span',{class:'sp'}),
-    U2()?tlRangeSel():h('span',{class:'muted'},!sc?`전체 ${E.length}화`:(sc.e!==undefined?`${sc.e+1}화`:grpLab(lo,hi))),
-    mode==='kanban'&&U3()?h('label',{class:'frwctl',title:'화 칸 너비'},'칸 폭',h('input',{type:'range',min:200,max:480,step:10,value:UIP.tlw||250,oninput:e=>{UIP.tlw=+e.target.value;applyLayout()},onchange:saveUIP})):
-    mode==='kanban'?(U2()?(()=>{const b=h('button',{class:'cbtn','data-pop':'1',title:'열 너비',onclick:()=>popMenu(b,[{title:'열 너비'},{node:h('div',{class:'popsl'},slider('tlw',200,480,''))}])},icon('xcol'));return b})():slider('tlw',200,480,'열 너비')):null,
-    h('button',{class:'quiet',onclick:()=>addEpisode()},U2()?icon('plus'):null,U2()?'화':'＋ 화')));
+    tlRangeSel(),
+    mode==='kanban'?h('label',{class:'frwctl',title:'화 칸 너비'},'칸 폭',h('input',{type:'range',min:200,max:480,step:10,value:UIP.tlw||250,oninput:e=>{UIP.tlw=+e.target.value;applyLayout()},onchange:saveUIP})):null,
+    h('button',{class:'quiet',onclick:()=>addEpisode()},icon('plus'),'화')));
   if(mode==='matrix')return renderMatrix(m,lo,hi);
   if(mode==='shelf')return renderShelf(m);
-  const gps=tlGroups(),useG=gps.length>1&&(UIP.gs===undefined?10:UIP.gs)>0;
-  if(useG&&!U2()){      // 위에 한 줄 (새 디자인에서는 위쪽 바의 “범위” 드롭다운으로): 전체 보기 / 묶음별 보기 — 묶음을 누르면 그 묶음의 화만 보고(다른 묶음은 접힘), 전체를 누르면 모든 화를 다 봄
-    m.append(h('div',{class:'tlgrow'},
-      h('button',{class:'tlgb'+(!sc?' on':''),title:'모든 화 보기',onclick:()=>{UI.tlScope=null;saveUIP();renderAll()}},'전체',h('small',{},E.length)),
-      ...gps.map(([a,b],gi)=>{const on=!!sc&&sc.g===gi,cnt=E.slice(a,b).reduce((x,e)=>x+e.cardIds.length,0);
-        return h('button',{class:'tlgb'+(on?' on':''),title:'이 묶음의 화만 보기',onclick:()=>{gps.forEach((_,k)=>{UIP.tg[k]=true});UIP.tg[gi]=false;UI.tlScope={g:gi};saveUIP();renderAll()}},grpLab(a,b),cnt?h('small',{},cnt):null)})));
-  }
   const shown=()=>true;      // 전체 보기는 말 그대로 전체 (왼쪽 목록에서 접은 묶음과 상관없음)
   if(TLIO)TLIO.disconnect();
   const LAZY=E.slice(lo,hi).reduce((x,e)=>x+e.cardIds.length,0)>150;
@@ -191,37 +180,26 @@ function renderTimeline(m){
   // 한 화의 머리(제목·메모)와 카드 목록: 칸반과 한 줄 모드가 같이 씀
   const build=(ep,idx)=>{
     const body=h('div',{class:'tlbody'});
-    const one=c=>!U3()&&mode==='line'&&brOn()&&brs(c).length?brFork(c,{epId:ep.id}):kcard(c,'tl',{epId:ep.id});      // 한 줄 보기 + 갈래 켬: 본선 옆에 갈래를 펼침 (새단장은 갈래 지도에서)
+    const one=c=>kcard(c,'tl',{epId:ep.id});      // 한 줄 보기 + 갈래 켬: 본선 옆에 갈래를 펼침 (새단장은 갈래 지도에서)
     const cards=ep.cardIds.map(cardById).filter(Boolean).filter(kindOk).filter(c=>UI.tlChar==='all'||eff(c).includes(UI.tlChar));
     if(LAZY&&cards.length){      // 카드가 많으면 화면에 보일 때 채움
       body.style.minHeight=Math.min(cards.length*74,1600)+'px';
       body._fill=()=>{body.style.minHeight='';cards.forEach(c=>body.append(one(c)))};TLIO.observe(body);
     }else cards.forEach(c=>body.append(one(c)));
-    if(U3()&&cards.length>1)frScenes(body,ep);      // 새단장: 장면 나누기
+    if(cards.length>1)frScenes(body,ep);      // 새단장: 장면 나누기
     if(!cards.length)body.append(h('div',{class:'tlhint'},UI.tlChar==='all'?'오른쪽 카드를 끌어다 놓기':'이 인물의 카드가 없어요'));
     body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
     body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});
     body.addEventListener('drop',e=>{e.preventDefault();body.classList.remove('over');if(DRAG){const id=DRAG.id,nb=ghostBeforeId(body);DRAG=null;placeCard(id,ep.id,nb)}});
     const folded=!!(UIP.tef&&UIP.tef[ep.id]);
-    const fold=mode==='line'?h('button',{class:'cbtn foldb',title:folded?'펴기':'접기',onclick:()=>{UIP.tef=UIP.tef||{};UIP.tef[ep.id]=!folded;saveUIP();renderMid()}},folded?'▸':'▾'):null;
     const cnt=h('small',{class:'epcnt',title:'카드 수 · 공백 빼고 글자 수'},cntLabel(cards.map(c=>c.id),cards.length));
-    return [h('div',{class:'tlhead'},U3()?null:fold,U3()?h('b',{class:'frno'},String(idx+1),h('small',{},'화')):h('b',{},`${idx+1}화`),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
+    return [h('div',{class:'tlhead'},h('b',{class:'frno'},String(idx+1),h('small',{},'화')),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
         ep.cardIds.length?h('button',{class:'cbtn tlcopy',title:'이 화의 글을 원고로 이어 붙여서 복사',onclick:()=>copyEpisodeText(idx)},icon('copy')):null,
         (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기',onclick:()=>epMenu(b,idx)},icon('more'));return b})(),
         h('button',{class:'x',title:'화 삭제 (카드는 목록으로 돌아가요)',onclick:async()=>{if(ep.cardIds.length&&!await askConfirm(`${idx+1}화를 지울까요? 카드 ${ep.cardIds.length}장은 미배치로 돌아가요.`))return;act(()=>{S.episodes=S.episodes.filter(x=>x!==ep);if(!S.episodes.length)S.episodes.push(newEp());UI.tlScope=null})}},'✕')),
       h('textarea',{class:'tlmemo autofit',rows:1,placeholder:'한 줄 메모',oninput:e=>{edit(()=>ep.memo=e.target.value);fitOne(e.target)}},ep.memo),body];
   };
-  if(mode==='line'&&U3())return frRenderLine(m,E,lo,hi,build);      // 새단장: 원고 한 장 (features/fresh.js)
-  if(mode==='line'){      // 한 줄: 세로로 쭉 이어짐 (오른쪽 사이드바를 넓게 씀)
-    const inner=h('div',{class:'tllinein'});
-    E.slice(lo,hi).forEach((ep,j)=>{if(!shown(lo+j))return;
-      const idx=lo+j,folded=!!(UIP.tef&&UIP.tef[ep.id]),parts=build(ep,idx),n=ep.cardIds.map(cardById).filter(Boolean).filter(kindOk).filter(c=>UI.tlChar==='all'||eff(c).includes(UI.tlChar)).length;
-      inner.append(h('div',{class:'tlseg','data-ep':idx},
-        h('button',{class:'rbadge',title:folded?'눌러서 펴기':'눌러서 접기',onclick:()=>{UIP.tef=UIP.tef||{};UIP.tef[ep.id]=!folded;saveUIP();renderMid()}},idx+1),
-        (()=>{const bx=h('div',{class:'tlbox'+(folded?' folded':'')+(!n&&!(ep.memo||'').trim()?' emptyep':'')},...parts);bindColDrop(bx,parts[parts.length-1],(id,nb)=>placeCard(id,ep.id,nb));return bx})()))});
-    inner.append(h('div',{class:'addcol',style:'flex:none;width:100%',onclick:()=>addEpisode()},'＋ 화 추가'));
-    const tll=h('div',{class:'tlline'},inner);bindPanScroll(tll);m.append(tll);return;
-  }
+  if(mode==='line')return frRenderLine(m,E,lo,hi,build);      // 원고 한 장 (features/fresh.js)
   const cols=h('div',{class:'tlcols'});
   // 칸반 휠: 세로로만 도는 휠은 빈 곳에서 좌우 이동 (부드럽게) · 길어서 스크롤되는 화 칸 위에서는 그 칸이 위아래로 (⌥ / ⇧ 휠은 어디서든 좌우) · 좌우 성분이 있는 스크롤(트랙패드)은 그대로
   {let tgt=null,raf=0;
