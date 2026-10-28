@@ -74,7 +74,6 @@ function frRenderLine(m,E,lo,hi,build){
   if(UIP.frshs){      // 보관함을 원고 옆에 나란히 (따로 스크롤)
     const side=h('div',{class:'frsheet frshp'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
     m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),h('div',{class:'frlcol'},side)));return}
-  if(!UI.tlScope)frShelves(sheet);      // 한 화 · 한 묶음만 볼 때는 원고 아래에 보관을 붙이지 않음 (위쪽 보관함 아이콘으로 열기)
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
 }
 
@@ -109,19 +108,31 @@ function frScenes(body,ep){
 function frSetSeps(ep,fn){act(()=>{ep.seps=fn((ep.seps||[]).filter(id=>ep.cardIds.includes(id)));if(!ep.seps.length)delete ep.seps})}
 
 /* 문단 우클릭: 위 · 아래에 새 문단 / 장면 구분 넣기 · 지우기 / 다른 화로 */
-function frCtx(ev,card,epId){
-  const ep=S.episodes.find(e=>e.id===epId);if(!ep)return;
-  const ids=ep.cardIds.filter(cardById),i=ids.indexOf(card.id),up=ids[i],down=ids[i+1],has=id=>(ep.seps||[]).includes(id);
-  const add=at=>{const c=newCard(card.kind,'');
-    act(()=>{S.cards.push(c);idxClear();ep.cardIds.splice(at,0,c.id)});
-    requestAnimationFrame(()=>{const el=document.querySelector(`#mid .kcard[data-id="${c.id}"]`);if(el){el.scrollIntoView({block:'nearest'});enterEditList(el)}})};      // 비워 두고 나가면 저절로 지워짐
-  const sepItem=(id,where)=>id&&ids.indexOf(id)>0?(has(id)?{label:`${where} 장면 구분 지우기`,fn:()=>frSetSeps(ep,a=>a.filter(x=>x!==id))}:{label:`${where}에 장면 구분 넣기`,fn:()=>frSetSeps(ep,a=>[...a,id])}):null;
-  const items=[{label:'위에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id))},{label:'아래에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id)+1)},'sep',
-    sepItem(up,'위'),sepItem(down,'아래'),'sep',
-    {label:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,[card.id]);b.remove()},0)}].filter(Boolean);
-  const cx=ev.clientX,cy=ev.clientY,a=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(a);
-  popMenu(a,items.filter((x,k,arr)=>!(x==='sep'&&(k===0||arr[k-1]==='sep'))));a.remove();
+/* 타임라인 카드 우클릭 (칸반 · 한 줄 · 보관 같은 메뉴): 위 · 아래에 새 카드 · 장면 구분(화 안에서만) · 다른 화로 */
+const frBox=opt=>opt.shelfId?(S.shelves||[]).find(x=>x.id===opt.shelfId):S.episodes.find(e=>e.id===opt.epId);
+function frAddAt(box,at,kind){      // 그 화 · 보관 칸의 at 자리에 빈 카드 · 바로 그 자리에서 쓰기 (비워 두고 나가면 저절로 지워짐)
+  const c=newCard(kind||quickKind(),'');
+  act(()=>{S.cards.push(c);idxClear();box.cardIds.splice(at,0,c.id)});
+  requestAnimationFrame(()=>{const el=document.querySelector(`#mid .kcard[data-id="${c.id}"]`);if(el){el.scrollIntoView({block:'nearest'});enterEditList(el)}});
 }
+const ctxAt=(ev,items)=>{const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
+  popMenu(a,items.filter(Boolean).filter((x,k,arr)=>!(x==='sep'&&(k===0||arr[k-1]==='sep'||k===arr.length-1))));a.remove()};
+function frCtx(ev,card,opt){
+  const box=frBox(opt);if(!box)return;
+  const isEp=!opt.shelfId,ids=box.cardIds.filter(cardById),i=ids.indexOf(card.id),up=ids[i],down=ids[i+1],has=id=>(box.seps||[]).includes(id);
+  const sepItem=(id,where)=>isEp&&id&&ids.indexOf(id)>0?(has(id)?{label:`${where} 장면 구분 지우기`,fn:()=>frSetSeps(box,a=>a.filter(x=>x!==id))}:{label:`${where}에 장면 구분 넣기`,fn:()=>frSetSeps(box,a=>[...a,id])}):null;
+  const cx=ev.clientX,cy=ev.clientY;
+  ctxAt(ev,[{label:'위에 새 카드',fn:()=>frAddAt(box,box.cardIds.indexOf(card.id),card.kind)},{label:'아래에 새 카드',fn:()=>frAddAt(box,box.cardIds.indexOf(card.id)+1,card.kind)},'sep',
+    sepItem(up,'위'),sepItem(down,'아래'),'sep',
+    {label:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,[card.id]);b.remove()},0)}]);
+}
+/* 빈 곳 우클릭: 그 화 · 보관 칸 맨 끝에 새 카드 */
+document.addEventListener('contextmenu',e=>{
+  const t=e.target;if(!t.closest||t.closest('.kcard,input,textarea,select,button'))return;
+  const shEl=t.closest('#mid .shelf'),epEl=shEl?null:t.closest('#mid :is(.tlcol,.frch)[data-ep]');
+  const box=shEl?(S.shelves||[]).find(x=>x.id===shEl.dataset.sh):epEl?S.episodes[+epEl.dataset.ep]:null;if(!box)return;
+  e.preventDefault();ctxAt(e,[{label:'새 카드',fn:()=>frAddAt(box,box.cardIds.length)}]);
+});
 
 /* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
 function frShelves(sheet,side){
@@ -273,7 +284,7 @@ function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준�
 
 /* ---------- 떠오르는 원본: 미리보기 (반투명 · 누를 수 없음) / 열기 (또렷 · 고침) ---------- */
 let FRFL=null;      // 열린 원본 {id, el}
-function frRectOf(id){const el=document.querySelector(`.bview .kcard.board[data-id="${id}"]`)||document.querySelector(`#pool .frico[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
+function frRectOf(id){const el=document.querySelector(`.bview .kcard.board[data-id="${id}"]`)||document.querySelector(`#pool .frico[data-id="${id}"]`)||document.querySelector(`#mid .kcard.tl[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
 function frPlace(box,r,prefer){      // 카드 옆(오른쪽, 모자라면 왼쪽)에 원래 크기로
   const W=box.offsetWidth||260,H=box.offsetHeight||160;let x=prefer==='left'?r.left-W-12:r.right+12;
   if(x+W>innerWidth-8)x=r.left-W-12;if(x<8)x=Math.min(innerWidth-W-8,Math.max(8,r.left+(r.width-W)/2));
@@ -305,7 +316,7 @@ function frOpen(id,prefer){
 function frFloatFill(){      // 분류 · 별 · 지우기 · 인물 줄 (데이터가 바뀌면 다시 채움, 글 칸은 그대로라 쓰던 자리 유지)
   if(!FRFL)return;const card=cardById(FRFL.id);if(!card)return frClose(true);
   FRFL.el.style.setProperty('--bg',cardColor(card));
-  FRFL.head.replaceChildren(kindSelect(card),starsEl(card),h('span',{class:'sp'}),episodeOf(card.id)?null:whenEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕'));
+  FRFL.head.replaceChildren(...[kindSelect(card),starsEl(card),h('span',{class:'sp'}),episodeOf(card.id)?null:whenEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕')].filter(Boolean));
   FRFL.foot.replaceChildren(footEl(card));
 }
 onStateChange(()=>{if(FRFL)frFloatFill()});

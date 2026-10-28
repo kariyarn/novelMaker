@@ -75,10 +75,13 @@ function kcard(card,mode,opt={}){
     el.draggable=true;
     el.addEventListener('dragstart',e=>{if(e.target!==el)return;DRAG={id:card.id};e.dataTransfer.setData('text/plain',card.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setDragImage(el,12,12);setTimeout(()=>el.classList.add('dragging'))});
     el.addEventListener('dragend',()=>{DRAG=null;document.querySelectorAll('.dragging,.drop-before,.drop-after,.over').forEach(x=>x.classList.remove('dragging','drop-before','drop-after','over'))});
-    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;if(mode==='tl'&&lineMode()&&!opt.shelfId)return frFocus(card.id);enterEditList(el)});      // 새단장 한 줄 보기: 두 번 누르면 집중
+    // 타임라인(칸반 · 한 줄 · 보관): 한 번 누르면 포스트잇 보기 창에서 고치기, 두 번 누르면 집중 (두 번 누르기와 겹치지 않게 잠깐 기다림)
+    if(mode==='tl')el.addEventListener('click',e=>{if(e.button||e.metaKey||e.ctrlKey||e.shiftKey||el.classList.contains('editing')||e.target.closest('select,button,label,.stars,input,a'))return;
+      clearTimeout(el._ck);el._ck=setTimeout(()=>{if(document.contains(el))frOpen(card.id)},230)});
+    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;if(mode==='tl'){clearTimeout(el._ck);frClose(true);return frFocus(card.id)}enterEditList(el)});
     ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true;dropIfEmpty(card.id);if(mode==='tl')tlRecount(opt)});
     el.addEventListener('contextmenu',ev=>{if(ev.target.closest('input,select'))return;ev.preventDefault();ev.stopPropagation();      // 우클릭: 이 카드(또는 선택한 카드들)를 다른 화로
-      if(mode==='tl'&&opt.epId&&!(MSEL.has(card.id)&&MSEL.size>1))return frCtx(ev,card,opt.epId);      // 새단장: 위 · 아래에 새 문단 · 장면 구분
+      if(mode==='tl'&&(opt.epId||opt.shelfId)&&!(MSEL.has(card.id)&&MSEL.size>1))return frCtx(ev,card,opt);      // 위 · 아래에 새 카드 · 장면 구분 · 다른 화로
       const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
       msMenu(a,MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id]);a.remove()});
     if(mode==='tl'){
