@@ -15,7 +15,7 @@ async function restoreBackup(b){
   if(!await askConfirm(`${fmtFull(b.mtime)} 백업으로 복구할까요?\n(지금 상태는 백업으로 따로 남겨 둬요)`))return;
   const text=Repo.backups.read(b.name);let d;
   try{d=JSON.parse(text);if(!d.characters||!d.cards)throw 0}catch(e){return notice('백업 파일을 읽을 수 없어요')}
-  try{Repo.backups.force(JSON.stringify(S))}catch(e){}
+  try{Repo.backups.force(JSON.stringify(S))}catch(e){logErr('복구 전 백업',e)}
   snap();replaceWork(d,{demo:false});autoLinkAll();fixSel();
   UI.noSave=false;saveNow();closeModal();renderAll();toast('백업으로 복구했어요');
 }

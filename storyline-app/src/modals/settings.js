@@ -23,7 +23,7 @@ const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('storyline',1);r.on
 const idbGet=async k=>{const db=await idb();return new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
 const idbSet=async(k,v)=>{const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
 async function registerFont(f){const ff=new FontFace('UF_'+f.id,f.data);await ff.load();document.fonts.add(ff);if(!FONTS.some(x=>x.id===f.id))FONTS.push({id:f.id,name:f.name,ff})}
-async function loadFonts(){try{for(const f of (await idbGet('fonts'))||[]){try{await registerFont(f)}catch(e){}}}catch(e){}applySettings();requestAnimationFrame(()=>{fitAll();hlLayoutAll()})}
+async function loadFonts(){try{for(const f of (await idbGet('fonts'))||[]){try{await registerFont(f)}catch(e){logErr('글꼴 불러오기 '+f.name,e)}}}catch(e){logErr('글꼴 목록 읽기',e)}applySettings();requestAnimationFrame(()=>{fitAll();hlLayoutAll()})}
 async function addFontFile(file){
   if(!file)return;if(file.size>20*1024*1024)return notice('20MB 이하의 글꼴 파일만 올릴 수 있어요');
   const f={id:uid(),name:file.name.replace(/\.[^.]+$/,''),data:await file.arrayBuffer()};
@@ -33,7 +33,7 @@ async function addFontFile(file){
 }
 async function delFont(id){
   if(!await askConfirm('이 글꼴을 목록에서 지울까요?'))return;
-  try{await idbSet('fonts',((await idbGet('fonts'))||[]).filter(f=>f.id!==id))}catch(e){}
+  try{await idbSet('fonts',((await idbGet('fonts'))||[]).filter(f=>f.id!==id))}catch(e){logErr('글꼴 지우기',e)}
   const i=FONTS.findIndex(f=>f.id===id);if(i>=0){document.fonts.delete(FONTS[i].ff);FONTS.splice(i,1)}
   if(S.settings.family==='u:'+id)S.settings.family='';saveNow();applySettings();showSettings();
 }
@@ -99,6 +99,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       row('말 표시','따옴표 · 괄호 속 대사',seg([['off','끄기'],['inset','음각'],['raised','양각'],['bubble','말풍선']],s.hlStyle||'bubble',k=>setSetting('hlStyle',k))),
       (s.hlStyle||'bubble')==='bubble'?row('말풍선 세기','기본은 은은하게',seg([['1','은은하게'],['2','보통'],['3','뚜렷하게']],s.bubbleLv||'1',k=>setSetting('bubbleLv',k))):null,
       row('보드에 보일 포스트잇',null,seg([['all','전체'],['unused','미사용'],['used','사용']],useMode(),k=>setSetting('useFilter',k))),
+      row('카드 무덤','화나 보관 칸에 안 넣은 카드는 이 기간이 지나면 무덤으로 가요 · 3일 전부터 D-3 표시 · 별 붙인 카드는 안 가요',seg([['3','3일'],['7','7일'],['14','14일'],['30','30일'],['0','끄기']],String(graveDays()),k=>{setSetting('graveDays',+k);if(graveTick())save();renderAll()})),
       row('새 포스트잇 크기',null,h('span',{class:'muted'},'가로'),seg([['s','소'],['m','중'],['l','대']],s.noteWk||'m',k=>setSetting('noteWk',k)),h('span',{class:'muted'},'세로'),seg([['s','소'],['m','중'],['l','대']],s.noteHk||'s',k=>setSetting('noteHk',k))),
       ...more('write',
         h('div',{class:'srow'},h('div',{class:'sl'},'카드 분류 · 색 · 단축키',h('span',{class:'muted'},'⌘ + 키로 그 분류의 포스트잇을 바로 만들어요')),
@@ -115,7 +116,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       ...appUpdRows(row),
       row('내보내기',null,h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
       row('정리',null,h('button',{onclick:showTrash},`휴지통 (${S.trash.length})`),S.demo?h('button',{onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지울까요?')){closeModal();clearDemo()}}},'예시 지우고 시작'):null),
-      ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'))):[])]};
+      ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'),h('button',{title:'저장 · 백업 · 동기화가 실패하면 여기에 기록돼요',onclick:()=>Repo.openFolder('logs')},'오류 기록 폴더 열기'))):[])]};
   openModal(h('h3',{class:'mtitle'},'설정'),
     h('div',{class:'stabs'},tabs([['look','겉모습'],['write','글쓰기'],['data','데이터']],tab,k=>{UI.setTab=k;showSettings()})),
     ...T[tab],
@@ -127,7 +128,7 @@ function showTrash(){
     !S.trash.length?h('p',{class:'muted'},'비어 있어요.'):null,
     ...[...S.trash].reverse().map(t=>h('div',{class:'mrow'},
       h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
-      h('button',{onclick:()=>{act(()=>{if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else S.cards.unshift(t.data);S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
+      h('button',{onclick:()=>{act(()=>{if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
       h('button',{onclick:async()=>{if(await askConfirm('완전히 삭제할까요? 되돌릴 수 없어요.')){S.trash=S.trash.filter(x=>x!==t);save();renderTop();showTrash()}}},'✕'))),
     closeRow(S.trash.length?h('button',{style:'color:var(--warn)',onclick:async()=>{if(await askConfirm('휴지통을 모두 비울까요?')){S.trash=[];save();renderTop();showTrash()}}},'휴지통 비우기'):null));
 }

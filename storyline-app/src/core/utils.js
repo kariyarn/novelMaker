@@ -1,5 +1,9 @@
 /* ============ 기본 도구 ============ */
 const $=id=>document.getElementById(id);
+/* 오류 기록: 앱이면 logs/app.log 에 남김 (main.js · storage/log.js), 브라우저로 열었으면 콘솔에만 */
+const logErr=(where,e)=>{try{const m=String(e&&e.stack||e&&e.message||e);if(window.appShell&&appShell.log)appShell.log(where,m);else console.error(where,e)}catch(x){}};
+addEventListener('error',e=>logErr('처리 못 한 오류',e.error||e.message));
+addEventListener('unhandledrejection',e=>logErr('처리 못 한 오류 (비동기)',e.reason));
 /* 맥이 아니면(Windows) 화면에 보이는 단축키 표기를 바꿈: ⌘N → Ctrl+N, ⌥ → Alt, ⇧ → Shift */
 const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent);
 const KEYNAME={'⌘':'Ctrl','⌥':'Alt','⇧':'Shift','⌫':'Backspace'};

@@ -2,6 +2,7 @@
 const path=require('path');
 const {valid,okState,atomicWrite,readText,scan}=require('./files');
 const {FILES,wdir,bdirOf}=require('./layout');
+const {logError}=require('./log');
 
 function createWorks(dirs){
   // iCloud 충돌 사본("storyline 2.json")과 로컬 미러, 백업까지 후보에 넣음
@@ -23,8 +24,8 @@ function createWorks(dirs){
   // 미러 → 주 폴더 순서로 씀. 하나라도 되면 ok
   function writeOf(id,key,text){
     const f=FILES[key];let ok=false,err='';
-    try{atomicWrite(path.join(wdir(dirs.mirror,id),f),text);ok=true}catch(e){err=String(e)}      // 로컬 미러
-    try{atomicWrite(path.join(wdir(dirs.main,id),f),text);ok=true}catch(e){err=String(e)}        // iCloud 폴더
+    try{atomicWrite(path.join(wdir(dirs.mirror,id),f),text);ok=true}catch(e){err=String(e);logError('작품 저장 (로컬 사본)',e)}      // 로컬 미러
+    try{atomicWrite(path.join(wdir(dirs.main,id),f),text);ok=true}catch(e){err=String(e);logError('작품 저장 (저장 폴더)',e)}        // iCloud 폴더
     return {ok,err};
   }
   function copy(from,to){      // 작품 복제: 있는 파일만

@@ -137,34 +137,24 @@ button.quiet[style*="--warn"]{color:color-mix(in srgb,var(--warn) 78%,var(--ink)
 #syncbar button{flex:none;font-size:12.5px;padding:4px 12px}
 @keyframes sbin{from{opacity:0;transform:translate(-50%,-6px)}}
 
-/* 훑기: 카드를 한 장씩 보며 쓸 시기 정하기 (features/triage.js) */
-.whenb{font-size:11px;line-height:1.5;padding:0 7px;border-radius:99px;white-space:nowrap;background:var(--wb);color:#fff}
-button.whenb{border:0;min-height:0;box-shadow:none;cursor:pointer}
-button.whenb:not(.empty){background:var(--wb);color:#fff;opacity:1}
-.whenb.empty{background:transparent;color:var(--sub);box-shadow:inset 0 0 0 1px var(--line)}
-.kcard .whenb.empty{opacity:0;transition:opacity .15s}      /* 안 정한 카드는 마우스를 올릴 때만 */
-.kcard:hover .whenb.empty{opacity:1}
-.whenb[data-w=now],.triw[data-w=now],.frico[data-w=now]{--wb:#e2533f}
-.whenb[data-w=soon],.triw[data-w=soon],.frico[data-w=soon]{--wb:#e39a1b}
-.whenb[data-w=later],.triw[data-w=later],.frico[data-w=later]{--wb:#6f8fb8}
-.frico:is([data-w=now],[data-w=soon],[data-w=later])::after{content:"";position:absolute;right:5px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--wb);box-shadow:0 0 0 1.5px rgba(255,255,255,.8)}
-.tribtn{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;padding:3px 10px}
-.tribox{width:min(520px,92vw)}
-.trihd{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
-.trihd .sp,.trimeta .sp{flex:1}
-.tricard{background:var(--kc0);color:#222;border-radius:12px;padding:14px 16px;box-shadow:0 4px 14px rgba(0,0,0,.12);min-height:140px;display:flex;flex-direction:column;gap:10px}
-.trimeta{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.85}
-.tritext{white-space:pre-wrap;line-height:1.7;font-size:15px;max-height:48vh;overflow:auto;flex:1}
-.trichars{display:flex;flex-wrap:wrap;gap:4px}
-.tribtns{display:grid;grid-template-columns:repeat(4,1fr) .8fr;gap:8px;margin:14px 0 8px}
-.triw{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;font-size:14px;border-radius:10px}
-.triw[data-w]{border-color:var(--wb);color:var(--wb)}
-.triw[data-w]:hover,.triw.cur{background:var(--wb);color:#fff}
-.triw kbd{font:11px/1 inherit;opacity:.6;border:1px solid currentColor;border-radius:4px;padding:2px 4px}
-.trifoot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
-.triw.drop{color:var(--sub)}
-.triw.drop:hover{color:#c0392b}
-.trin{font-style:normal;font-size:10.5px;line-height:16px;min-width:16px;padding:0 4px;border-radius:99px;background:var(--acc);color:#fff;text-align:center}
+/* 카드 무덤 (features/grave.js): 무덤 3일 전부터 흐려지며 D-3 · D-2 · D-1, 오른쪽 목록 맨 아래 무덤 칸 · 왼쪽 목록 무덤 보드 */
+.dday{font-size:10.5px;line-height:1.5;padding:0 6px;border-radius:99px;white-space:nowrap;color:var(--sub);box-shadow:inset 0 0 0 1px var(--line);background:var(--panel);flex:none;font-variant-numeric:tabular-nums}
+.dday.gone{color:var(--warn)}
+.kcard.board>.dday{position:absolute;right:10px;top:-9px;z-index:3;pointer-events:auto}
+.kcard.wilt{filter:saturate(.45);opacity:.62;transition:opacity .15s,filter .15s}
+.kcard.wilt:is(:hover,.editing,.selc){opacity:1;filter:none}
+.frico.wilt{filter:saturate(.45);opacity:.6}
+.frico[data-dd]:not([data-dd=""])::after{content:attr(data-dd);position:absolute;right:-6px;top:-7px;font:600 9px/14px inherit;padding:0 4px;border-radius:99px;background:var(--panel);color:var(--sub);box-shadow:0 0 0 1px var(--line);transform:rotate(calc(var(--r) * -1))}
+.frico.gone{filter:grayscale(.6);opacity:.7}
+.frico.wilt:is(:hover,:focus-visible),.frico.gone:is(:hover,:focus-visible){opacity:1;filter:none}
+button.revive{font-size:12px;padding:2px 10px;min-height:0;flex:none}
+.pgrave{margin-top:14px;border-top:1px dashed var(--line);padding-top:6px}
+.pgrave .pgh{display:flex;align-items:center;gap:6px;width:100%;background:transparent;box-shadow:none;border:0;color:var(--sub);font-size:12.5px;padding:4px 2px;min-height:0;justify-content:flex-start}
+.pgrave .pgh:hover{color:var(--ink)}
+.pgrave .pgh small{opacity:.8}
+.pgrave .pgl{display:grid;grid-template-columns:repeat(auto-fill,48px);gap:16px 14px;align-content:start;padding:10px 6px 24px}
+.lgrave .lbh b{color:var(--sub)}
+.bhead .gvall{font-size:12px;padding:2px 10px;margin-left:6px;pointer-events:auto}
 
 /* 오른쪽 목록: 분류 칩 (항상 보임) · 검색창 */
 .pkchips{display:flex;flex-wrap:wrap;gap:5px}
@@ -175,5 +165,5 @@ button.whenb:not(.empty){background:var(--wb);color:#fff;opacity:1}
 .pkchip.on i{box-shadow:0 0 0 1.5px var(--panel)}
 .pquick .psearch{width:100%;margin:0;background:var(--panel);box-shadow:var(--shadow);border-radius:11px;padding:6px 12px}
 .pquick .seg.tabs{justify-self:start}
-/* 알릴 것이 있는 버튼은 마우스를 안 올려도 보임: 훑기 남은 장수 · 목록 검색 중 */
-.panel>.phead .tribtn:has(.trin),.panel>.phead .psbtn.fon{opacity:1}
+/* 알릴 것이 있는 버튼은 마우스를 안 올려도 보임: 목록 검색 중 */
+.panel>.phead .psbtn.fon{opacity:1}

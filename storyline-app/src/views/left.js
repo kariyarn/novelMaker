@@ -235,5 +235,8 @@ function renderLeft0(){
     h('div',{class:'lbh'},h('span',{class:'car'},''),h('b',{},EM('📖 ','book'),'작품 노트'),h('small',{},workProgText(S.work)))),wrap.firstChild);
   if(!q)wrap.append(h('div',{class:'lboard lnone'+(UI.sel==='none'?' act':''),title:'어느 인물·설정에도 연결되지 않은 카드',onclick:()=>setSel('none')},
     h('div',{class:'lbh'},h('span',{class:'car'},''),h('b',{},'미분류'),h('small',{},boardCards('none').length+'장'))));
+  // 무덤: 기한이 지났거나 폐기한 카드 (features/grave.js) — 있을 때만
+  {const gn=graveCards().length;if(!q&&(gn||UI.sel==='grave'))wrap.append(h('div',{class:'lboard lnone lgrave'+(UI.sel==='grave'?' act':''),title:`화나 보관 칸에 ${graveDays()?graveDays()+'일 동안 ':''}안 넣은 카드 · 폐기한 카드 — 되살리면 오른쪽 목록으로 돌아가요 (⌥4)`,onclick:()=>{if(UI.mode!=='story')UI.mode='story';setSel('grave')}},
+    h('div',{class:'lbh'},h('span',{class:'car'},''),h('b',{},'무덤'),h('small',{},gn+'장'))))}
   p.append(wrap);
 }

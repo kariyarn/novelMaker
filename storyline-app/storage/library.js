@@ -3,6 +3,7 @@ const fs=require('fs'),path=require('path');
 const {atomicWrite,readJson,scan}=require('./files');
 const {LIBF,wdir}=require('./layout');
 const {hasLegacy,migrateLegacy}=require('./legacy');
+const {logError}=require('./log');
 
 const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const clean=n=>String(n||'').replace(/\s+/g,' ').trim().slice(0,80)||'새 작품';
@@ -26,8 +27,8 @@ function createLibrary(dirs,now=Date.now){
   let lib=null;
   function save(){
     const t=JSON.stringify(lib,null,1);
-    try{atomicWrite(path.join(dirs.mirror,LIBF),t)}catch(e){}
-    try{atomicWrite(path.join(dirs.main,LIBF),t)}catch(e){}
+    try{atomicWrite(path.join(dirs.mirror,LIBF),t)}catch(e){logError('작품 목록 저장 (로컬 사본)',e)}
+    try{atomicWrite(path.join(dirs.main,LIBF),t)}catch(e){logError('작품 목록 저장 (저장 폴더)',e)}
   }
   // iCloud 충돌 사본("library 2.json")과 미러까지 읽어서 합침: 작품이 사라지지 않게
   function readLibs(){

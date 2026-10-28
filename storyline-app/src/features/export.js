@@ -3,7 +3,7 @@ function exportTimelineMd(){
   const L=['# 타임라인','',`> 내보낸 날짜: ${new Date().toLocaleString()}`,''];
   const card=c=>{
     const names=eff(c).map(id=>charById(id).name).join(', ');
-    L.push(`- **[${kindOf(c.kind).name}]**${c.stars?' '+'★'.repeat(c.stars):''}${names?' · '+names:''}`);
+    L.push(`- **[${kindOf(c.kind).name}]**${c.star?' ★':''}${names?' · '+names:''}`);
     String(c.text||'(빈 카드)').split('\n').forEach(t=>L.push('  '+t));
   };
   S.episodes.forEach((ep,i)=>{
@@ -69,9 +69,9 @@ async function renderBoardCanvas(){
     g.shadowColor='rgba(0,0,0,.30)';g.shadowBlur=14;g.shadowOffsetY=8;g.fillStyle=cardColor(c);rr(0,0,p.w,h2,[3,3,16,3]);g.fill();
     g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;
     const gr=g.createLinearGradient(0,0,0,34);gr.addColorStop(0,'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;rr(0,0,p.w,h2,[3,3,16,3]);g.fill();
-    if(c.stars){g.strokeStyle='#f0a60a';g.lineWidth=[0,1.5,2.5,3.5][c.stars];rr(0,0,p.w,h2,[3,3,16,3]);g.stroke()}
+    if(c.star){g.strokeStyle='#f0a60a';g.lineWidth=2.5;rr(0,0,p.w,h2,[3,3,16,3]);g.stroke()}
     if(used){g.strokeStyle='#e5484d';g.lineWidth=2;rr(1,1,p.w-2,h2-2,[3,3,16,3]);g.stroke()}
-    g.fillStyle='#1d1d1f';g.font=`${c.stars===3?680:(c.stars===2?560:400)} ${fs}px ${ff}`;g.textBaseline='top';
+    g.fillStyle='#1d1d1f';g.font=`400 ${fs}px ${ff}`;g.textBaseline='top';
     const maxLines=Math.max(1,Math.floor((h2-38-36)/lh)),lines=wrap(c.text||'',p.w-28);
     const txt=String(c.text||''),mask=new Uint8Array(txt.length+1),hs=S.settings.hlStyle||'bubble',vis=lines.slice(0,maxLines);
     if(hs!=='off')for(const m of txt.matchAll(HLRE))mask.fill(m[0][0]==='['?2:(m[0][0]==='`'?3:1),m.index,m.index+m[0].length);
@@ -88,7 +88,7 @@ async function renderBoardCanvas(){
     });
     g.fillStyle='#1d1d1f';
     vis.forEach((L,i)=>{let tt=L.t;if(i===maxLines-1&&lines.length>maxLines)tt=tt.replace(/.{0,1}$/,'…');g.fillText(tt,14,40+i*lh+(lh-fs)/2)});
-    if(c.stars){g.fillStyle='#c98100';g.font=`${fs*.8}px ${ff}`;g.textAlign='right';g.fillText('★'.repeat(c.stars),p.w-9,8);g.textAlign='left'}
+    if(c.star){g.fillStyle='#c98100';g.font=`${fs*.8}px ${ff}`;g.textAlign='right';g.fillText('★',p.w-9,8);g.textAlign='left'}
     let cx=10;const cy=h2-26;g.font=`11px ${ff}`;
     for(const id of eff(c)){const e=charById(id);if(!e)continue;const tw=g.measureText(e.name).width+22;if(cx+tw>p.w-8)break;
       g.fillStyle='rgba(255,255,255,.62)';rr(cx,cy,tw,18,9);g.fill();g.fillStyle=e.color;g.beginPath();g.arc(cx+9,cy+9,3.2,0,Math.PI*2);g.fill();g.fillStyle='#3a3a3c';g.fillText(e.name,cx+16,cy+3);cx+=tw+4}
@@ -112,6 +112,6 @@ async function exportBoardPng(){
   if(!onBoard()||!document.querySelector('.bview'))return toast('구상 · 전체 화면에서 내보낼 수 있어요');
   toast('이미지를 만드는 중…');const cv=await renderBoardCanvas();
   if(!cv)return toast('내보낼 포스트잇이 없어요');
-  const name=UI.sel==='all'?'전체':(UI.sel==='none'?'미분류':(charById(UI.sel)||{name:'보드'}).name);
+  const name=UI.sel==='all'?'전체':(UI.sel==='none'?'미분류':UI.sel==='grave'?'무덤':(charById(UI.sel)||{name:'보드'}).name);
   cv.toBlob(b=>{if(!b)return toast('이미지를 만들지 못했어요');dlBlob(`${fileBase()}-${name}-${todayStr()}.png`,b);toast('코르크보드를 이미지로 내보냈어요')},'image/png');
 }

@@ -1,17 +1,17 @@
 /* ---------- 오른쪽: 쓰고 싶은 장면·대사 ---------- */
-/* 오른쪽 목록 보기 기준: 분류(칩 · 보드 · 타임라인과 같은 필터) · 연결(인물 / 설정 노트 / 연결 없음, 기본 모두) · 정렬(쓸 시기 / 등록일 / 수정일, 기본 쓸 시기) */
+/* 오른쪽 목록 보기 기준: 분류(칩 · 보드 · 타임라인과 같은 필터) · 연결(인물 / 설정 노트 / 연결 없음, 기본 모두) · 정렬(등록일 / 수정일, 별 붙인 카드가 늘 위) · 맨 아래 무덤 (features/grave.js) */
 const poolKinds=()=>{const on=kindsOn();return on.length?on:S.kinds.map(k=>k.id)};      // 분류는 보드 · 타임라인과 같은 필터 하나 (features/kindFilter.js)
 const poolOwn=()=>Object.assign({char:true,setting:true,none:true},UIP.pown||{});
 const poolOwnAll=()=>{const o=poolOwn();return o.char&&o.setting&&o.none};
-const poolSort=()=>({by:['updated','created'].includes(UIP.psort)?UIP.psort:'when',dir:UIP.pdir==='asc'?'asc':'desc'});
+const poolSort=()=>({by:UIP.psort==='updated'?'updated':'created',dir:UIP.pdir==='asc'?'asc':'desc'});
 function cardOwners(c){const ids=eff(c);if(!ids.length)return {none:true};const o={};ids.forEach(id=>{const e=charById(id);if(e)o[e.kind==='setting'?'setting':'char']=true});return o}
 function poolPass(c){
-  if(c.discarded||shelfOf(c.id))return false;      // 폐기한 카드 · 보관 칸에 둔 카드는 오른쪽 목록에 안 나옴      // 폐기한 카드는 오른쪽 목록에 안 나옴
+  if(c.discarded||shelfOf(c.id))return false;      // 무덤 카드 · 보관 칸에 둔 카드는 오른쪽 목록에 안 나옴 (무덤은 맨 아래 따로)
   if(!poolKinds().includes(c.kind))return false;
   if(UI.pnew&&UI.pnew.has(c.id))return true;      // 방금 이 목록에서 만든 카드는 종류와 상관없이 보임
   const own=poolOwn(),o=cardOwners(c);return (own.char&&o.char)||(own.setting&&o.setting)||(own.none&&o.none)||false;
 }
-const poolMatch=c=>poolPass(c)&&(!UI.pchar||eff(c).includes(UI.pchar))&&(!UI.pq.trim()||c.text.toLowerCase().includes(UI.pq.trim().toLowerCase()));      // 사용 탭만 빼고 지금 목록 조건 전부 (훑기도 이 범위)
+const poolMatch=c=>poolPass(c)&&(!UI.pchar||eff(c).includes(UI.pchar))&&(!UI.pq.trim()||c.text.toLowerCase().includes(UI.pq.trim().toLowerCase()));      // 사용 탭만 빼고 지금 목록 조건 전부
 const poolKindName=()=>{const k=poolKinds();return k.length>=S.kinds.length?'전체':k.map(id=>kindOf(id).name).join(' · ')};
 /* 분류 칩: [전체]가 켜진 상태에서 하나를 누르면 그 분류만 · 그다음부터는 누를 때마다 켜고 끄기 (다 끄면 전체로) */
 function kindChips(){
@@ -87,15 +87,13 @@ function renderPool0(){
       'sep',{title:'연결된 노트'},...[['char','인물 노트'],['setting','설정 노트'],['none','연결 없음']].map(([k,n])=>({label:n,on:!!poolOwn()[k],keep:true,fn:()=>{UIP.pown=Object.assign(poolOwn(),{[k]:!poolOwn()[k]});saveUIP();renderPool()}})),
       ...(fOn?['sep',{label:'초기화',fn:()=>{UI.pchar='';delete UIP.pown;saveUIP();renderPool()}}]:[])])},icon('filter'),fOn?h('i',{class:'fdot'}):null);
   const vb=h('button',{class:'cbtn pvbtn','data-pop':'1',title:'보기 — 정렬 · 노트 크기',onclick:()=>
-    popMenu(vb,()=>[{title:'모양'},...[[true,'작은 포스트잇 아이콘'],[false,'크게 (글까지)']].map(([v,n])=>({label:n,on:frIcons()===v,keep:true,fn:()=>{UIP.pico=v;saveUIP();renderPool()}})),'sep',{title:'정렬'},...[['when','쓸 시기 (지금 · 곧 · 나중)'],['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
-      ...(poolSort().by==='when'?[]:[['desc','최신 순 ↓'],['asc','오래된 순 ↑']]).map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
+    popMenu(vb,()=>[{title:'모양'},...[[true,'작은 포스트잇 아이콘'],[false,'크게 (글까지)']].map(([v,n])=>({label:n,on:frIcons()===v,keep:true,fn:()=>{UIP.pico=v;saveUIP();renderPool()}})),'sep',{title:'정렬 (별 붙인 카드는 늘 위)'},...[['created','등록일'],['updated','수정일']].map(([k,n])=>({label:n,on:poolSort().by===k,keep:true,fn:()=>{UIP.psort=k;saveUIP();renderPool()}})),
+      ...[['desc','최신 순 ↓'],['asc','오래된 순 ↑']].map(([k,n])=>({label:n,on:poolSort().dir===k,keep:true,fn:()=>{UIP.pdir=k;saveUIP();renderPool()}})),
       ...(frIcons()?[]:['sep',{title:'노트 크기'},...[['x','요약 (긴 글은 3줄까지)'],['s','소'],['m','중'],['l','대']].map(([k,n])=>({label:n,on:(UIP.ps||'m')===k,keep:true,fn:()=>{UIP.ps=k;saveUIP();renderPool()}}))]),      // 작은 아이콘일 때는 노트 크기가 상관없음
       ...(!frIcons()&&(UIP.ps||'m')==='x'?['sep',{title:'요약 카드를 누르면'},...[['slide','그 자리에서 펼치기 (슬라이드)'],['pop','팝업으로 보기']].map(([k,n])=>({label:n,on:(UIP.xm||'slide')===k,keep:true,fn:()=>{UIP.xm=k;saveUIP();renderPool()}}))]:[])])},icon('sort'));
   const sb=h('button',{class:'cbtn psbtn'+(UI.pq?' fon':''),title:'이 목록에서 찾기 (전체 검색은 위쪽 돋보기 · ⌘F)',onclick:()=>{UI.psOpen=!UI.psOpen;if(!UI.psOpen)UI.pq='';renderPool();if(UI.psOpen)setTimeout(()=>{const i=document.querySelector('#pool .psearch');if(i)i.focus()})}},icon('search'));
   const left=S.cards.filter(c=>poolMatch(c)&&!episodeOf(c.id)).length;      // 지금 조건에서 아직 화 · 보관 칸에 안 넣은 장수 (미사용 탭에 붙임 · 줄어드는 만큼 정리된 것)
-  const tn=triageCards().filter(c=>!c.when).length;
-  const triB=h('button',{class:'cbtn tribtn',title:'훑기 — 지금 보이는 분류의 카드를 한 장씩 보며 쓸 시기(지금 · 곧 · 나중) 정하기'+(tn?` · 안 정한 카드 ${tn}장`:''),onclick:triageOpen},'훑기',tn?h('i',{class:'trin'},tn>99?'99+':tn):null);
-  p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('span',{class:'sp'}),triB,sb,vb,fb,ptog('pool')));
+  p.append(h('div',{class:'phead'},h('b',{title:'쓰고 싶은 장면 · 대사'},'쓰고 싶은 장면'),h('span',{class:'sp'}),sb,vb,fb,ptog('pool')));
   const qi=h('input',{placeholder:`한 줄 쓰고 Enter → ${kindOf(quickKind()).name}`,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing)return;const v=qi.value.trim();if(!v)return;
       act(()=>{const c=newCard(quickKind(),v);autoLinkCard(c);S.cards.unshift(c);(UI.pnew=UI.pnew||new Set()).add(c.id);ensureKindVisible(c.kind)});setTimeout(()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()})}});
@@ -107,8 +105,7 @@ function renderPool0(){
   const sig=`${poolKinds().join()}|${JSON.stringify(poolOwn())}|${poolSort().by}${poolSort().dir}|${UI.pchar}|${UI.pused}|${UI.pq}`;if(renderPool.sig!==sig){UI.poolLimit=60;renderPool.sig=sig}      // 필터가 바뀌면 처음부터
   const ICON=frIcons(),lim=ICON?Math.max(UI.poolLimit||60,300):UI.poolLimit||60;      // 새단장 아이콘은 가벼워서 한 번에 더 많이
   const ps=poolSort(),pv=c=>ps.by==='updated'?(c.updated||c.created||0):(c.created||0),pd=ps.dir==='asc'?1:-1;
-  const cmp=ps.by==='when'?(a,b)=>whenRank(a[0])-whenRank(b[0])||(b[0].stars||0)-(a[0].stars||0)||(b[0].created||0)-(a[0].created||0)||a[1]-b[1]      // 쓸 시기 → 별점 → 최근 등록
-    :(a,b)=>(pv(a[0])-pv(b[0]))*pd||(a[1]-b[1])*(ps.dir==='asc'?-1:1);
+  const cmp=(a,b)=>(b[0].star?1:0)-(a[0].star?1:0)||(pv(a[0])-pv(b[0]))*pd||(a[1]-b[1])*(ps.dir==='asc'?-1:1);      // 별(꼭 쓸 것) → 고른 기준
   const items=S.cards.filter(c=>{const u=!!episodeOf(c.id);return poolMatch(c)&&(UI.pused==='all'||(UI.pused==='used'?u:!u))})
     .map((c,i)=>[c,i]).sort(cmp).map(x=>x[0]);
   if(ICON){list.classList.add('frics');items.slice(0,lim).forEach(c=>list.append(frIcon(c)))}      // 새단장: 작은 포스트잇 아이콘 (features/fresh.js)
@@ -118,10 +115,19 @@ function renderPool0(){
   const tidy=UI.pused==='unused'&&S.cards.length&&!S.cards.some(c=>!c.discarded&&!shelfOf(c.id)&&!episodeOf(c.id));      // 필터 때문이 아니라 다 정리해서 빈 것
   if(!list.children.length)list.append(h('div',{class:'empty'},tidy?'다 정리했어요. 남은 카드를 모두 화나 보관 칸에 넣었어요.':S.cards.length?'조건에 맞는 카드가 없어요.':'쓰고 싶은 장면이나 대사를 위에 한 줄씩 적어 보세요.',
     tidy?null:S.cards.length?h('div',{},h('button',{class:'quiet',style:'margin-top:8px',onclick:()=>{UI.pchar='';UI.pq='';UI.psOpen=false;UI.pused='all';S.settings.kindFilter=[];delete UIP.pown;saveUIP();saveNow();renderAll()}},'필터 모두 풀기')):h('div',{},h('button',{class:'on',style:'margin-top:10px',onclick:()=>{const i=document.querySelector('#pool .pquick input');if(i)i.focus()}},'첫 카드 쓰기'))));
-  list.addEventListener('dragover',e=>{if(BRDRAG||DRAG&&(episodeOf(DRAG.id)||shelfOf(DRAG.id))){e.preventDefault();list.classList.add('over')}});
+  const back=id=>{const c=cardById(id);return c&&(c.discarded||episodeOf(id)||shelfOf(id))};      // 목록으로 돌아올 수 있는 카드 (화 · 보관 칸 · 무덤)
+  list.addEventListener('dragover',e=>{if(BRDRAG||DRAG&&back(DRAG.id)){e.preventDefault();list.classList.add('over')}});
   list.addEventListener('dragleave',e=>{if(!list.contains(e.relatedTarget))list.classList.remove('over')});
-  list.addEventListener('drop',e=>{e.preventDefault();list.classList.remove('over');if(BRDRAG)return brDropPool();if(DRAG){const id=DRAG.id;DRAG=null;unplaceCard(id)}});
+  list.addEventListener('drop',e=>{e.preventDefault();list.classList.remove('over');if(BRDRAG)return brDropPool();if(DRAG){const id=DRAG.id;DRAG=null;if((cardById(id)||{}).discarded)reviveCards([id]);else unplaceCard(id)}});
   p.append(list);
+  // 맨 아래 무덤: 기한이 지났거나 폐기한 카드 (접어 둠 · 열어서 누르면 되살리기, 끌어서 화 · 보관 칸에 넣어도 되살아남)
+  const gc=UI.pused==='used'?[]:graveCards().filter(c=>poolKinds().includes(c.kind));
+  if(gc.length){
+    const open=!!UIP.pgrave,gs=h('div',{class:'pgrave'+(open?' open':'')},
+      h('button',{class:'pgh',title:open?'무덤 접기':'무덤 열기 — 눌러서 보고 되살려요',onclick:()=>{UIP.pgrave=!open;saveUIP();renderPool()}},h('span',{class:'car'},open?'▾':'▸'),'무덤',h('small',{},gc.length+'장')));
+    if(open){const g=h('div',{class:'frics pgl'});gc.sort((a,b)=>(b.graveAt||0)-(a.graveAt||0)).slice(0,300).forEach(c=>g.append(frIcon(c)));gs.append(g)}
+    p.append(gs);
+  }
   fitAll(p);markClips(list);masonry(list);hlLayoutAll(p);
   requestAnimationFrame(()=>{fitAll(p);markClips(list);masonry(list)});      // 레이아웃이 자리 잡은 뒤 한 번 더 (접힘 판단은 실제 높이가 필요)
 }

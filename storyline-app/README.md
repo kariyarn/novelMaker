@@ -47,11 +47,11 @@
 | `src/` | 화면 동작 (JS). 아래 "화면 코드 구성" 참고 |
 | `main.js` | Electron 메인 프로세스, 메뉴, 저장소 연결 |
 | `store.js` | 파일 저장소 창구: `storage/` 모듈을 묶어 main.js 에 내놓음 |
-| `storage/` | 저장소 모듈: `layout`(폴더 구조) · `files`(원자적 쓰기) · `library`(작품 목록) · `legacy`(예전 구조 옮기기) · `works`(작품 데이터) · `backups`(압축 백업) · `prefs`(앱 전체 취향) |
+| `storage/` | 저장소 모듈: `layout`(폴더 구조) · `files`(원자적 쓰기) · `library`(작품 목록) · `legacy`(예전 구조 옮기기) · `works`(작품 데이터) · `backups`(압축 백업) · `prefs`(앱 전체 취향) · `log`(오류 기록) |
 | `storage/sync.js` | GitHub 동기화 (GitHub API 로 올리기 `push` · 확인 `check` · 받기 `sync` · 양쪽에서 고치면 카드 단위로 합침) |
 | `note/` | 포스트잇 창 (작은 창 화면 · 다리) |
 | `build/icon.png` | Windows · 맥 앱 아이콘 (electron-builder) |
-| `test/` | 저장소 · 동기화 테스트 (`npm test`) |
+| `test/` | 저장소 · 동기화 · 오류 기록 · 카드 무덤 규칙 테스트 (`npm test`) |
 | `preload.js` | 화면 ↔ 저장소 연결 다리 |
 | `build.sh` | 앱 조립 스크립트 |
 
@@ -63,7 +63,7 @@
 | `model/` | 데이터 모양 (인물 · 카드 · 화 만들기, 장르별 예시 작품) |
 | `state/` | `repository.js` 저장 창구(앱/브라우저 차이를 숨김) · 현재 작품 상태 `S` · 보기 상태 `UI`/`UIP` · 저장 · 되돌리기 · 찾아보기 색인 |
 | `views/` | 화면 그리기 (왼쪽 목록, 인물 시트, 보드, 타임라인, 관계망, 오른쪽 목록 …) |
-| `features/` | 기능 단위 (집중 모드, 끌어다 놓기, 여러 장 선택, 검색, 내보내기, 작품 관리 …) |
+| `features/` | 기능 단위 (집중 모드, 끌어다 놓기, 여러 장 선택, 카드 무덤(`grave.js`), 검색, 내보내기, 작품 관리 …) |
 | `ui/` | 대화상자 · 팝오버 · 둘러보기 |
 | `modals/` | 설정 창 |
 | `input/` | 단축키 · 스마트 입력 |

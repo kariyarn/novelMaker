@@ -12,8 +12,10 @@ function kindSelect(card){
   });
   return h('label',{class:'kpill',style:`--kd:${kdark(cardColor(card))}`},h('i',{}),s);
 }
-function starsEl(card){
-  return h('span',{class:'stars',title:'쓰고 싶은 정도 (다시 누르면 해제)'},...[1,2,3].map(n=>h('span',{onclick:()=>act(()=>{stamp(card);card.stars=card.stars===n?0:n})},card.stars>=n?'★':'☆')));
+/* 별(꼭 쓸 것): 붙인 카드는 무덤에 안 감 (features/grave.js) · set 을 주면 누를 때 그걸 부름 (갈래 · 집중 모드) */
+function starsEl(card,set){
+  return h('span',{class:'stars',title:card.star?'꼭 쓸 것 — 다시 누르면 해제':'꼭 쓸 것 표시 — 붙이면 무덤에 안 가요'},
+    h('span',{onclick:()=>set?set():act(()=>{stamp(card);if(card.star)delete card.star;else card.star=true})},card.star?'★':'☆'));
 }
 function footEl(card){
   const ids=eff(card);
@@ -93,7 +95,7 @@ function revealCard(id){
   const c=cardById(id);if(!c)return;
   if(poolClosed()){setPoolClosed(false);saveUIP();applyLayout();renderPool()}
   let el=document.querySelector(`#pool .kcard[data-id="${id}"]`);
-  if(!el){UI.pchar='';UI.pq='';UI.pused='all';UI.poolLimit=1e9;(UI.pnew=UI.pnew||new Set()).add(id);ensureKindVisible(c.kind);renderPool();el=document.querySelector(`#pool .kcard[data-id="${id}"]`)}
+  if(!el){if(c.discarded)UIP.pgrave=true;UI.pchar='';UI.pq='';UI.pused='all';UI.poolLimit=1e9;(UI.pnew=UI.pnew||new Set()).add(id);ensureKindVisible(c.kind);renderPool();el=document.querySelector(`#pool .kcard[data-id="${id}"]`)}
   if(el){el.scrollIntoView({block:'center',behavior:'smooth'});flashEl(el)}
   if(onBoard()&&validSel()){      // 지금 보고 있는 보드에 있으면 그쪽도 가운데로
     const p=boardMap(UI.sel)[id];

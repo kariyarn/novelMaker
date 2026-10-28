@@ -20,7 +20,7 @@ function renderSheet0(){
     allKeys.length?h('button',{class:'quiet',style:'padding:0 8px;font-size:.84em',title:'목표 · 칸 묶음을 모두 접거나 펴요',onclick:()=>{allKeys.forEach(k=>{UIP.gc[k]=!allClosed});saveUIP();renderSheet();fitAll($('sheet'))}},allClosed?'모두 펴기':'모두 접기'):null,
     ptog('sheet')));
   if(UI.sel==='work'&&S.work)return renderWorkSheet(p,S.work);
-  if(!c){p.append(h('div',{class:'empty'},UI.sel==='none'?'미분류 보드예요. 왼쪽에서 캐릭터를 고르면 시트가 열려요.':'아직 캐릭터가 없어요.',h('br'),h('button',{class:'on',style:'margin-top:12px',onclick:()=>addEntity('char')},'＋ 캐릭터 만들기')));return}
+  if(!c){p.append(h('div',{class:'empty'},UI.sel==='none'?'미분류 보드예요. 왼쪽에서 캐릭터를 고르면 시트가 열려요.':UI.sel==='grave'?'무덤이에요. 화나 보관 칸에 안 넣고 기한이 지난 카드 · 폐기한 카드가 모여요.':'아직 캐릭터가 없어요.',h('br'),h('button',{class:'on',style:'margin-top:12px',onclick:()=>addEntity('char')},'＋ 캐릭터 만들기')));return}
   if(isSet)return renderSettingSheet(p,c);
   const head=h('div',{class:'shead'},
     h('input',{class:'nm',value:c.name,placeholder:'이름',onchange:e=>{

@@ -4,6 +4,7 @@ const {create}=require('./store');
 const {createSync}=require('./storage/sync');
 const {atomicWrite}=require('./storage/files');
 const {createUpdater}=require('./updater');
+const {setLogDir,logDir,logError}=require('./storage/log');
 const isMac=process.platform==='darwin',isWin=process.platform==='win32';
 const glassNote=process.platform!=='win32';      // Windows: 투명 창에 창 투명도(setOpacity)를 겹치면 창이 통째로 안 보여서, 불투명 창으로
 const NOTE_KEY='CommandOrControl+Alt+N';      // 포스트잇 꺼내기 · 숨기기 (앱이 뒤에 있어도)
@@ -11,8 +12,9 @@ const NOTE_ARG='--note';      // 작업 표시줄 우클릭 → 포스트잇 모
 let store,sync,updater,win=null,noteWin=null,tray=null,quitting=false;
 const userFile=n=>path.join(app.getPath('userData'),n);
 const readJson=(p,d)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch(e){return d}};
-const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){}};
-const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w&&w===win)w.webContents.executeJavaScript(js).catch(()=>{})};
+const logErr=where=>e=>logError(where,e);      // .catch(logErr('어디서')) 로 실패를 오류 기록에 남김
+const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){logError('설정 저장 '+path.basename(p),e)}};
+const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w&&w===win)w.webContents.executeJavaScript(js).catch(logErr('메뉴 명령 '+js))};
 const callMain=js=>win&&!win.isDestroyed()?win.webContents.executeJavaScript(js):Promise.resolve(null);      // 큰 창의 화면 코드에 일을 맡김
 
 function createWindow({hidden=false}={}){
@@ -22,6 +24,7 @@ function createWindow({hidden=false}={}){
   win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
   win.webContents.once('did-finish-load',()=>{setTimeout(()=>runPush().then(()=>runCheck()),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js) · 지난번에 못 올린 것 올리고 새 내용 확인
   win.on('focus',()=>{if(Date.now()-lastCheck>60*1000)runCheck()});      // 다른 컴퓨터에서 쓰다 왔을 때: 확인만 (받기는 사용자가)
+  win.webContents.on('render-process-gone',(e,d)=>logError('큰 창 화면이 멈춤',d&&d.reason));
   win.on('closed',()=>{win=null;app.quit()});      // 큰 창을 닫으면 끔 (숨은 포스트잇 창이 남아 있어도)
 }
 
@@ -30,11 +33,11 @@ function createWindow({hidden=false}={}){
 const CFG=()=>userFile('sync-config.json');
 function syncConfig(){
   const c=readJson(CFG(),null);if(!c||!c.repo)return null;
-  let token=null;try{token=c.enc?safeStorage.decryptString(Buffer.from(c.token,'base64')):c.token}catch(e){}
+  let token=null;try{token=c.enc?safeStorage.decryptString(Buffer.from(c.token,'base64')):c.token}catch(e){logError('동기화 토큰 풀기',e)}
   return {repo:c.repo,branch:c.branch||'main',token,device:(c.device||'').trim()||os.hostname()};      // device: 커밋 메시지에 남겨 '어느 기기에서' 알려 줌
 }
 function setSyncConfig(c){
-  if(!c){try{fs.rmSync(CFG(),{force:true})}catch(e){}return {ok:true}}
+  if(!c){try{fs.rmSync(CFG(),{force:true})}catch(e){logError('동기화 연결 끊기',e)}return {ok:true}}
   const old=readJson(CFG(),{});let token=old.token,enc=old.enc;
   if(c.token){enc=safeStorage.isEncryptionAvailable();token=enc?safeStorage.encryptString(c.token).toString('base64'):c.token}
   if(!token)return {ok:false,error:'토큰을 넣어 주세요'};
@@ -44,9 +47,10 @@ let syncTimer=0;
 async function runSync({notify=true}={}){
   clearTimeout(syncTimer);syncTimer=0;
   if(!syncConfig())return {ok:false,skipped:true,error:'동기화 설정이 없어요'};
-  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(()=>{});      // 쓰던 걸 먼저 파일로
+  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(logErr('동기화 전 저장'));      // 쓰던 걸 먼저 파일로
   const r=await sync.sync();
-  if(notify)callMain(`typeof onSyncResult==="function"&&onSyncResult(${JSON.stringify(r)})`).catch(()=>{});
+  if(!r.ok&&!r.skipped)logError('동기화: 받기',r.error);
+  if(notify)callMain(`typeof onSyncResult==="function"&&onSyncResult(${JSON.stringify(r)})`).catch(logErr('동기화 결과 알리기'));
   if(noteWin&&noteWin.isVisible())noteWin.webContents.send('note:shown');
   return r;
 }
@@ -54,9 +58,10 @@ async function runSync({notify=true}={}){
 async function runPush(){
   clearTimeout(syncTimer);syncTimer=0;syncFirst=0;
   if(!syncConfig())return {ok:false,skipped:true};
-  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(()=>{});
+  await callMain('typeof flushForSync==="function"&&flushForSync()').catch(logErr('동기화 전 저장'));
   const r=await sync.push();
-  callMain(`typeof onSyncPush==="function"&&onSyncPush(${JSON.stringify(r)})`).catch(()=>{});
+  if(!r.ok&&!r.skipped)logError('동기화: 올리기',r.error);
+  callMain(`typeof onSyncPush==="function"&&onSyncPush(${JSON.stringify(r)})`).catch(logErr('동기화 결과 알리기'));
   if(r.ok&&r.blocked&&r.blocked.length)runCheck();      // 다른 기기가 먼저 고친 작품이 있어서 못 올림: 받기를 권함
   return r;
 }
@@ -65,7 +70,8 @@ async function runCheck(){
   if(!syncConfig())return {ok:false,skipped:true};
   lastCheck=Date.now();
   const r=await sync.check();
-  callMain(`typeof onSyncCheck==="function"&&onSyncCheck(${JSON.stringify(r)})`).catch(()=>{});
+  if(!r.ok&&!r.skipped)logError('동기화: 확인',r.error);
+  callMain(`typeof onSyncCheck==="function"&&onSyncCheck(${JSON.stringify(r)})`).catch(logErr('동기화 결과 알리기'));
   return r;
 }
 let syncFirst=0;
@@ -76,7 +82,8 @@ const syncSoon=()=>{if(!syncConfig())return;clearTimeout(syncTimer);if(!syncFirs
 let updNotified=0;
 async function checkUpdate({notify=true}={}){
   const r=await updater.check();
-  if(notify&&(r.ready||r.needInstaller)){const k=r.ready||-r.latest;if(k!==updNotified){updNotified=k;callMain(`typeof onAppUpdate==="function"&&onAppUpdate(${JSON.stringify(r)})`).catch(()=>{})}}
+  if(r.error&&!r.dev)logError('앱 업데이트',r.error);
+  if(notify&&(r.ready||r.needInstaller)){const k=r.ready||-r.latest;if(k!==updNotified){updNotified=k;callMain(`typeof onAppUpdate==="function"&&onAppUpdate(${JSON.stringify(r)})`).catch(logErr('업데이트 알리기'))}}
   return r;
 }
 
@@ -138,6 +145,7 @@ app.on('second-instance',(e,argv)=>argv.includes(NOTE_ARG)||(noteMode()&&!(win&&
 app.setName('캐릭터 스토리라인');
 if(!isMac)app.setAppUserModelId('local.character.storyline');
 app.whenReady().then(()=>{
+  setLogDir(userFile('logs'));
   store=create(app.getPath('userData'));
   sync=createSync({store,fetch:(u,o)=>net.fetch(u,o),getConfig:syncConfig,statePath:userFile('sync-state.json')});      // net.fetch: 회사 프록시 설정을 따름
   // 글이 정말 바뀐 저장만 올리기를 예약. 올리기 직전에 쓰던 걸 파일로 내리는 저장(flushForSync)은 같은 글이라 건너뜀
@@ -151,7 +159,8 @@ app.whenReady().then(()=>{
   ipcMain.on('store:backups',e=>{e.returnValue=store.listBackups()});
   ipcMain.on('store:readBackup',(e,n)=>{e.returnValue=store.readBackup(n)});
   ipcMain.on('store:forceBackup',(e,t)=>{e.returnValue=store.forceBackup(t)});
-  ipcMain.on('store:openDir',(e,w)=>{shell.openPath(w==='backups'?store.backupsDir():store.dirs.main);e.returnValue=true});
+  ipcMain.on('store:openDir',(e,w)=>{if(w==='logs')fs.mkdirSync(logDir(),{recursive:true});shell.openPath(w==='logs'?logDir():w==='backups'?store.backupsDir():store.dirs.main);e.returnValue=true});
+  ipcMain.on('app:log',(e,where,msg)=>logError('화면: '+String(where),String(msg)));      // 화면 코드의 오류도 같은 기록에
   ipcMain.on('store:library',e=>{e.returnValue=store.library()});
   ipcMain.on('store:createNovel',(e,n)=>{e.returnValue=store.createNovel(n);syncSoon()});
   ipcMain.on('store:openNovel',(e,id)=>{e.returnValue=store.openNovel(id)});
@@ -194,9 +203,10 @@ app.whenReady().then(()=>{
 
   const openData={label:'저장 폴더 열기',click:()=>shell.openPath(store.dirs.main)};
   const openBak={label:'백업 폴더 열기 (현재 작품)',click:()=>shell.openPath(store.backupsDir())};
+  const openLogs={label:'오류 기록 폴더 열기',click:()=>{fs.mkdirSync(logDir(),{recursive:true});shell.openPath(logDir())}};
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     ...(isMac?[{role:'appMenu'}]:[]),
-    {label:'파일',submenu:[openData,openBak,{type:'separator'},{label:'다른 기기 내용 받기',click:()=>runSync()},{type:'separator'},isMac?{role:'close'}:{role:'quit',label:'끝내기'}]},
+    {label:'파일',submenu:[openData,openBak,openLogs,{type:'separator'},{label:'다른 기기 내용 받기',click:()=>runSync()},{type:'separator'},isMac?{role:'close'}:{role:'quit',label:'끝내기'}]},
     {label:'편집',submenu:[
       {label:'되돌리기',accelerator:'CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('undo()')},     // 메뉴 기본 동작이 앱의 되돌리기를 가로채지 않게 직접 연결
       {label:'다시 하기',accelerator:'Shift+CmdOrCtrl+Z',registerAccelerator:false,click:()=>run('redo()')},

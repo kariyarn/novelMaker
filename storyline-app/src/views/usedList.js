@@ -63,7 +63,7 @@ function renderUsedList(view,cards,key,RO){
       c.pin?h('span',{class:'upin',title:'핀 꽂은 카드'},icon('pin')):null,h('i',{class:'udot',style:`background:${k.colorMode==='random'?cardColor(c):k.color}`}),
       h('span',{class:'utx'},text1(c)),
       h('span',{class:'uch'},...ch.slice(0,3).map(x=>h('span',{class:'uchip'},h('i',{style:`background:${x.color}`}),x.name)),ch.length>3?h('small',{},`+${ch.length-3}`):null),
-      c.stars?h('span',{class:'ust'},'★'.repeat(c.stars)):null);
+      c.star?h('span',{class:'ust'},'★'):null);
   };
   let lastKey='';
   const draw=()=>{
