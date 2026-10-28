@@ -12,8 +12,7 @@ function enterWork(opts){
 }
 function brandEl(){
   if(!Repo.novels||!LIB)return h('b',{class:'brand'},'캐릭터 스토리라인');
-  if(U2()){const b=h('button',{class:'brand workbtn','data-pop':'1',title:'작품 바꾸기 · 새 작품 · 복제 · 보관함',onclick:()=>popMenu(b,workItems)},curNovel().name,icon('chevD'));return b}
-  const b=h('button',{class:'brand workbtn','data-pop':'1',title:'작품 바꾸기 · 새 작품 · 복제 · 보관함',onclick:()=>popMenu(b,workItems)},'📖 '+curNovel().name,h('span',{class:'caret'},'▾'));
+  const b=h('button',{class:'brand workbtn','data-pop':'1',title:'작품 바꾸기 · 새 작품 · 복제 · 보관함',onclick:()=>popMenu(b,workItems)},curNovel().name,icon('chevD'));
   return b;
 }
 function workItems(){

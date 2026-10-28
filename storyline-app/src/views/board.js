@@ -64,7 +64,7 @@ function applyView(){
   }
   view.style.backgroundImage=img;view.style.backgroundSize=size;view.style.backgroundPosition=`${v.x}px ${v.y}px`;
   const zl=$('zoomlbl');if(zl)zl.textContent=Math.round(v.k*100)+'%';
-  if(U3())frBoardDef(view,v.k);      // 새단장: 글이 안 읽힐 만큼 작아지면 모양만 (features/fresh.js)
+  frBoardDef(view,v.k);      // 새단장: 글이 안 읽힐 만큼 작아지면 모양만 (features/fresh.js)
   scheduleMM();
 }
 function fitView(key,anim){
@@ -163,7 +163,7 @@ function syncBoard(){
   applyPinFocus();
 }
 function enterEdit(el){
-  if(U3()&&el.classList.contains('board')&&frDefOn()){const id=el.dataset.id;setTimeout(()=>{if(frDefOn()&&Date.now()-(el._dbl||0)>400)frOpen(id)},230);return}      // 작게 보기에서는 글이 안 보이므로 원본을 띄워서 고침 (두 번 누르기 확대와 겹치지 않게 잠깐 기다림)
+  if(el.classList.contains('board')&&frDefOn()){const id=el.dataset.id;setTimeout(()=>{if(frDefOn()&&Date.now()-(el._dbl||0)>400)frOpen(id)},230);return}      // 작게 보기에서는 글이 안 보이므로 원본을 띄워서 고침 (두 번 누르기 확대와 겹치지 않게 잠깐 기다림)
   const ta=el.querySelector('.ktext');if(!ta)return;
   el.classList.add('editing');ta.readOnly=false;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
 }
@@ -207,9 +207,9 @@ function boardInteract(el,card,ta,key){
   });
   el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars,.rz'))return;
     if(UI.mode==='all'){const to=eff(card)[0]||'none';UI.mode='story';UI.focusCard=null;setSel(to);setTimeout(()=>{const x=document.querySelector(`.bview .kcard[data-id="${card.id}"]`);if(x){selectCard(card.id);flashEl(x)}},120);return}      // 전체 보기: 그 카드의 인물 보드로
-    if(U3()&&frDefOn()){el._dbl=Date.now();return frZoomTo(card)}      // 작게 보기: 두 번 누르면 그 자리로 확대
+    if(frDefOn()){el._dbl=Date.now();return frZoomTo(card)}      // 작게 보기: 두 번 누르면 그 자리로 확대
     enterEdit(el)});
-  if(U3()){      // 작게 보기: 올리면 원래 크기 미리보기, 누르면 또렷한 원본
+  {      // 작게 보기: 올리면 원래 크기 미리보기, 누르면 또렷한 원본
     el.addEventListener('mouseenter',()=>{if(frDefOn()&&!el.classList.contains('lift'))frPeek(card,el.getBoundingClientRect())});
     el.addEventListener('mouseleave',frPeekHide);
     el.addEventListener('pointerdown',e=>{if(e.button!==0||!frDefOn())return;frPeekHide();if(UI.mode==='all'||e.target.closest('select,button,label,.stars,.rz,.rzb,.rzc'))return;

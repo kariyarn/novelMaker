@@ -7,8 +7,6 @@ const brs=c=>c&&Array.isArray(c.branches)?c.branches:[];
 const BR_F=['text','stars','chars','offChars','created','updated'];
 const brCopy=(from,to)=>{BR_F.forEach(k=>{const v=from[k];if(v!==undefined)to[k]=Array.isArray(v)?v.slice():v});return to};
 const brSnap=c=>brCopy(c,{id:uid()});
-const brOn=()=>UIP.tlBr!==false;      // 한 줄 보기에서 갈래 펼치기 (기본 켬)
-const brFolded=id=>!!(UIP.brf&&UIP.brf[id]);
 const brPrune=c=>{if(c&&Array.isArray(c.branches)&&!c.branches.length)delete c.branches};
 const brFind=(id,bid)=>{const c=cardById(id),b=brs(c).find(x=>x.id===bid);return c&&b?{c,b}:null};
 /* 갈래 → 따로 된 카드 (떼어내기 · 휴지통): 분류 · 색은 본선 카드를 따름 */
@@ -23,32 +21,15 @@ function brChars(b){
   return ids.filter(id=>charById(id));
 }
 /* 갈래가 있는 타임라인 카드 (화 순서) */
-const brWide=()=>!U3()&&lineMode()&&brOn()&&brPlaced().some(id=>!brFolded(id));      // 펼친 갈래가 있음 → 한 줄 보기 폭을 넓힘 (render.js lineR)
-function brPlaced(){const [lo,hi]=tlRange(),out=[];S.episodes.slice(lo,hi).forEach(e=>e.cardIds.forEach(id=>{const c=cardById(id);if(c&&brs(c).length&&kindOk(c))out.push(id)}));return out}
 
 /* 그 카드의 갈래를 펼쳐서 보여 줌: 타임라인 · 한 줄 · 갈래 켬 · 접힌 화 · 접은 갈래 펴기 */
-function brShow(id,then){
-  if(U3())return frMap(id,{editLast:!!then});      // 새단장: 갈래는 원고에 펼치지 않고 갈래 지도에서
-  const pl=episodeOf(id);if(!pl)return toast('타임라인 화에 놓은 카드만 갈래를 펼쳐 볼 수 있어요');
-  UIP.tlMode='line';UIP.tlBr=true;if(UIP.brf)delete UIP.brf[id];if(UIP.tef)UIP.tef[pl.ep.id]=false;
-  const [lo,hi]=tlRange();if(pl.i<lo||pl.i>=hi)UI.tlScope=null;
-  saveUIP();if(UI.mode!=='tl')goMode('tl');else renderAll();
-  brFocus(id,then);
-}
-function brFocus(id,then){if(U3())return;requestAnimationFrame(()=>{
-  const f=document.querySelector(`#mid .brfork[data-id="${id}"]`)||document.querySelector(`#mid .kcard[data-id="${id}"]`);if(!f)return;
-  f.scrollIntoView({block:'center',behavior:'smooth'});f.querySelectorAll('.kcard').forEach(flashEl);if(f.classList.contains('kcard'))flashEl(f);
-  if(then)then(f);
-})}
+function brShow(id,then){return frMap(id,{editLast:!!then})}      // 갈래는 원고에 펼치지 않고 갈래 지도에서
 function brEditLast(id){brShow(id,f=>{const l=[...f.querySelectorAll('.brcard')].pop();if(l)setTimeout(()=>enterEditList(l),380)})}
 /* 갈래 배지: 갈래를 펼친 한 줄 보기에서는 접기 · 펴기, 그 밖에서는 펼쳐서 보여 주기 */
 function brBadge(card,opt){
   const n=brs(card).length;if(!n)return null;
-  if(U3()){const live=brs(card).filter(b=>!b.discarded).length;      // 새단장: 폐기한 갈래는 빼고 세고, 누르면 갈래 지도
-    return h('button',{class:'brbadge frbr',title:`갈래 ${n}개${live<n?` (폐기 ${n-live})`:''} — 눌러서 갈래 지도 열기`,onclick:e=>{e.stopPropagation();frMap(card.id)}},'⑂ '+(live||'·'))}
-  const here=lineMode()&&brOn()&&opt&&opt.epId,folded=brFolded(card.id);
-  return h('button',{class:'brbadge'+(here&&!folded?' on':''),title:here?(folded?`갈래 ${n}개 펴기`:'갈래 접기 (본선만 보이게)'):`갈래 ${n}개 — 눌러서 한 줄 보기에서 펼쳐 보기`,
-    onclick:e=>{e.stopPropagation();if(!here)return brShow(card.id);UIP.brf=UIP.brf||{};if(folded)delete UIP.brf[card.id];else UIP.brf[card.id]=true;saveUIP();applyLayout();renderMid();if(folded)brFocus(card.id)}},'⑂'+(n+1));
+  const live=brs(card).filter(b=>!b.discarded).length;      // 폐기한 갈래는 빼고 세고, 누르면 갈래 지도
+  return h('button',{class:'brbadge frbr',title:`갈래 ${n}개${live<n?` (폐기 ${n-live})`:''} — 눌러서 갈래 지도 열기`,onclick:e=>{e.stopPropagation();frMap(card.id)}},'⑂ '+(live||'·'));
 }
 
 /* ---- 갈래 다루기 (모두 되돌리기 가능) ---- */
@@ -59,17 +40,16 @@ function brMake(id){      // 지금 글을 복사해서 갈래를 땀
 }
 function brAbsorb(fromId,toId){      // 카드를 다른 카드의 갈래로 넣음 (그 카드가 가진 갈래도 같이)
   const f=cardById(fromId),t=cardById(toId);if(!f||!t||f===t)return;
-  if(U3())UI.stkId=toId;      // 새단장: 그려질 때 카드 밑으로 한 장 겹쳐 들어가는 효과
+  UI.stkId=toId;      // 새단장: 그려질 때 카드 밑으로 한 장 겹쳐 들어가는 효과
   act(()=>{const b=brSnap(f);(t.branches=brs(t)).push(b,...brs(f));
     S.cards=S.cards.filter(x=>x!==f);detach([fromId]);S.links=S.links.filter(l=>l.a!==fromId&&l.b!==fromId)});
   if(SELCARD===fromId)SELCARD=null;MSEL.delete(fromId);
-  if(U3()){toast('갈래로 넣었어요 · ⑂ 표시를 누르면 갈래 지도가 열려요',{undo:true});return}      // 새단장: 카드 밑으로 한 장 겹쳐 들어가는 것만 보여 줌
-  brShow(toId);toast('갈래로 넣었어요 · 잘못 넣었으면 ↩ 떼어내기',{undo:true});
+  toast('갈래로 넣었어요 · ⑂ 표시를 누르면 갈래 지도가 열려요',{undo:true});      // 카드 밑으로 한 장 겹쳐 들어가는 것만 보여 줌
 }
 function brKeep(id,bid){      // 이 갈래를 본선으로: 자리만 바꾸고 원래 본선은 같은 자리의 갈래로 남김
   act(()=>{const x=brFind(id,bid);if(!x)return;const {c,b}=x,L=c.branches,old=brSnap(c);old.note='이전 본선';
     brCopy(b,c);c.chars=c.chars||[];c.offChars=c.offChars||[];L[L.indexOf(b)]=old;stamp(c);autoLinkCard(c)});
-  brFocus(id);toast('이 갈래를 본선으로 올렸어요 · 원래 본선은 갈래로 남겨 뒀어요',{undo:true});
+  toast('이 갈래를 본선으로 올렸어요 · 원래 본선은 갈래로 남겨 뒀어요',{undo:true});
 }
 function brDetach(id,bid){      // 떼어내기: 따로 된 카드로 오른쪽 목록 맨 위에
   let n=null;
@@ -103,7 +83,7 @@ function brMerge(id,bid){
       if(t&&t!==(c.text||'').trim()){const old=brSnap(c);old.note='이전 본선';c.branches.unshift(old);c.text=t}
       brChars(b).forEach(cid=>{if(!eff(c).includes(cid)&&!c.chars.includes(cid))c.chars.push(cid)});c.offChars=c.offChars.filter(cid=>!c.chars.includes(cid));
       c.stars=Math.max(c.stars||0,b.stars||0);stamp(c);autoLinkCard(c)});
-    brFocus(id);toast('합친 글을 본선으로 · 원래 본선과 갈래는 그대로 남겨 뒀어요',{undo:true})};
+    toast('합친 글을 본선으로 · 원래 본선과 갈래는 그대로 남겨 뒀어요',{undo:true})};
   o.append(h('div',{class:'dlgbox brmbox'},
     h('div',{class:'brmt0'},'갈래 합치기'),
     h('div',{class:'muted'},'갈래 쪽 문장을 누르면 아래 합친 글의 커서 자리에 들어가요. 확정하면 합친 글이 본선이 되고, 원래 본선과 갈래는 갈래로 그대로 남아요.'),
@@ -155,16 +135,9 @@ function brBackHint(on){
   l.before(hb);
 }
 function brDropPool(){const d=BRDRAG;BRDRAG=null;document.body.classList.remove('brdragging');brBackHint(false);if(d)brDetach(d.card,d.bid)}
-/* 한 줄 보기 + 갈래 켬: 본선 | 갈래들 (가지 선으로 이음). 접어 둔 카드는 본선만 */
-function brFork(card,opt){
-  const main=kcard(card,'tl',opt),L=brs(card),folded=brFolded(card.id);
-  const hd=main.querySelector('.khead');if(hd&&!folded)hd.insertBefore(h('span',{class:'brlbl main'},'본선'),hd.querySelector('.sp'));
-  return h('div',{class:'brfork'+(folded?' folded':''),'data-id':card.id},h('div',{class:'brmain'},main),
-    folded?null:h('div',{class:'brlanes'},...L.map((b,i)=>h('div',{class:'brlane'},brCard(card,b,i)))));
-}
 /* 타임라인 카드 위에 끌어 왔을 때: 가운데에 놓으면 갈래로 (위 · 아래 가장자리는 원래대로 앞 · 뒤에 넣기). 갈래를 끌 때는 어디든 갈래로 */
 function brDragOver(e,el,card,opt){
-  const ok=(U3()||lineMode()&&brOn())&&opt.epId;      // 새단장: 칸반 · 한 줄 어디서든 카드 가운데에 놓으면 갈래로
+  const ok=!!opt.epId;      // 새단장: 칸반 · 한 줄 어디서든 카드 가운데에 놓으면 갈래로
   let hit=false;
   if(BRDRAG)hit=ok&&BRDRAG.card!==card.id;
   else if(DRAG&&ok&&DRAG.id!==card.id){const r=el.getBoundingClientRect(),m=Math.min(r.height*.28,26);hit=e.clientY>r.top+m&&e.clientY<r.bottom-m}
@@ -178,11 +151,4 @@ function brDrop(e,el,card){
   if(BRDRAG){const d=BRDRAG;BRDRAG=null;document.body.classList.remove('brdragging');brBackHint(false);brMove(d.card,d.bid,card.id)}
   else if(DRAG){const id=DRAG.id;DRAG=null;brAbsorb(id,card.id)}
   return true;
-}
-/* 위쪽 바: ⑂ 갈래 켜기 · 끄기 + 갈래 있는 곳 차례로 */
-let BRNEXT=0;
-function brBar(){
-  const ids=brPlaced(),on=brOn();
-  return [h('button',{class:'brtog'+(on?' on':''),title:on?'갈래 접기 (본선만 보이게)':'갈래 펼치기 — 비슷한 카드를 한 카드의 갈래로 모아 나란히 비교',onclick:()=>{UIP.tlBr=!on;saveUIP();applyLayout();renderMid()}},'⑂ 갈래',ids.length?h('small',{},ids.length):null),
-    on&&ids.length?h('button',{class:'quiet brnext',title:'갈래가 있는 카드로 차례로 이동',onclick:()=>{const l=brPlaced();if(l.length)brFocus(l[BRNEXT++%l.length])}},'갈래 있는 곳 ›'):null];
 }

@@ -1,5 +1,5 @@
 /* ============ 새단장: 정리 전은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고 ============
-   설정 → 겉모습 → 화면 디자인 → 새단장 일 때만 씀 (U3). 데이터는 그대로 두고 그리는 방법만 바꿈.
+   앱의 화면 디자인 (하나뿐). 데이터는 그대로 두고 그리는 방법만 바꿈.
    - 칸반: 상자 없는 화 레인 + 색인 카드 (인물은 첫 글자 동그라미, 도구는 마우스를 올릴 때만)
    - 한 줄: 원고 한 장 (화 = 장, 카드 = 문단) · 글 폭 · 글자 크기 · 문단을 두 번 누르면 집중
    - 갈래: 원고엔 겹친 종이 + ⑂ 표시만, 누르면 갈래 지도 (양쪽 · 오른쪽 · 아래로 · 둘레)
@@ -37,9 +37,11 @@ function frDiscard(id){
 
 /* ---------- 한 줄 보기: 원고 한 장 ---------- */
 const frW=()=>UIP.frw||720,frFs=()=>UIP.frfs||16.5;
+const frSc=()=>['line','box'].includes(UIP.frsc)?UIP.frsc:'card';      // 한 줄 보기 모양: 원고(문단으로 이어짐) · 묶음(장면별 상자) · 카드(한 장씩 구분, 기본)
+const frScCls=()=>({box:' scbox',card:' sccard'})[frSc()]||'';
 function frSetW(w){UIP.frw=Math.max(520,Math.min(1100,Math.round(w/10)*10));const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frw',UIP.frw+'px');const r=document.querySelector('#frwr');if(r)r.value=UIP.frw}
 function frLineBar(){
-  return [h('span',{class:'frscm',title:'장면 구분을 어떻게 보여줄지'},seg([['line','구분선'],['box','묶음']],UIP.frsc==='box'?'box':'line',k=>{UIP.frsc=k;saveUIP();renderMid()})),
+  return [h('span',{class:'frscm',title:'한 줄 보기 모양 — 원고: 문단으로 이어 읽기 · 묶음: 장면별 상자 · 카드: 한 장씩 구분'},segOld([['line','원고'],['box','묶음'],['card','카드']],frSc(),k=>{UIP.frsc=k;saveUIP();renderMid()})),
     h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox')),
     h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
     h('span',{class:'frfsz',title:'글자 크기'},
@@ -47,7 +49,7 @@ function frLineBar(){
       h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'))];
 }
 function frRenderLine(m,E,lo,hi,build){
-  const sheet=h('div',{class:'frsheet'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
+  const sheet=h('div',{class:'frsheet'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
   ['l','r'].forEach(side=>{const g=h('span',{class:'freg '+side,title:'끌어서 글 폭 조절'});sheet.append(g);
     g.addEventListener('pointerdown',e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');const x0=e.clientX,w0=frW(),dir=side==='r'?1:-1;
       const mv=ev=>frSetW(w0+dir*2*(ev.clientX-x0)),up=()=>{g.classList.remove('on');g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);saveUIP()};
@@ -70,9 +72,8 @@ function frRenderLine(m,E,lo,hi,build){
   frPager(sheet);
   sheet.append(h('button',{class:'fradd',onclick:()=>addEpisode()},'＋ 화 추가'));
   if(UIP.frshs){      // 보관함을 원고 옆에 나란히 (따로 스크롤)
-    const side=h('div',{class:'frsheet frshp'+(UIP.frsc==='box'?' scbox':''),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
+    const side=h('div',{class:'frsheet frshp'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});frShelves(side,true);
     m.append(h('div',{class:'frline frside'},h('div',{class:'frlcol'},sheet),h('div',{class:'frlcol'},side)));return}
-  if(!UI.tlScope)frShelves(sheet);      // 한 화 · 한 묶음만 볼 때는 원고 아래에 보관을 붙이지 않음 (위쪽 보관함 아이콘으로 열기)
   const wrap=h('div',{class:'frline'},sheet);m.append(wrap);
 }
 
@@ -107,19 +108,31 @@ function frScenes(body,ep){
 function frSetSeps(ep,fn){act(()=>{ep.seps=fn((ep.seps||[]).filter(id=>ep.cardIds.includes(id)));if(!ep.seps.length)delete ep.seps})}
 
 /* 문단 우클릭: 위 · 아래에 새 문단 / 장면 구분 넣기 · 지우기 / 다른 화로 */
-function frCtx(ev,card,epId){
-  const ep=S.episodes.find(e=>e.id===epId);if(!ep)return;
-  const ids=ep.cardIds.filter(cardById),i=ids.indexOf(card.id),up=ids[i],down=ids[i+1],has=id=>(ep.seps||[]).includes(id);
-  const add=at=>{const c=newCard(card.kind,'');
-    act(()=>{S.cards.push(c);idxClear();ep.cardIds.splice(at,0,c.id)});
-    requestAnimationFrame(()=>{const el=document.querySelector(`#mid .kcard[data-id="${c.id}"]`);if(el){el.scrollIntoView({block:'nearest'});enterEditList(el)}})};      // 비워 두고 나가면 저절로 지워짐
-  const sepItem=(id,where)=>id&&ids.indexOf(id)>0?(has(id)?{label:`${where} 장면 구분 지우기`,fn:()=>frSetSeps(ep,a=>a.filter(x=>x!==id))}:{label:`${where}에 장면 구분 넣기`,fn:()=>frSetSeps(ep,a=>[...a,id])}):null;
-  const items=[{label:'위에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id))},{label:'아래에 새 문단',fn:()=>add(ep.cardIds.indexOf(card.id)+1)},'sep',
-    sepItem(up,'위'),sepItem(down,'아래'),'sep',
-    {label:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,[card.id]);b.remove()},0)}].filter(Boolean);
-  const cx=ev.clientX,cy=ev.clientY,a=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(a);
-  popMenu(a,items.filter((x,k,arr)=>!(x==='sep'&&(k===0||arr[k-1]==='sep'))));a.remove();
+/* 타임라인 카드 우클릭 (칸반 · 한 줄 · 보관 같은 메뉴): 위 · 아래에 새 카드 · 장면 구분(화 안에서만) · 다른 화로 */
+const frBox=opt=>opt.shelfId?(S.shelves||[]).find(x=>x.id===opt.shelfId):S.episodes.find(e=>e.id===opt.epId);
+function frAddAt(box,at,kind){      // 그 화 · 보관 칸의 at 자리에 빈 카드 · 바로 그 자리에서 쓰기 (비워 두고 나가면 저절로 지워짐)
+  const c=newCard(kind||quickKind(),'');
+  act(()=>{S.cards.push(c);idxClear();box.cardIds.splice(at,0,c.id)});
+  requestAnimationFrame(()=>{const el=document.querySelector(`#mid .kcard[data-id="${c.id}"]`);if(el){el.scrollIntoView({block:'nearest'});enterEditList(el)}});
 }
+const ctxAt=(ev,items)=>{const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
+  popMenu(a,items.filter(Boolean).filter((x,k,arr)=>!(x==='sep'&&(k===0||arr[k-1]==='sep'||k===arr.length-1))));a.remove()};
+function frCtx(ev,card,opt){
+  const box=frBox(opt);if(!box)return;
+  const isEp=!opt.shelfId,ids=box.cardIds.filter(cardById),i=ids.indexOf(card.id),up=ids[i],down=ids[i+1],has=id=>(box.seps||[]).includes(id);
+  const sepItem=(id,where)=>isEp&&id&&ids.indexOf(id)>0?(has(id)?{label:`${where} 장면 구분 지우기`,fn:()=>frSetSeps(box,a=>a.filter(x=>x!==id))}:{label:`${where}에 장면 구분 넣기`,fn:()=>frSetSeps(box,a=>[...a,id])}):null;
+  const cx=ev.clientX,cy=ev.clientY;
+  ctxAt(ev,[{label:'위에 새 카드',fn:()=>frAddAt(box,box.cardIds.indexOf(card.id),card.kind)},{label:'아래에 새 카드',fn:()=>frAddAt(box,box.cardIds.indexOf(card.id)+1,card.kind)},'sep',
+    sepItem(up,'위'),sepItem(down,'아래'),'sep',
+    {label:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,[card.id]);b.remove()},0)}]);
+}
+/* 빈 곳 우클릭: 그 화 · 보관 칸 맨 끝에 새 카드 */
+document.addEventListener('contextmenu',e=>{
+  const t=e.target;if(!t.closest||t.closest('.kcard,input,textarea,select,button'))return;
+  const shEl=t.closest('#mid .shelf'),epEl=shEl?null:t.closest('#mid :is(.tlcol,.frch)[data-ep]');
+  const box=shEl?(S.shelves||[]).find(x=>x.id===shEl.dataset.sh):epEl?S.episodes[+epEl.dataset.ep]:null;if(!box)return;
+  e.preventDefault();ctxAt(e,[{label:'새 카드',fn:()=>frAddAt(box,box.cardIds.length)}]);
+});
 
 /* 원고 맨 아래: 보관 — 몇 화에 쓸지 아직 안 정한 장면 (보관 탭과 같은 칸) */
 function frShelves(sheet,side){
@@ -244,7 +257,7 @@ function frLeftSwap(from,to){
   if(kt==='tl'&&!UIP.frLeftUser)UIP.cl.left=innerWidth<FR_NARROW;
 }
 function frAutoLeft(){      // 직접 접거나 편 적이 없으면: 좁은 창에선 접고, 넓은 창에선 폄
-  if(!U3()||UI.mode!=='tl'||UIP.frLeftUser)return false;
+  if(UI.mode!=='tl'||UIP.frLeftUser)return false;
   const want=innerWidth<FR_NARROW;if(!!UIP.cl.left===want)return false;
   UIP.cl.left=want;return true;
 }
@@ -261,7 +274,7 @@ function frDefLayer(card){      // 보드 포스트잇 안에 넣어 두는 모�
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).map(c=>h('b',{style:`--c:${c.color}`}))),
     h('span',{class:'ds'},...Array.from({length:card.stars||0},()=>h('b'))));
 }
-const frDefOn=()=>U3()&&onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
+const frDefOn=()=>onBoard()&&!!UI.bdef&&!!document.querySelector('.bview');      // 보드를 다시 그려도 상태를 기억 (UI.bdef)
 function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준에서, 키울 땐 12% 더 커져야 돌아옴 (경계에서 깜빡이지 않게)
   const T=frDefPx(),was=!!UI.bdef;
   const px=(S.settings.font||14)*1.04*k,on=!!T&&(was?px<T*1.12:px<T);
@@ -271,7 +284,7 @@ function frBoardDef(view,k){      // applyView 에서 부름: 줄일 땐 기준�
 
 /* ---------- 떠오르는 원본: 미리보기 (반투명 · 누를 수 없음) / 열기 (또렷 · 고침) ---------- */
 let FRFL=null;      // 열린 원본 {id, el}
-function frRectOf(id){const el=document.querySelector(`.bview .kcard.board[data-id="${id}"]`)||document.querySelector(`#pool .frico[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
+function frRectOf(id){const el=document.querySelector(`.bview .kcard.board[data-id="${id}"]`)||document.querySelector(`#pool .frico[data-id="${id}"]`)||document.querySelector(`#mid .kcard.tl[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
 function frPlace(box,r,prefer){      // 카드 옆(오른쪽, 모자라면 왼쪽)에 원래 크기로
   const W=box.offsetWidth||260,H=box.offsetHeight||160;let x=prefer==='left'?r.left-W-12:r.right+12;
   if(x+W>innerWidth-8)x=r.left-W-12;if(x<8)x=Math.min(innerWidth-W-8,Math.max(8,r.left+(r.width-W)/2));
@@ -303,7 +316,7 @@ function frOpen(id,prefer){
 function frFloatFill(){      // 분류 · 별 · 지우기 · 인물 줄 (데이터가 바뀌면 다시 채움, 글 칸은 그대로라 쓰던 자리 유지)
   if(!FRFL)return;const card=cardById(FRFL.id);if(!card)return frClose(true);
   FRFL.el.style.setProperty('--bg',cardColor(card));
-  FRFL.head.replaceChildren(kindSelect(card),starsEl(card),h('span',{class:'sp'}),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕'));
+  FRFL.head.replaceChildren(...[kindSelect(card),starsEl(card),h('span',{class:'sp'}),episodeOf(card.id)?null:whenEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕')].filter(Boolean));
   FRFL.foot.replaceChildren(footEl(card));
 }
 onStateChange(()=>{if(FRFL)frFloatFill()});
@@ -324,7 +337,7 @@ function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 �
 }
 
 /* ---------- 오른쪽 목록: 같은 모양의 작은 포스트잇 아이콘 ---------- */
-const frIcons=()=>U3()&&UIP.pico!==false;
+const frIcons=()=>UIP.pico!==false;
 function frIcon(card){
   const used=episodeOf(card.id);
   const el=h('div',{class:'frico'+(used?' used':''),'data-id':card.id,'data-w':!used&&card.when||'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:''},

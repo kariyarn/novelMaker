@@ -30,7 +30,7 @@ function renderAll(){
 }
 /* 상태가 바뀌면 다시 그림 · 저장 상태를 위쪽 표시에 반영 (history.js 가 알려 줌) */
 onStateChange(()=>renderAll());
-/* 새 디자인의 위쪽 “자동 저장됨” 표시 (기존 디자인에서는 자리가 없어서 아무 일도 안 함) */
+/* 위쪽 “자동 저장됨” 표시 */
 function savedMark(st){const e=$('savedInd');if(!e)return;e.dataset.st=st;e.lastChild.textContent=st==='saving'?'저장 중…':st==='fail'?'저장 실패':'자동 저장됨'}
 onSaveStatus(st=>{if(st==='fail')toast('저장 실패! 백업을 내려받아 주세요');savedMark(st)});
 /* 가운데 화면 등록: 화면마다 언제 보일지(match) · 앱 테두리 class · 그리는 함수를 각자 파일에서 등록. 새 화면을 더해도 이 파일은 고치지 않아도 됨
@@ -72,7 +72,7 @@ function goMode(k){
   UI.folderView=null;if(k==='graph'&&UI.mode!=='graph'){UI.prevMode=UI.mode;GC.reset()}      // 처음 열 때는 새로 자리 잡기
   if(k==='all'){if(UI.sel!=='all')UI.prevSel=UI.sel;UI.sel='all';UIP.pc=UIP.pc||{};UIP.pc.all=true}      // 전체 보기는 오른쪽 목록을 접고 시작
   else if(UI.sel==='all')UI.sel=(UI.prevSel&&(UI.prevSel==='none'||charById(UI.prevSel)))?UI.prevSel:firstEntity();
-  if(U3())frLeftSwap(UI.mode,k);      // 새단장: 타임라인의 화 목록은 구상의 인물 목록과 따로 접고 폄
+  frLeftSwap(UI.mode,k);      // 새단장: 타임라인의 화 목록은 구상의 인물 목록과 따로 접고 폄
   UI.mode=k;renderAll();
 }
 function topMenuItems(){
@@ -81,12 +81,11 @@ function topMenuItems(){
       'sep',{label:'백업 파일 만들기',fn:exportJson},...(Repo.backups?[{label:'자동 백업에서 복구…',fn:showRestore}]:[]),{label:'불러오기 (.json)…',fn:()=>$('imp').click()},
       {label:'내보내기…',fn:()=>{UI.setTab='data';showSettings()}},
       'sep',...(Shell&&Shell.note?[{label:'포스트잇 모드',hint:'⌘⌥N',fn:()=>Shell.note.show()}]:[]),{label:'설정',hint:'⌘,',fn:showSettings},{label:'도움말',hint:'?',fn:showShortcuts}];
-  if(!U2())return items;
-  // 새 디자인: 하는 일 기준 3묶음 (편집 · 데이터 · 앱)
+  // 하는 일 기준 3묶음 (편집 · 데이터 · 앱)
   const [u,r,,tr,,bk,...rest]=items,i=rest.indexOf('sep');
   return [{title:'편집'},u,r,tr,'sep',{title:'데이터'},bk,...rest.slice(0,i),'sep',{title:'앱'},...rest.slice(i+1)];
 }
-function renderTop2(t){      // 새 디자인 위쪽 바: 작품 이름 · 밑줄 탭 · 자동 저장됨 · 검색 · 메뉴
+function renderTop2(t){      // 위쪽 바: 작품 이름 · 밑줄 탭 · 자동 저장됨 · 검색 · 메뉴
   t.append(...[brandEl(),S.demo?h('button',{class:'demotag',title:'예시 데이터예요 — 눌러서 지우고 시작',onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지우고 빈 작품으로 시작할까요?'))clearDemo()}},'예시'):null,h('span',{class:'sp'}),
     tabs([['all','전체'],['story','구상'],['tl','타임라인'],['graph','관계망']],UI.mode,goMode),
     h('span',{class:'sp'}),
@@ -97,16 +96,7 @@ function renderTop2(t){      // 새 디자인 위쪽 바: 작품 이름 · 밑�
     h('input',{id:'imp',type:'file',accept:'.json',style:'display:none',onchange:importJson})].filter(Boolean));
 }
 function renderTop(){
-  const t=$('top');t.innerHTML='';
-  if(U2())return renderTop2(t);
-  t.append(...[brandEl(),S.demo?h('button',{class:'demotag',title:'예시 데이터예요 — 눌러서 지우고 시작',onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지우고 빈 작품으로 시작할까요?'))clearDemo()}},'예시'):null,h('span',{class:'sp'}),
-    seg([['all','전체 보기']],UI.mode,goMode),h('span',{class:'modegap'}),
-    seg([['story','구상'],['tl','타임라인'],['graph','관계망']],UI.mode,goMode),
-    h('span',{class:'sp'}),
-    Shell&&Shell.note?h('button',{class:'cbtn topic',title:'포스트잇 모드 (⌘⌥N) — 작은 포스트잇 창만 띄우기',onclick:()=>Shell.note.show()},icon('sticky')):null,
-    h('button',{class:'cbtn topic',title:'전체 검색 (⌘F)',onclick:openSearch},icon('search')),
-    (()=>{const b=h('button',{class:'cbtn topic','data-pop':'1',title:'메뉴',onclick:()=>popMenu(b,topMenuItems())},icon('more'));return b})(),
-    h('input',{id:'imp',type:'file',accept:'.json',style:'display:none',onchange:importJson})].filter(Boolean));      // 빈 자리(null)는 빼고 붙임
+  const t=$('top');t.innerHTML='';renderTop2(t);
 }
 function renderBanner(){
   const b=$('banner');b.innerHTML='';b.classList.toggle('on',!!UI.noSave);
@@ -120,8 +110,6 @@ function clearDemo(){snap();const keep=S.settings,kinds=S.kinds;S=migrate({chara
 
 /* 패널 너비 / 접기 */
 const lineMode=()=>UI.mode==='tl'&&(UIP.tlMode||'kanban')==='line';
-function lineAvail(){const lw=document.body.classList.contains('focus')?0:(UIP.cl.left?0:240)+1;return innerWidth-lw-1}      // 한 줄 모드: 타임라인 33~50% · 목록 50~67%
-const lineR=()=>Math.min(typeof brWide==='function'&&brWide()?.5:.67,Math.max(.5,UIP.rwr||.67));      // 갈래를 펼쳐 둔 동안은 타임라인을 절반까지 넓힘 (본선 · 갈래를 나란히)
 const LEFTW=300;      // 왼쪽 인물 · 설정 목록 기본 폭 (인물 시트 폭과는 따로)
 const MIDMIN=460;      // 구상 보드가 이보다 좁아지지 않게 인물 시트 폭을 줄여서 보여 줌 (저장된 폭은 그대로라 창을 넓히면 돌아옴)
 /* 오른쪽 목록 폭은 화면마다 따로 기억: 구상 · 타임라인 · 등장표 · 전체 (예전 하나짜리 값은 처음 값으로) */
@@ -132,18 +120,18 @@ function sheetW(){
   const left=UIP.cl.left?0:LEFTW,pool=poolClosed()?0:Math.min(poolW(),330);
   return Math.max(280,Math.min(want,innerWidth-left-pool-MIDMIN-3));
 }
-function maxPoolW(){const lw=UI.mode==='story'?(UIP.cl.left?0:LEFTW)+(UIP.cl.sheet?0:sheetW())+2:(UI.mode==='tl'?(UIP.cl.left?0:240)+2:0);return Math.max(330,innerWidth-lw-(lineMode()&&!U3()?500:440))}
+function maxPoolW(){const lw=UI.mode==='story'?(UIP.cl.left?0:LEFTW)+(UIP.cl.sheet?0:sheetW())+2:(UI.mode==='tl'?(UIP.cl.left?0:240)+2:0);return Math.max(330,innerWidth-lw-440)}
 function applyLayout(){
   const r=document.documentElement.style;
   r.setProperty('--lw',(UIP.cl.left&&UI.peek!=='left')?'0px':(UI.mode==='tl'?'240px':LEFTW+'px'));
   r.setProperty('--sw',(UIP.cl.sheet&&UI.peek!=='sheet')?'0px':sheetW()+'px');
-  r.setProperty('--rw',(poolClosed()&&UI.peek!=='pool')?'0px':(lineMode()&&!U3()?Math.round(lineAvail()*lineR()):Math.min(poolW(),maxPoolW()))+'px');      // 새단장 한 줄 보기는 원고가 주인공이라 목록은 보통 폭      // 가운데 보드가 너무 좁아지지 않게 제한
+  r.setProperty('--rw',(poolClosed()&&UI.peek!=='pool')?'0px':Math.min(poolW(),maxPoolW())+'px');      // 새단장 한 줄 보기는 원고가 주인공이라 목록은 보통 폭      // 가운데 보드가 너무 좁아지지 않게 제한
   r.setProperty('--tlw',(UIP.tlw||250)+'px');r.setProperty('--tll',(UIP.tll||420)+'px');
   hlLater();
 }
 /* 접힌 패널 살짝 보기: 아이콘에 마우스를 올리거나 포커스를 주면 잠깐 열리고, 벗어나면 다시 접힘 */
 let PEEKT=0,PEEKC=0;
-const peekW0=k=>k==='left'?(UI.mode==='tl'?240:LEFTW):k==='sheet'?sheetW():(lineMode()&&!U3()?Math.round(lineAvail()*lineR()):poolW());
+const peekW0=k=>k==='left'?(UI.mode==='tl'?240:LEFTW):k==='sheet'?sheetW():poolW();
 function peekSoon(k){clearTimeout(PEEKT);PEEKT=setTimeout(()=>startPeek(k),420);const el=$(k);el.addEventListener('mouseleave',()=>clearTimeout(PEEKT),{once:true})}
 function startPeek(k,fromKey){clearTimeout(PEEKT);clearTimeout(PEEKC);if(UI.peek===k)return;const old=UI.peek;UI.peek=k;applyLayout();if(old)rerenderPanel(old);rerenderPanel(k);
   if(fromKey)setTimeout(()=>{const t=$(k).querySelector('.ptog');if(t)t.focus({preventScroll:true})},0);      // 키보드로 열었다면 포커스를 패널 안으로 (벗어날 때 닫히도록)
@@ -183,13 +171,13 @@ document.addEventListener('dragend',()=>{if(UI.peek)PEEKC=setTimeout(endPeekChec
 function autoFitSheet(){
   if(UI.mode!=='story'||UI.folderView)return false;
   const left=UIP.cl.left?0:LEFTW,sw=Math.min(UIP.sw||340,340),pool=poolClosed()?0:Math.min(poolW(),maxPoolW());
-  const fits=innerWidth-left-sw-pool-2>=500&&(!U3()||innerWidth>=FR_NARROW);      // 새단장: 13인치처럼 좁은 창에선 보드에 자리를 줌
+  const fits=innerWidth-left-sw-pool-2>=500&&innerWidth>=FR_NARROW;      // 새단장: 13인치처럼 좁은 창에선 보드에 자리를 줌
   if(!UIP.cl.sheet){if(fits){UIP.noAuto=false;return false}if(UIP.noAuto)return false;UIP.cl.sheet=true;UIP.autoSh=true;return true}
   if(UIP.autoSh&&fits){UIP.cl.sheet=false;UIP.autoSh=false;return true}
   return false;
 }
 function slidePanel(k,close){
-  if(k==='left'&&UI.mode==='tl'&&U3())UIP.frLeftUser=true;      // 직접 접거나 편 뒤에는 창 폭을 따르지 않음
+  if(k==='left'&&UI.mode==='tl')UIP.frLeftUser=true;      // 직접 접거나 편 뒤에는 창 폭을 따르지 않음
   if(k==='sheet'){UIP.autoSh=false;if(!close)UIP.noAuto=true;const c=charById(UI.sel);if(c&&c.kind!=='setting')UIP.chCl=!!close}      // 인물 시트를 직접 접고 편 상태를 기억
   UI.peek=null;const el=$(k),closed=k==='pool'?poolClosed():!!UIP.cl[k];
   const apply=()=>{if(k==='pool')setPoolClosed(close);else UIP.cl[k]=close;saveUIP();document.body.classList.add('slide');renderAll();
@@ -221,7 +209,7 @@ const togglePool=()=>slidePanel('pool',!poolClosed());
     el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
   };
   drag($('sp1'),e=>{const l=$('sheet').getBoundingClientRect().left;UIP.sw=Math.round(Math.max(280,Math.min(640,innerWidth-(UIP.cl.left?0:LEFTW)-(poolClosed()?0:Math.min(poolW(),330))-MIDMIN-3,e.clientX-l)));applyLayout()});
-  drag($('sp2'),e=>{if(lineMode()&&!U3())UIP.rwr=Math.min(.67,Math.max(.5,(innerWidth-e.clientX)/lineAvail()));else setPoolW(Math.round(Math.max(260,Math.min(maxPoolW(),innerWidth-e.clientX-3))));applyLayout()});
-  $('sp2').addEventListener('dblclick',()=>{if(lineMode()&&!U3())UIP.rwr=.67;else setPoolW(330);saveUIP();applyLayout()});
+  drag($('sp2'),e=>{setPoolW(Math.round(Math.max(260,Math.min(maxPoolW(),innerWidth-e.clientX-3))));applyLayout()});
+  $('sp2').addEventListener('dblclick',()=>{setPoolW(330);saveUIP();applyLayout()});
   $('sp1').addEventListener('dblclick',()=>{UIP.sw=340;saveUIP();applyLayout()});
 })();

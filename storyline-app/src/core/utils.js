@@ -45,18 +45,16 @@ function sel(opts,val,onch,cls){
   return s;
 }
 const segOld=(items,val,fn)=>h('span',{class:'seg'},...items.map(([k,l])=>h('button',{class:val===k?'on':'',onclick:()=>fn(k)},l)));
-/* 새 디자인: 화면을 바꾸는 탭은 밑줄 탭, 고르는 버튼이 3개 이상 나란히면 드롭다운 하나로 */
-const U2=()=>!!(S&&S.settings&&(S.settings.uiStyle==='new'||S.settings.uiStyle==='fresh'));      // 새 디자인 (새단장도 새 디자인 위에 얹음)
-const U3=()=>!!(S&&S.settings&&S.settings.uiStyle==='fresh');      // 새단장: 정리 전은 노란 포스트잇, 정리된 타임라인은 하얀 색인 카드 · 원고
+/* 화면을 바꾸는 탭은 밑줄 탭, 고르는 버튼이 3개 이상 나란히면 드롭다운 하나로 */
 const seg=(items,val,fn)=>{
-  if(!U2()||items.length<3)return segOld(items,val,fn);
+  if(items.length<3)return segOld(items,val,fn);
   const i=Math.max(0,items.findIndex(([k])=>k===val));
   const s=h('select',{class:'seg2',onchange:e=>fn(items[+e.target.value][0])});
   items.forEach(([k,l],j)=>s.append(h('option',{value:j,selected:j===i},l)));
   return s;
 };
 const tabs=(items,val,fn)=>{const t=segOld(items,val,fn);t.classList.add('tabs');return t};
-const EM=(e,ic)=>{if(!U2())return e;const i=icon(ic);i.classList.add('em');return i};      // 새 디자인에서는 이모지 대신 선 아이콘
+const EM=(e,ic)=>{const i=icon(ic);i.classList.add('em');return i};      // 이모지 대신 선 아이콘
 function iconBtn(title,onclick,path){
   const b=h('button',{class:'ico',title,'aria-label':title,onclick});
   b.innerHTML=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;

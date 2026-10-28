@@ -47,7 +47,7 @@ function migrate(st){
 }
 let S,UIP={};
 // 앱 전체 취향(작품을 바꿔도 그대로): 화면 · 글꼴 · 핀 · 줄 · 말 강조 · 패널 너비. 나머지는 작품마다 따로 저장
-const GLOBAL_SET=['theme','font','family','hlStyle','hlTouched','pinColor','stringStyle','stringW','stringColor','showStrings','boardPat','boardBg','noteWk','noteHk','noteShape','bubbleLv','bubbleShape','pinAlways','uiStyle'];
+const GLOBAL_SET=['theme','font','family','hlStyle','hlTouched','pinColor','stringStyle','stringW','stringColor','showStrings','boardPat','boardBg','noteWk','noteHk','noteShape','bubbleLv','bubbleShape','pinAlways'];
 
 const GLOBAL_UI=['sw','rw','rwl','rwr','tlw','tll','cl','mm','ps','pc','toured','mfs','zenOp','zenFs'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o&&o[k]!==undefined)r[k]=o[k]});return r};

@@ -34,14 +34,14 @@ function zenDraw(){
   ta.addEventListener('scroll',()=>{zmir.scrollTop=ta.scrollTop;zwrap.querySelector('.kbi').style.transform=`translateY(${-zmir.scrollTop}px)`});
   requestAnimationFrame(()=>hlBlocks(zwrap));
   const main=h('div',{class:'zmain'+(ZEN.dir>0?' fromr':ZEN.dir<0?' froml':''),style:`--kc0:${cardColor(c)}`},
-    h('div',{class:'zhead'},kb,zch(),h('span',{class:'zlink',title:'구분선으로 이어 쓴 카드 — 핀이 꽂히고 줄로 이어져요',hidden:U0.length<2},U2()?`${U0.length}장 이어짐`:`🔗 ${U0.length}장 이어짐`),h('span',{class:'sp'}),h('span',{class:'zuse'+(episodeOf(c.id)?' used':''),title:episodeOf(c.id)?'타임라인에 배치된 카드':'아직 화에 쓰지 않은 카드'},episodeOf(c.id)?`${episodeOf(c.id).i+1}화 사용`:'미사용'),stars),zwrap,
+    h('div',{class:'zhead'},kb,zch(),h('span',{class:'zlink',title:'구분선으로 이어 쓴 카드 — 핀이 꽂히고 줄로 이어져요',hidden:U0.length<2},`${U0.length}장 이어짐`),h('span',{class:'sp'}),h('span',{class:'zuse'+(episodeOf(c.id)?' used':''),title:episodeOf(c.id)?'타임라인에 배치된 카드':'아직 화에 쓰지 않은 카드'},episodeOf(c.id)?`${episodeOf(c.id).i+1}화 사용`:'미사용'),stars),zwrap,
     h('div',{class:'zfoot'},h('span',{},`${i+1} / ${list.length}`),h('span',{class:'sp'}),h('span',{class:'zhint'},'⌘N 새 카드 · --- 이어 쓰기 · ⌘1 ⌘2 분류 · ⌥R 랜덤 · ⌥←→ · Esc')));
   el.textContent='';
   el.append(h('div',{class:'zbk',onclick:()=>zenClose()}),h('div',{class:'zrow'},side(list[i-1],-1),main,side(list[i+1],1)),zenCtl(),zenInfo(list));zenVars();if(ZEN.timer&&ZEN.timer.done&&!el.querySelector('.ztimeup'))zenShowUp();
   ZEN.dir=0;zenFit(ta);setTimeout(()=>{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},20);
 }
 function zenVars(){if(!ZEN)return;const st=ZEN.el.style;st.setProperty('--zop',(UIP.zenOp===undefined?94:UIP.zenOp)+'%');st.setProperty('--zfs',(UIP.zenFs||26)+'px');st.setProperty('--zblur',(UIP.zenOp===undefined?94:UIP.zenOp)>=99?'0px':'14px')}
-function zenLinkUpdate(){if(!ZEN)return;const l=ZEN.el.querySelector('.zlink');if(!l)return;const n=zUnit(ZEN.ids[ZEN.i]).length;l.hidden=n<2;l.textContent=U2()?`${n}장 이어짐`:`🔗 ${n}장 이어짐`}
+function zenLinkUpdate(){if(!ZEN)return;const l=ZEN.el.querySelector('.zlink');if(!l)return;const n=zUnit(ZEN.ids[ZEN.i]).length;l.hidden=n<2;l.textContent=`${n}장 이어짐`}
 const zenMadeN=()=>[...ZEN.made].filter(id=>{const c=cardById(id);return c&&(c.text||'').trim()}).length;
 const zenMadeText=()=>{const n=ZEN?zenMadeN():0;return n?`이번에 +${n}장`:''};
 function zenMadeUpdate(){if(!ZEN)return;const m=ZEN.el.querySelector('.zmade');if(m)m.textContent=zenMadeText();const c=ZEN.el.querySelector('.zcnt');if(c)c.textContent=`${ZEN.ids.length}장`}

@@ -31,7 +31,7 @@ function kcard(card,mode,opt={}){
   if(MSEL.has(card.id))el.classList.add('msel');
   const bar=h('div',{class:isB?'kbar':'khead'},isB?null:h('span',{class:'grip',title:'카드 어디든 잡고 끌어서 옮길 수 있어요'},'⠿'),kindSelect(card),starsEl(card),isB?null:brBadge(card,opt),h('span',{class:'sp'}),
     pl&&mode==='pool'?h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`):null,
-    !pl&&mode==='pool'&&card.when?h('span',{class:'whenb','data-w':card.when,title:'쓸 시기 (훑기에서 정함)'},whenName(card.when)):null,
+    !pl&&mode==='pool'?whenEl(card):null,
     mode==='tl'&&opt.epId?h('button',{class:'cbtn brmk',title:'갈래 만들기 — 지금 글을 복사해서 다르게 써 보기',onclick:()=>brMake(card.id)},'⑂'):null,
     h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>delCard(card.id)},'✕'));
   const ta=h('textarea',{class:'ktext autofit',rows:1,readonly:true,placeholder:'더블클릭해서 쓰기',
@@ -46,7 +46,7 @@ function kcard(card,mode,opt={}){
   if(isB){
     {const sh=cardShape(card);if(sh)el.setAttribute('data-shp',sh)}
     el.append(bar,wrap,footEl(card));
-    if(U3())el.append(frDefLayer(card));      // 작게 보기에서만 보이는 모양 층
+    el.append(frDefLayer(card));      // 작게 보기에서만 보이는 모양 층
     if(card.discarded){el.classList.add('disc');el.prepend(h('i',{class:'kx','aria-hidden':'true'}))}      // 폐기: 바탕에 붉은 X (글자 아래)
     if(pl)el.querySelector('.kfoot').append(h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`));
     el.append(h('div',{class:'rz',title:'좌우로 끌어서 너비 조절'}),h('div',{class:'rzb',title:'위아래로 끌어서 높이 조절 · 더블클릭하면 내용에 맞춤'}),h('div',{class:'rzc',title:'끌어서 가로·세로 조절 · 더블클릭하면 높이를 내용에 맞춤'}));
@@ -67,7 +67,7 @@ function kcard(card,mode,opt={}){
     });
   }else{
     el.append(bar,wrap,footEl(card));
-    if(U3()&&mode==='tl')frCard(el,card,bar);      // 새단장: 색인 카드 · 원고 문단 (features/fresh.js)
+    if(mode==='tl')frCard(el,card,bar);      // 새단장: 색인 카드 · 원고 문단 (features/fresh.js)
     {const le=mode==='pool'?linksEl(card):null;if(le)el.append(le)}
     bar.insertBefore(h('button',{class:'pinx'+(card.pin?' isp':''),title:'핀 · 꽂으면 코르크보드의 자동 배치에서 안 움직여요 (직접 끌어서는 옮길 수 있어요)',onclick:()=>act(()=>setPin(card,!card.pin))},'📌'),bar.querySelector('.sp'));
     // 편집 중이 아닐 때는 카드의 어느 부분을 잡아도 끌 수 있고, 더블클릭하면 편집
@@ -75,10 +75,13 @@ function kcard(card,mode,opt={}){
     el.draggable=true;
     el.addEventListener('dragstart',e=>{if(e.target!==el)return;DRAG={id:card.id};e.dataTransfer.setData('text/plain',card.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setDragImage(el,12,12);setTimeout(()=>el.classList.add('dragging'))});
     el.addEventListener('dragend',()=>{DRAG=null;document.querySelectorAll('.dragging,.drop-before,.drop-after,.over').forEach(x=>x.classList.remove('dragging','drop-before','drop-after','over'))});
-    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;if(U3()&&mode==='tl'&&lineMode()&&!opt.shelfId)return frFocus(card.id);enterEditList(el)});      // 새단장 한 줄 보기: 두 번 누르면 집중
+    // 타임라인(칸반 · 한 줄 · 보관): 한 번 누르면 포스트잇 보기 창에서 고치기, 두 번 누르면 집중 (두 번 누르기와 겹치지 않게 잠깐 기다림)
+    if(mode==='tl')el.addEventListener('click',e=>{if(e.button||e.metaKey||e.ctrlKey||e.shiftKey||el.classList.contains('editing')||e.target.closest('select,button,label,.stars,input,a'))return;
+      clearTimeout(el._ck);el._ck=setTimeout(()=>{if(document.contains(el))frOpen(card.id)},230)});
+    el.addEventListener('dblclick',e=>{if(e.target.closest('select,button,label,.stars'))return;if(mode==='tl'){clearTimeout(el._ck);frClose(true);return frFocus(card.id)}enterEditList(el)});
     ta.addEventListener('blur',()=>{el.classList.remove('editing');el.draggable=true;ta.readOnly=true;dropIfEmpty(card.id);if(mode==='tl')tlRecount(opt)});
     el.addEventListener('contextmenu',ev=>{if(ev.target.closest('input,select'))return;ev.preventDefault();ev.stopPropagation();      // 우클릭: 이 카드(또는 선택한 카드들)를 다른 화로
-      if(U3()&&mode==='tl'&&opt.epId&&!(MSEL.has(card.id)&&MSEL.size>1))return frCtx(ev,card,opt.epId);      // 새단장: 위 · 아래에 새 문단 · 장면 구분
+      if(mode==='tl'&&(opt.epId||opt.shelfId)&&!(MSEL.has(card.id)&&MSEL.size>1))return frCtx(ev,card,opt);      // 위 · 아래에 새 카드 · 장면 구분 · 다른 화로
       const a=h('div',{style:`position:fixed;left:${ev.clientX}px;top:${ev.clientY}px;width:1px;height:1px`});document.body.append(a);
       msMenu(a,MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id]);a.remove()});
     if(mode==='tl'){
