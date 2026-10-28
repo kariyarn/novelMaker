@@ -4,6 +4,12 @@ const WHEN=[['now','지금'],['soon','곧'],['later','나중']];
 const whenName=w=>(WHEN.find(x=>x[0]===w)||[])[1]||'';
 const whenRank=c=>({now:0,soon:1,later:2})[c.when]??3;
 const triageCards=()=>S.cards.filter(c=>poolMatch(c)&&!episodeOf(c.id));
+/* 카드의 쓸 시기 표시: 누를 때마다 지금 → 곧 → 나중 → 안 정함 (훑기를 안 열고도 바로) */
+function whenEl(card){
+  const nx={'':'now',now:'soon',soon:'later',later:''}[card.when||''];
+  return h('button',{class:'whenb'+(card.when?'':' empty'),'data-w':card.when||'',title:`쓸 시기 — 눌러서 ${nx?whenName(nx):'안 정함'}으로`,
+    onclick:e=>{e.stopPropagation();act(()=>{if(nx){card.when=nx;card.whenAt=Date.now()}else{delete card.when;delete card.whenAt}})}},card.when?whenName(card.when):'시기');
+}
 const whenAgo=t=>{const d=Math.floor((Date.now()-t)/864e5);return d<1?'오늘':d<7?`${d}일 전`:d<60?`${Math.floor(d/7)}주 전`:`${Math.floor(d/30)}달 전`};
 function triageOpen(){
   const cs=triageCards();if(!cs.length)return toast('지금 보이는 분류에 훑을 카드가 없어요');

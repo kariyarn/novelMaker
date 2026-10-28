@@ -303,7 +303,7 @@ function frOpen(id,prefer){
 function frFloatFill(){      // 분류 · 별 · 지우기 · 인물 줄 (데이터가 바뀌면 다시 채움, 글 칸은 그대로라 쓰던 자리 유지)
   if(!FRFL)return;const card=cardById(FRFL.id);if(!card)return frClose(true);
   FRFL.el.style.setProperty('--bg',cardColor(card));
-  FRFL.head.replaceChildren(kindSelect(card),starsEl(card),h('span',{class:'sp'}),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕'));
+  FRFL.head.replaceChildren(kindSelect(card),starsEl(card),h('span',{class:'sp'}),episodeOf(card.id)?null:whenEl(card),h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>{const id=card.id;frClose(true);delCard(id)}},'✕'));
   FRFL.foot.replaceChildren(footEl(card));
 }
 onStateChange(()=>{if(FRFL)frFloatFill()});

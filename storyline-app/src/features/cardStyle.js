@@ -31,7 +31,7 @@ function kcard(card,mode,opt={}){
   if(MSEL.has(card.id))el.classList.add('msel');
   const bar=h('div',{class:isB?'kbar':'khead'},isB?null:h('span',{class:'grip',title:'카드 어디든 잡고 끌어서 옮길 수 있어요'},'⠿'),kindSelect(card),starsEl(card),isB?null:brBadge(card,opt),h('span',{class:'sp'}),
     pl&&mode==='pool'?h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`):null,
-    !pl&&mode==='pool'&&card.when?h('span',{class:'whenb','data-w':card.when,title:'쓸 시기 (훑기에서 정함)'},whenName(card.when)):null,
+    !pl&&mode==='pool'?whenEl(card):null,
     mode==='tl'&&opt.epId?h('button',{class:'cbtn brmk',title:'갈래 만들기 — 지금 글을 복사해서 다르게 써 보기',onclick:()=>brMake(card.id)},'⑂'):null,
     h('button',{class:'x',title:'삭제 (휴지통)',onclick:()=>delCard(card.id)},'✕'));
   const ta=h('textarea',{class:'ktext autofit',rows:1,readonly:true,placeholder:'더블클릭해서 쓰기',
