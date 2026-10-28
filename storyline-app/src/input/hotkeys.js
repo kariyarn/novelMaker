@@ -56,5 +56,5 @@ function newNoteShortcut(kindId){
     kid=(S.kinds.find(k=>k.id===want)||S.kinds[want==='memo'?S.kinds.length-1:0]).id;
   }
   if(onBoard()){if(document.querySelector('.bview'))addBoardCard(kid)}      // 화면 중앙 근처 임의 위치에 생성
-  else act(()=>{const c=newCard(kid,'');S.cards.unshift(c);UI.focusCard=c.id;(UI.pnew=UI.pnew||new Set()).add(c.id);if(!poolKinds().includes(kid)){UIP.pk=[...poolKinds(),kid];saveUIP()}});
+  else act(()=>{const c=newCard(kid,'');S.cards.unshift(c);UI.focusCard=c.id;(UI.pnew=UI.pnew||new Set()).add(c.id);ensureKindVisible(kid);});
 }

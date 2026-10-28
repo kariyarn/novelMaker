@@ -93,7 +93,7 @@ function revealCard(id){
   const c=cardById(id);if(!c)return;
   if(poolClosed()){setPoolClosed(false);saveUIP();applyLayout();renderPool()}
   let el=document.querySelector(`#pool .kcard[data-id="${id}"]`);
-  if(!el){UI.pchar='';UI.pq='';UI.pused='all';UI.poolLimit=1e9;(UI.pnew=UI.pnew||new Set()).add(id);if(!poolKinds().includes(c.kind)){UIP.pk=[...poolKinds(),c.kind];saveUIP()}renderPool();el=document.querySelector(`#pool .kcard[data-id="${id}"]`)}
+  if(!el){UI.pchar='';UI.pq='';UI.pused='all';UI.poolLimit=1e9;(UI.pnew=UI.pnew||new Set()).add(id);ensureKindVisible(c.kind);renderPool();el=document.querySelector(`#pool .kcard[data-id="${id}"]`)}
   if(el){el.scrollIntoView({block:'center',behavior:'smooth'});flashEl(el)}
   if(onBoard()&&validSel()){      // 지금 보고 있는 보드에 있으면 그쪽도 가운데로
     const p=boardMap(UI.sel)[id];
