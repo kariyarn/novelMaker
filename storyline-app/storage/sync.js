@@ -4,6 +4,7 @@
 //     한쪽만 바뀜 → 그쪽으로 맞춤
 //     둘 다 바뀜   → 작품 목록은 합침 · 취향과 보기 상태는 이 기기 것 · 작품 글은 카드 단위로 합침 (storage/merge.js, 같은 글을 둘 다 고친 곳만 사용자가 고름)
 //   평소에는 올리기만 자동(push) · 받기는 사용자가 누를 때만(sync). 다른 기기에서 고친 게 있는지는 check 로 확인만 함
+//     (작품 목록만은 올릴 때도 합침: 새 작품이 다른 기기 목록에 실려야 그쪽에서 받을 수 있음)
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {atomicWrite}=require('./files');
 const {logError}=require('./log');
@@ -67,6 +68,10 @@ function createSync({store,fetch,getConfig,statePath}){
       const localCh=Ls!==B,remoteCh=Rs!==B;
       if(pushOnly){      // 올리기만: 다른 기기가 고친 파일은 받기 전까지 건드리지 않음 (덮어쓰면 그쪽 글이 사라짐) · 취향은 이 기기 것
         if(L==null||!localCh)continue;
+        if(remoteCh&&Rs&&rel==='library.json'){      // 작품 목록은 합쳐도 잃는 게 없음: 막으면 새로 만든 작품이 다른 기기에 영영 안 보임
+          store.syncWrite(rel,await getBlob(cfg,Rs));
+          setBase(rel,await put(cfg,rel,store.syncRead(rel),Rs,empty));res.pushed.push(rel);continue;
+        }
         if(remoteCh&&Rs&&rel!=='prefs.json'){res.blocked.push(rel);continue}
         setBase(rel,await put(cfg,rel,L,Rs,empty));res.pushed.push(rel);continue;
       }

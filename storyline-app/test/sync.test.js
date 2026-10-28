@@ -253,3 +253,21 @@ test('확인만: 보기 상태 · 취향만 바뀐 건 알리지 않음', async(
   B.store.save('storyline_ui_v1',JSON.stringify({zoom:2}));B.store.savePrefs(JSON.stringify({theme:'dark'}));await B.sync.push();
   assert.deepEqual((await A.sync.check()).pending,[]);
 });
+
+test('올리기만: 양쪽에서 작품 목록이 바뀌어도 새 작품은 목록에 실려 올라가고, 다른 기기에서 받으면 보임', async()=>{
+  const gh=fakeGitHub(),A=device(gh,'good','집 맥');A.store.renameNovel(A.store.current(),'장편');A.store.save('storyline_v1',doc('가'));await A.sync.sync();
+  const B=device(gh,'good','회사 PC');await B.sync.sync();
+  A.store.openNovel(A.store.current());await A.sync.push();      // 맥에서 목록이 바뀜 (작품을 열면 연 시각이 바뀜)
+  const nid=B.store.createNovel('새 작품');B.store.openNovel(nid);B.store.save('storyline_v1',doc('나'));      // PC 에서 새 작품
+  const pb=await B.sync.push();
+  assert.equal(pb.ok,true,pb.error);
+  assert.deepEqual(pb.blocked,[]);      // 목록이 막히면 새 작품이 다른 기기에 영영 안 보임
+  assert.ok(JSON.parse(gh.files.get('storyline/library.json').text).novels.some(n=>n.id===nid));
+  assert.deepEqual(names(B.store),['새 작품','장편']);      // 목록은 합쳐짐 (글은 안 받음)
+  const c=await A.sync.check();assert.ok(c.ids.includes(nid));
+  const r=await A.sync.sync();
+  assert.equal(r.ok,true,r.error);
+  assert.deepEqual(names(A.store),['새 작품','장편']);
+  A.store.openNovel(nid);
+  assert.equal(A.store.load('storyline_v1').text,doc('나'));
+});
