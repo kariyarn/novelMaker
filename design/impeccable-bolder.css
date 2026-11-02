@@ -1,0 +1,13 @@
+/* impeccable bolder — 대상: 구상 보드의 인물 머리글. 나머지는 그대로 */
+/* 인물 색(--cc)은 이미 칩·이니셜에 쓰는 그 색. 새 색·새 글꼴 없음 */
+.ui3 .bhead.frprof{gap:18px;padding:6px 6px 22px 0;align-items:flex-start}
+.ui3 .bhead.frprof::before{content:attr(data-ini);flex:none;width:56px;height:56px;border-radius:50%;background:color-mix(in srgb,var(--cc) 82%,#000);color:#fff;font:700 26px/56px var(--fr-story);text-align:center}
+.ui3 .frnm{flex-wrap:wrap;row-gap:0;gap:4px 12px;align-items:baseline}
+.ui3 .frnm b{flex-basis:100%;font:700 36px/1.15 var(--fr-story);letter-spacing:-.02em;order:0}
+.ui3 .frnm small{order:1;font-size:13px!important;font-weight:650;color:color-mix(in srgb,var(--cc) 50%,#000)!important}
+.ui3 .frnm .fracts{order:2}
+.ui3 .frsum{font:400 16px/1.55 var(--fr-story);color:var(--ink)!important;margin-top:10px;max-width:40em}
+.ui3 .frgoal{margin-top:6px}
+/* 주변은 조용히: 이 인물의 보드에서 이 인물 칩은 당연하니 숨기고, 카드에 마우스를 올리면 보임 */
+.kcard.board .kchip.self{display:none}
+.kcard.board:hover .kchip.self{display:inline-flex}

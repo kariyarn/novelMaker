@@ -1,0 +1,109 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>impeccable critique · bolder 시안</title>
+<style>
+body{margin:0;padding:28px 24px;background:#ececf0;font:14px/1.6 -apple-system,"Apple SD Gothic Neo",sans-serif;color:#1d1d1f;width:1500px}
+h1{font-size:22px;margin:0 0 4px}.lead{color:#55555a;margin:0 0 18px}
+h2{font-size:19px;margin:38px 0 10px}h3{font-size:15px;margin:22px 0 6px}
+.warn{background:#fff4d6;border:1px solid #e8c766;border-radius:8px;padding:8px 14px;margin:0 0 16px;font-size:13px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.pair figure{margin:0}.pair img{max-width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);display:block;background:#fff}
+figcaption{font-weight:700;margin-bottom:6px}figcaption.n{color:#0058b8}
+ul{margin:8px 0 0;padding-left:20px}li{margin:3px 0}
+table{border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}td,th{padding:7px 14px;border-bottom:1px solid #e3e3e8;text-align:left;vertical-align:top}th{background:#f5f5f7}
+td.s{text-align:center;font-weight:700}
+.issue{background:#fff;border-radius:10px;padding:12px 16px;margin:10px 0}.issue b.p{display:inline-block;min-width:30px;padding:0 6px;border-radius:4px;color:#fff;background:#c4314b;margin-right:6px;text-align:center}.issue b.p2{background:#b06a00}.issue b.p3{background:#6e6e73}
+.issue p{margin:4px 0}
+code{background:#fff;padding:1px 5px;border-radius:4px;font-size:12.5px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+</style></head><body>
+<h1>impeccable critique → bolder 시안</h1>
+<p class="lead">impeccable 4.8.0 규칙집(<code>critique.md</code> · <code>bolder.md</code>)대로 진행했어요. 예시 작품, 1400×900, 기본 테마예요. 앱 코드는 바꾸지 않았고, 시안 화면에만 CSS를 덮어씌웠어요.</p>
+<div class="warn">⚠️ DEGRADED: single-context. critique는 원래 서브 에이전트 두 개(디자인 리뷰 / 검사기)를 따로 돌려야 하는데, 이 세션은 요청 없이 서브 에이전트를 쓰지 않아서 한 컨텍스트에서 순서대로 돌렸어요(디자인 리뷰를 먼저 끝내고 → 검사기 결과를 나중에 봄).</div>
+
+<h2>1부 · critique 보고서</h2>
+
+<h3>디자인 고유성 판정</h3>
+<p><b>절반만 이 제품 거예요.</b> 코르크보드 · 포스트잇 · 핀 · “화” 단위 타임라인 · 카드 무덤은 소설 구상 노트만의 장치예요. 그런데 그 장치를 감싼 틀(위 탭, 왼쪽 목록, 머리글)은 애플 기본 앱 같은 무난한 시스템 UI라서 다른 앱에 그대로 옮겨도 티가 안 나요.
+제품 설명이 “<b>캐릭터 중심</b> 구상 노트”인데, 정작 화면에서 인물은 18px 이름 한 줄과 칩 속 작은 색 점으로만 존재해요. <b>가장 큰 기회는 인물을 화면의 주인공으로 세우는 것</b>이에요.</p>
+
+<h3>디자인 건강 점수 (닐슨 휴리스틱 10개)</h3>
+<table>
+<tr><th>#</th><th>휴리스틱</th><th>점수</th><th>핵심</th></tr>
+<tr><td>1</td><td>상태 보이기</td><td class="s">3</td><td>“✓ 자동 저장됨”이 늘 보임. 무덤 D-3 표시도 좋음</td></tr>
+<tr><td>2</td><td>현실 세계와 맞추기</td><td class="s">3</td><td>코르크보드 · 포스트잇 · 화. 다만 “코르크”인데 바탕은 흐린 베이지 점무늬</td></tr>
+<tr><td>3</td><td>되돌리기 · 자유</td><td class="s">3</td><td>바로 지우지 않고 무덤 → 되살리기, 휴지통이 따로 있음</td></tr>
+<tr><td>4</td><td>일관성</td><td class="s">2</td><td>같은 카드가 보드에서는 색 포스트잇, 타임라인에서는 흰 카드 + 이니셜, 오른쪽에서는 글자 없는 미니 포스트잇</td></tr>
+<tr><td>5</td><td>실수 막기</td><td class="s">3</td><td>폐기 / 무덤 / 휴지통 구분</td></tr>
+<tr><td>6</td><td>기억 대신 알아보기</td><td class="s">2</td><td>오른쪽 “쓰고 싶은 장면” 미니 카드에 내용이 안 보여 하나씩 올려 봐야 함. 많은 버튼이 마우스를 올려야 나타남</td></tr>
+<tr><td>7</td><td>유연성 · 효율</td><td class="s">3</td><td>단축키(⌥4 등), 집중 모드, 여러 보기</td></tr>
+<tr><td>8</td><td>미니멀한 디자인</td><td class="s">3</td><td>보드는 정돈됨. 타임라인 도구줄은 컨트롤 9개 이상</td></tr>
+<tr><td>9</td><td>오류 회복</td><td class="s">3</td><td>백업 · 되살리기</td></tr>
+<tr><td>10</td><td>도움말</td><td class="s">3</td><td>첫 실행 안내 + 장르별 예시 작품</td></tr>
+<tr><td></td><td><b>합계</b></td><td class="s">28/40</td><td>좋음. 실제 앱 대부분이 20~32점</td></tr>
+</table>
+
+<h3>잘하고 있는 것</h3>
+<ul>
+<li><b>카드 무덤</b>: 안 쓴 아이디어를 지우지 않고 흐리게 → D-3 → 무덤으로 보내요. 이 앱만의 감정 설계예요.</li>
+<li><b>타임라인 한 줄 보기</b>: “1화 새벽의 접촉사고”처럼 원고지 같은 흰 종이 위에 장면이 이어져요. 글 쓸 기분이 나는 화면이에요.</li>
+<li><b>큰 화 번호</b>(32px 파란 숫자): 타임라인에서 가장 자신 있는 장치예요.</li>
+</ul>
+
+<h3>우선 고칠 것</h3>
+<div class="issue"><b class="p">P1</b><b>캐릭터 중심 앱인데 인물이 화면에서 가장 약해요</b>
+<p>왜: 구상 보드에 들어와도 “지금 누구의 보드인지”가 18px 이름 한 줄뿐이에요. 인물 색은 칩 속 점으로만 보여요.</p>
+<p>고치기: 인물 머리글을 보드의 중심으로. 이미 쓰는 인물 색 · 이니셜 동그라미 · 큰 숫자 크기를 그대로 키워서 써요. → <b>2부 bolder 시안</b></p></div>
+<div class="issue"><b class="p">P1</b><b>“쓰고 싶은 장면” 미니 카드에 내용이 안 보여요</b>
+<p>왜: 이 목록의 역할이 “아직 안 쓴 장면을 한눈에”인데, 카드가 글자 없는 작은 색 사각형이라 하나씩 올려 봐야 해요.</p>
+<p>고치기: 첫 줄이라도 글자로 보여 주기(목록형 또는 큰 카드형). 추천 명령: <code>distill</code> · <code>clarify</code></p></div>
+<div class="issue"><b class="p p2">P2</b><b>같은 카드가 보기마다 다르게 생겼어요</b>
+<p>왜: 보드에서는 노랑 · 초록 포스트잇, 타임라인에서는 흰 카드라서 같은 장면인지 바로 안 이어져요.</p>
+<p>고치기: 타임라인 카드에도 카드 색을 왼쪽 띠가 아닌 바탕 색으로 옅게 남겨요. 추천 명령: <code>colorize</code></p></div>
+<div class="issue"><b class="p p2">P2</b><b>타임라인 도구줄이 너무 많아요</b>
+<p>왜: 칸반/한 줄/등장표/보관, 분류, 원고/묶음/카드, 보관, 글 폭, 가/가, 전체 12화, 원고, ＋화가 한 줄에 다 있어요. 한 번에 고를 게 4개를 넘으면 부담이 커져요.</p>
+<p>고치기: 자주 쓰는 2~3개만 남기고 나머지는 “보기 옵션”으로(관계망에서 이미 한 방식). 추천 명령: <code>distill</code></p></div>
+<div class="issue"><b class="p p3">P3</b><b>글자 대비 · 글자 기호 아이콘</b>
+<p>회색 글자 대비 부족 6곳, 10.4px 글자 1곳(1차 시안에서 고침). ⑂ · ✕ · ★ 같은 글자 기호가 아이콘을 대신하고 있어요. 추천 명령: <code>polish</code></p></div>
+
+<h3>사용자별로 걸리는 것</h3>
+<ul>
+<li><b>처음 쓰는 사람</b>: 보드에 들어와서 “여기가 이도윤 보드”라는 걸 머리글 작은 글씨로만 알아요. 오른쪽 미니 카드는 무엇인지 알 수 없어요.</li>
+<li><b>오래 쓴 사람(인물 20명 이상)</b>: 인물을 오가며 작업할 때, 보드가 바뀌어도 화면이 거의 똑같아 보여서 지금 누구 보드인지 헷갈려요.</li>
+<li><b>연재 작가</b>: 타임라인 도구줄의 옵션이 많아서 매번 원고 복사까지 가는 길이 길어요.</li>
+</ul>
+
+<h3>검사기 결과 (디자인 리뷰를 끝낸 뒤 확인)</h3>
+<p>소스: 경고 2건(둘 다 판단 결과 화면 문제 아님 · 1차 시안 참고), 참고 1건. 화면: 대비 부족 6 + 작은 글자 1. 디자인 리뷰에서 놓친 건 “고른 인물 이름 파랑 대비 4.2”였어요.</p>
+
+<h3>생각해 볼 질문</h3>
+<ul>
+<li>인물 보드마다 그 인물의 색이 보드 전체 분위기가 된다면?</li>
+<li>오른쪽 “쓰고 싶은 장면”이 아이디어 목록이 아니라 “아직 무대에 못 오른 장면들의 대기실”처럼 보인다면?</li>
+</ul>
+
+<h2>2부 · bolder 시안: 인물 머리글</h2>
+<p>대상은 critique의 P1 하나예요. bolder 규칙대로 <b>대상 밖은 건드리지 않았고, 새 색 · 새 글꼴을 들이지 않았어요</b>. 쓴 건 앱에 이미 있는 것뿐이에요: 인물 색(칩 점) · 이니셜 동그라미(타임라인) · 이야기 글꼴과 큰 숫자 크기(화 번호 32px).</p>
+
+<div class="pair"><figure><figcaption>지금</figcaption><img src="img/imp-b-before-crop.png"></figure><figure><figcaption class="n">bolder</figcaption><img src="img/imp-b-after-crop.png"></figure></div>
+<ul>
+<li><b>이니셜 동그라미 56px</b>: 타임라인 카드에 붙던 “도” 동그라미를 머리글 크기로. 인물 색을 조금 짙게 해서 흰 글자 대비 3:1 이상을 맞췄어요.</li>
+<li><b>이름 18px → 36px</b>: 화 번호와 같은 무게로. 보드를 바꾸면 이름과 색이 바로 바뀌어서 지금 누구 보드인지 한눈에 보여요.</li>
+<li><b>역할(주인공)을 인물 색으로</b>, 장 수 · 시트 펼치기는 그 옆에 조용히.</li>
+<li><b>한 줄 소개 13px 회색 → 16px 본문 색</b>: 인물의 로그라인으로 읽혀요.</li>
+<li><b>주변은 조용히</b>: 이도윤 보드에서 카드마다 붙던 “이도윤 ✕” 칩은 당연한 정보라 숨겼어요. 다른 인물 칩(서하린)은 그대로 보여요.</li>
+</ul>
+
+<div class="cols">
+<div><h3>숨긴 칩은 마우스를 올리면 돌아와요</h3><img src="img/imp-b-hover.png" style="border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12)"><p>연결 해제(✕) 기능은 그대로예요.</p></div>
+<div><h3>확인한 것</h3><ul><li>bolder를 적용한 화면에 impeccable 검사기를 다시 돌려서 <b>경고 0건</b></li><li>대상 밖(왼쪽 목록 · 오른쪽 목록 · 카드 · 도구줄)은 그대로</li><li>아직 안 본 것: 다크 등 다른 9개 테마, 인물 시트를 펼친 상태, 아주 긴 이름</li></ul></div>
+</div>
+
+<h3>전체 화면</h3>
+<div class="pair"><figure><figcaption>지금</figcaption><img src="img/imp-b-before.png"></figure><figure><figcaption class="n">bolder (+ 1차 대비 수정)</figcaption><img src="img/imp-b-after.png"></figure></div>
+
+<h3>실제로 넣는다면</h3>
+<ul>
+<li>CSS: <code>design/impeccable-bolder.css</code>의 규칙을 <code>styles/fresh.css</code>의 인물 머리글 쪽으로</li>
+<li>JS: 머리글을 그릴 때 인물 색을 <code>--cc</code>로, 이니셜을 <code>data-ini</code>로 넣기(지금 시안은 화면에서 임시로 넣음). 이 보드 인물의 칩에 <code>self</code> 붙이기</li>
+<li>그다음 impeccable 순서상 <code>polish</code>로 마무리</li>
+</ul>
+</body></html>
