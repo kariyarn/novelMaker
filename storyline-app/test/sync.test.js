@@ -5,41 +5,65 @@ const fs=require('fs'),path=require('path'),os=require('os');
 const {create}=require('../store');
 const {createSync,gitSha}=require('../storage/sync');
 
-/* 가짜 GitHub: 이 앱이 쓰는 API 만 (트리 목록 · blob 읽기 · 파일 올리기) */
+/* 가짜 GitHub: 이 앱이 쓰는 API 만 (브랜치 커밋 번호 · 트리 · blob · 트리/커밋 만들기 · 브랜치 옮기기 · 빈 저장소 첫 파일) */
 function fakeGitHub({emptyRepo=false}={}){
-  const files=new Map(),blobs=new Map(),log=[];let empty=emptyRepo,calls=0,stale=null;      // stale: 올린 직후 GitHub 가 잠깐 예전 목록을 주는 상황 흉내
+  const blobs=new Map(),trees=new Map(),commits=new Map(),log=[],count={};let head=null,empty=emptyRepo,stale=null,n=0;      // stale: 올린 직후 브랜치가 잠깐 예전 커밋을 가리키는 상황 흉내
+  const id=p=>p+(++n).toString(16).padStart(39,'0');
   const json=(status,o)=>({ok:status<300,status,text:async()=>JSON.stringify(o)});
+  const treeOf=c=>c?trees.get(commits.get(c).tree):new Map();
+  function makeCommit(files,message,parent){      // files: Map(path→sha)
+    const t=id('t');trees.set(t,files);const c=id('c');commits.set(c,{tree:t,parents:parent?[parent]:[],message});
+    const before=treeOf(parent),date=new Date().toISOString();
+    for(const [p,sha] of files)if(before.get(p)!==sha)log.push({path:p,message,date});
+    return c;
+  }
+  const addBlob=text=>{const sha=gitSha(text);blobs.set(sha,text);return sha};
   async function fetch(url,{method,headers,body}){
-    calls++;
+    const u=new URL(url),p=decodeURIComponent(u.pathname.replace(/^\/repos\/me\/novel/,'')),key=method+' '+p.replace(/\/[0-9a-f]{40}$/,'/{sha}').replace(/^\/contents\/.*/,'/contents');
+    count[key]=(count[key]||0)+1;
     if(headers.Authorization!=='Bearer good')return json(401,{message:'Bad credentials'});
-    const u=new URL(url),p=decodeURIComponent(u.pathname.replace(/^\/repos\/me\/novel/,''));
     if(method==='GET'&&p==='')return json(200,{full_name:'me/novel'});
-    if(method==='GET'&&p.startsWith('/git/trees/')){
+    if(method==='GET'&&p==='/git/ref/heads/main'){
       if(empty)return json(409,{message:'Git Repository is empty.'});
-      if(stale)return json(200,{tree:stale});
-      return json(200,{tree:[...files].map(([path,f])=>({path,type:'blob',sha:f.sha}))});
+      const h=stale||head;return h?json(200,{object:{sha:h}}):json(404,{});
+    }
+    if(method==='GET'&&p.startsWith('/git/trees/')){
+      const c=commits.get(p.slice(11));if(!c)return json(404,{});
+      return json(200,{sha:c.tree,tree:[...trees.get(c.tree)].map(([path,sha])=>({path,type:'blob',sha}))});
     }
     if(method==='GET'&&p.startsWith('/git/blobs/')){
       const t=blobs.get(p.slice(11));      // 진짜 GitHub 처럼 지나간 버전도 읽힘
       return t!=null?json(200,{content:Buffer.from(t).toString('base64')}):json(404,{});
     }
+    if(method==='POST'&&p==='/git/trees'){
+      const b=JSON.parse(body),files=new Map(b.base_tree?trees.get(b.base_tree):[]);
+      for(const e of b.tree)files.set(e.path,addBlob(e.content));
+      const t=id('t');trees.set(t,files);return json(201,{sha:t});
+    }
+    if(method==='POST'&&p==='/git/commits'){
+      const b=JSON.parse(body),c=makeCommit(trees.get(b.tree),b.message,b.parents[0]);return json(201,{sha:c});
+    }
+    if(method==='PATCH'&&p==='/git/refs/heads/main'){
+      const b=JSON.parse(body);if(commits.get(b.sha).parents[0]!==head)return json(422,{message:'Update is not a fast forward'});
+      head=b.sha;return json(200,{object:{sha:head}});
+    }
+    if(method==='POST'&&p==='/git/refs'){if(head)return json(422,{message:'Reference already exists'});head=JSON.parse(body).sha;return json(201,{})}
     if(method==='GET'&&p==='/commits'){      // 그 파일을 마지막으로 올린 기록 (메시지 · 시각)
       const l=log.filter(x=>x.path===u.searchParams.get('path')).slice(-1);
       return json(200,l.map(x=>({commit:{message:x.message,author:{date:x.date}}})));
     }
-    if(method==='PUT'&&p.startsWith('/contents/')){
-      const fp=p.slice(10),b=JSON.parse(body),cur=files.get(fp);
-      log.push({path:fp,message:b.message,date:new Date().toISOString()});
-      if(cur&&b.sha!==cur.sha)return json(409,{message:'sha mismatch'});
-      if(!cur&&b.sha)return json(422,{message:'sha given for new file'});
-      const text=Buffer.from(b.content,'base64').toString('utf8'),sha=gitSha(text);
-      files.set(fp,{text,sha});blobs.set(sha,text);empty=false;
-      return json(200,{content:{sha}});
+    if(method==='PUT'&&p.startsWith('/contents/')){      // 빈 저장소의 첫 파일
+      const fp=p.slice(10),b=JSON.parse(body),files=new Map(treeOf(head));
+      files.set(fp,addBlob(Buffer.from(b.content,'base64').toString('utf8')));head=makeCommit(files,b.message,head);empty=false;
+      return json(201,{content:{sha:files.get(fp)}});
     }
     return json(404,{message:'not found'});
   }
-  const snapshot=()=>[...files].map(([path,f])=>({path,type:'blob',sha:f.sha}));
-  return {fetch,files,get calls(){return calls},freeze(){stale=snapshot()},thaw(){stale=null}};
+  const files={has:fp=>treeOf(head).has(fp),get:fp=>{const sha=treeOf(head).get(fp);return sha?{sha,text:blobs.get(sha)}:undefined}};
+  return {fetch,files,count,
+    setFile(fp,text){const f=new Map(treeOf(head));f.set(fp,addBlob(text));head=makeCommit(f,'동기화 (다른 기기): '+fp,head)},      // 다른 기기가 올림
+    get commits(){return commits.size},resetCount(){for(const k in count)delete count[k]},
+    freeze(){stale=head},thaw(){stale=null}};
 }
 const tmp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'storyline-sync-'));
 function device(gh,token='good',name){
@@ -159,7 +183,7 @@ test('다른 기기가 예전과 똑같은 내용을 다시 올려도 막히지 
   const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
   const id=A.store.current(),fp=`storyline/works/${id}/storyline.json`,old=gh.files.get(fp);
   A.store.save('storyline_v1',work([['k1','처음 고침']]));await A.sync.sync();
-  gh.files.set(fp,{...old});      // 다른 기기가 예전 내용 그대로를 새로 올림 (지문이 예전 것과 같음)
+  gh.setFile(fp,old.text);      // 다른 기기가 예전 내용 그대로를 새로 올림 (지문이 예전 것과 같음)
   A.store.save('storyline_v1',work([['k1','처음 고침'],['k2','새 장면']]));
   const r=await A.sync.sync();assert.equal(r.ok,true,r.error);
   assert.notEqual(gh.files.get(fp).sha,old.sha,'올라가야 함');
@@ -270,4 +294,35 @@ test('올리기만: 양쪽에서 작품 목록이 바뀌어도 새 작품은 목
   assert.deepEqual(names(A.store),['새 작품','장편']);
   A.store.openNovel(nid);
   assert.equal(A.store.load('storyline_v1').text,doc('나'));
+});
+
+test('양쪽에서 고친 걸 합쳐 올린 직후 GitHub 가 예전 커밋을 가리켜도: 합친 글이 다른 기기 예전 글로 덮이지 않음', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  A.store.save('storyline_v1',work([['k1','처음'],['k2','A가 쓴 장면']]));await A.sync.sync();
+  gh.freeze();      // 이 뒤로 한동안 브랜치가 A 가 올린 커밋을 가리킴
+  B.store.save('storyline_v1',work([['k1','처음'],['k3','B가 쓴 장면']]));
+  let r=await B.sync.sync();assert.equal(r.ok,true,r.error);
+  const merged=[['k1','처음'],['k3','B가 쓴 장면'],['k2','A가 쓴 장면']];
+  assert.deepEqual(cardsOf(B.store),merged);
+  r=await B.sync.sync();assert.equal(r.ok,true,r.error);assert.deepEqual(r.pulled,[]);      // 한 번 더 눌러도 그대로
+  assert.deepEqual(cardsOf(B.store),merged);
+  assert.deepEqual((await B.sync.check()).pending,[]);
+  gh.thaw();
+  await A.sync.sync();assert.deepEqual(cardsOf(A.store),merged);
+});
+
+test('요청 수: 여러 파일도 커밋 하나로 · 바뀐 게 없으면 확인은 요청 하나', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',doc('가'));
+  for(const n of ['둘','셋','넷']){const id=A.store.createNovel(n);A.store.openNovel(id);A.store.save('storyline_v1',doc(n))}
+  const before=gh.commits;await A.sync.sync();
+  assert.equal(gh.commits-before,1);      // 작품 4개 · 목록 · 취향 등을 커밋 하나로
+  gh.resetCount();
+  assert.deepEqual((await A.sync.check()).pending,[]);
+  assert.deepEqual(gh.count,{'GET /git/ref/heads/main':1});
+  gh.resetCount();
+  const r=await A.sync.sync();assert.deepEqual([r.pulled,r.pushed],[[],[]]);
+  assert.deepEqual(gh.count,{'GET /git/ref/heads/main':1});
+  const B=device(gh);gh.resetCount();await B.sync.sync();      // 새 기기가 받기: 파일마다 한 번씩 · 바퀴는 한 번
+  assert.equal(gh.count['GET /git/trees/{sha}'],1);
 });
