@@ -92,6 +92,7 @@ function wkNewRow(owner,parent,before){
   const p=wkPath();owner=owner||p[0];if(parent===undefined)parent=p.length>2?p[p.length-2]:null;
   const r=newWikiRow(owner,parent,'','');
   act(()=>{wkInsert(r,before);UIP.wpath=parent?[...wkPathOf(rowById(parent)),r.id]:[owner,r.id];UI.wkEdit=r.id;UI.wkTitle=true});saveUIP();
+  (UI.wkNew=UI.wkNew||new Set()).add(r.id);
 }
 function wkMove(id,owner,parent,before){
   const r=rowById(id);if(!r)return;
@@ -161,7 +162,14 @@ function wkPickOwner(at,fn){
 
 /* ---------- 가운데: 열 보기 + 편집기 ---------- */
 let WDRAG=null;      // 끌고 있는 행 id
+function wkDropEmpty(keep){      // 이번에 새로 만든 행 중 제목 · 본문 · 하위 행이 모두 빈 채로 남은 것은 조용히 지움 (포스트잇과 같음)
+  if(!UI.wkNew||!UI.wkNew.size)return;let n=0;
+  [...UI.wkNew].forEach(id=>{const r=rowById(id);if(!r){UI.wkNew.delete(id);return}if(keep.includes(id))return;
+    if(!r.title.trim()&&!wkText(r.body)&&!/data-ref/.test(r.body)&&!rowKids(null,id).length){S.wiki=wikiRows().filter(x=>x!==r);n++}UI.wkNew.delete(id)});
+  if(n){idxClear();save()}
+}
 function renderWiki(m){
+  wkDropEmpty(Array.isArray(UIP.wpath)?UIP.wpath:[]);
   const old=m.querySelector('.wkcols'),sl0=old?old.scrollLeft:0;
   const p=wkPath(),wrap=h('div',{class:'wk'}),cols=h('div',{class:'wkcols',role:'tree'});
   cols.append(wkEntCol(p));
@@ -269,8 +277,12 @@ function wkDropOn(el,t){
     e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';
     wkDropClear();const z=zone(e);
     if(t.row)el.classList.add(z==='b'?'wkdb':z==='a'?'wkda':'wkdi');else el.classList.add('wkover');
+    const openable=t.row?(z==='in'&&rowKids(null,t.row.id).length&&!wkPath().includes(t.row.id)):(t.into&&wkPath()[0]!==t.owner);      // 파인더처럼: 머무르면 열림
+    if(openable&&!el._ho)el._ho=setTimeout(()=>{el._ho=0;if(!(WDRAG||DRAG))return;
+      if(t.row){const col=+el.closest('.wkcol').dataset.col;UIP.wpath=[...wkPath().slice(0,col),t.row.id]}else UIP.wpath=[t.owner];saveUIP();renderMid()},700);
+    else if(!openable&&el._ho){clearTimeout(el._ho);el._ho=0}
   });
-  el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('wkdb','wkda','wkdi','wkover')});
+  el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget)){el.classList.remove('wkdb','wkda','wkdi','wkover');clearTimeout(el._ho);el._ho=0}});
   el.addEventListener('drop',e=>{
     if(!WDRAG&&!DRAG)return;e.preventDefault();e.stopPropagation();
     const z=zone(e);wkDropClear();
@@ -280,6 +292,8 @@ function wkDropOn(el,t){
     else{const id=DRAG.id;DRAG=null;const ids=MSEL.has(id)&&MSEL.size>1?[...MSEL]:[id];wkFile(ids,owner,parent,before)}
   });
 }
+
+document.addEventListener('dragend',()=>{setTimeout(()=>{WDRAG=null;wkDropClear()},0)},true);      // 끄는 중에 열이 다시 그려져 원래 행이 사라져도 정리되게
 
 /* ---------- 키보드: 파인더처럼 ---------- */
 let WKTYPE='',WKTYPET=0;
@@ -302,7 +316,7 @@ function wkColKey(e){
 }
 
 /* ---------- 편집기 ---------- */
-let WKSAVE=0,WKFLUSH=null;
+let WKSAVE=0,WKFLUSH=null,WKAUTO=null;
 const wkFlushNow=()=>{if(WKFLUSH&&document.querySelector('#mid .wkbody'))WKFLUSH()};
 function wkLinkName(k,ref){
   if(k==='ent'){const c=charById(ref);return c?c.name:null}
@@ -450,6 +464,9 @@ function wkIndent(li,out,body){
 }
 function wkBodyKey(e,body,r,flush){
   if(WKAC&&wkAcKey(e))return;
+  if(WKAUTO){const a=WKAUTO;WKAUTO=null;
+    if(e.key==='Backspace'&&!e.isComposing&&Date.now()-a.at<8000){const s=getSelection();let n=s.anchorNode;while(n&&n.nodeType!==1)n=n.parentNode;const b=n&&n.closest('li,h3,h4,blockquote');
+      if(b&&body.contains(b)&&s.isCollapsed&&!b.textContent.slice(0,1).trim()&&b.textContent.trim().length<=a.len){e.preventDefault();document.execCommand('undo');document.execCommand('insertText',false,a.mark+' ');body.dispatchEvent(new Event('input'));return}}}
   if(e.key==='Tab'&&!e.isComposing&&!e.metaKey&&!e.ctrlKey&&!e.altKey){      // 목록 안: Tab = 한 단계 안으로 · ⇧Tab = 한 단계 밖으로
     const s=getSelection();let n=s.anchorNode;while(n&&n.nodeType!==1)n=n.parentNode;const li=n&&n.closest('li');
     if(li&&body.contains(li)){e.preventDefault();e.stopPropagation();wkIndent(li,e.shiftKey,body);return}
@@ -467,6 +484,7 @@ function wkBodyKey(e,body,r,flush){
     e.preventDefault();const rg=document.createRange();rg.setStart(n,0);rg.setEnd(n,s.anchorOffset);rg.deleteContents();
     if(!blk.textContent){blk.append(document.createElement('br'))}
     wkFormat(cmd,body);body.dispatchEvent(new Event('input'));
+    WKAUTO={mark:before,at:Date.now(),len:(blk.textContent||'').trim().length+1};      // 바로 뒤 Backspace 면 글자로 되돌림
   }
 }
 
@@ -558,6 +576,34 @@ function wkSheetBlock(c){
     rows.length?h('div',{class:'wkshl'},...rows.slice(0,8).map(r=>h('button',{class:'wkbl',onclick:()=>goWikiRow(r.id)},r.from?'✎ ':'',r.title||'제목 없음')),rows.length>8?h('span',{class:'muted'},`외 ${rows.length-8}개`):null)
       :h('p',{class:'muted wkshe'},c.kind==='setting'?'세계관 · 장소 · 조직 · 규칙은 위키 탭에서 행으로 정리해요.':'설정 · 비밀 · 메모는 위키 탭에서 행으로 정리해요.'));
 }
+
+/* ---------- 글 속 이름 표시: 카드 글의 거울 층(card.js hlFill)에서 인물 · 설정 이름을 span 으로 감쌈 (모양은 그대로) ---------- */
+let WKNRE=null,WKNSIG='';
+function wkNameRe(){
+  const sig=S.characters.map(c=>c.id+':'+c.name+':'+(c.aliases||[]).join(',')).join('|');if(sig===WKNSIG)return WKNRE;WKNSIG=sig;
+  const m=new Map();S.characters.forEach(c=>[c.name,...(c.aliases||[])].map(x=>String(x).trim()).filter(x=>x.length>=2).forEach(x=>{if(!m.has(x.toLowerCase()))m.set(x.toLowerCase(),c.id)}));
+  const ks=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  WKNRE=ks.length?{re:new RegExp(ks.join('|'),'gi'),m}:null;return WKNRE;
+}
+function wkMarkNames(box){
+  const N=wkNameRe();if(!N)return;
+  const tw=document.createTreeWalker(box,NodeFilter.SHOW_TEXT),list=[];while(tw.nextNode())list.push(tw.currentNode);
+  list.forEach(t=>{const s=t.data;N.re.lastIndex=0;if(!N.re.test(s))return;N.re.lastIndex=0;
+    const f=document.createDocumentFragment();let p=0,m;
+    while((m=N.re.exec(s))){if(m.index>p)f.append(s.slice(p,m.index));f.append(h('span',{class:'wkn','data-ent':N.m.get(m[0].toLowerCase())},m[0]));p=m.index+m[0].length}
+    if(p<s.length)f.append(s.slice(p));t.replaceWith(f)});
+}
+let WKNT=0,WKNCUR=null,WKNLAST=0;
+document.addEventListener('mousemove',e=>{      // 글(textarea)이 거울 층을 덮고 있어서, 그 자리의 이름을 거울 층에서 찾음
+  const now=Date.now();if(now-WKNLAST<90)return;WKNLAST=now;
+  const wrap=e.target&&e.target.closest&&e.target.closest('.kwrap'),ta=wrap&&wrap.querySelector('textarea'),mir=wrap&&wrap.querySelector('.kmir');
+  if(!ta||!mir||!ta.readOnly||DRAG||WDRAG){if(WKNCUR){WKNCUR=null;clearTimeout(WKNT);if(WKPEEK)WKPEEKH=setTimeout(()=>{if(!(WKPEEK&&WKPEEK.matches(':hover')))wkPeekHide()},250)}return}
+  const pe=ta.style.pointerEvents,me=mir.style.pointerEvents;ta.style.pointerEvents='none';mir.style.pointerEvents='auto';
+  let el=null;try{el=document.elementFromPoint(e.clientX,e.clientY)}finally{ta.style.pointerEvents=pe;mir.style.pointerEvents=me}
+  const n=el&&el.closest&&el.closest('.wkn[data-ent]');
+  if(n===WKNCUR)return;WKNCUR=n;clearTimeout(WKNT);
+  if(n){clearTimeout(WKPEEKH);WKNT=setTimeout(()=>{if(WKNCUR===n)wkPeekShow(n)},450)}else if(WKPEEK)WKPEEKH=setTimeout(()=>{if(!(WKPEEK&&WKPEEK.matches(':hover')))wkPeekHide()},250);
+},{passive:true});
 
 /* ---------- 쓰는 중에 위키 엿보기: 인물 · 설정 표시(data-ent)에 마우스를 올리면 그 위키 행 목록 ---------- */
 let WKPEEK=null,WKPEEKT=0,WKPEEKH=0;

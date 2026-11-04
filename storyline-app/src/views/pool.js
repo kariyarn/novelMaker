@@ -1,6 +1,6 @@
 /* ---------- 오른쪽: 쓰고 싶은 장면·대사 ---------- */
 /* 오른쪽 목록 보기 기준: 분류(칩 · 보드 · 타임라인과 같은 필터) · 연결(인물 / 설정 노트 / 연결 없음, 기본 모두) · 정렬(등록일 / 수정일, 별 붙인 카드가 늘 위) · 맨 아래 무덤 (features/grave.js) */
-const poolKinds=()=>{const on=kindsOn();return on.length?on:S.kinds.map(k=>k.id)};      // 분류는 보드 · 타임라인과 같은 필터 하나 (features/kindFilter.js)
+const poolKinds=()=>{const on=kindsOn();if(on.length)return on;const ks=UI.mode==='tl'?S.kinds.filter(k=>kindDest(k)==='draft'):S.kinds;return (ks.length?ks:S.kinds).map(k=>k.id)};      // 타임라인에선 원고로 가는 분류만 (위키 분류는 화에 못 넣으니까)      // 분류는 보드 · 타임라인과 같은 필터 하나 (features/kindFilter.js)
 const poolOwn=()=>Object.assign({char:true,setting:true,none:true},UIP.pown||{});
 const poolOwnAll=()=>{const o=poolOwn();return o.char&&o.setting&&o.none};
 const poolSort=()=>({by:UIP.psort==='updated'?'updated':'created',dir:UIP.pdir==='asc'?'asc':'desc'});
@@ -15,10 +15,10 @@ const poolMatch=c=>poolPass(c)&&(!UI.pchar||eff(c).includes(UI.pchar))&&(!UI.pq.
 const poolKindName=()=>{const k=poolKinds();return k.length>=S.kinds.length?'전체':k.map(id=>kindOf(id).name).join(' · ')};
 /* 분류 칩: [전체]가 켜진 상태에서 하나를 누르면 그 분류만 · 그다음부터는 누를 때마다 켜고 끄기 (다 끄면 전체로) */
 function kindChips(){
-  const cur=poolKinds(),all=cur.length>=S.kinds.length;
+  const ks=UI.mode==='tl'?S.kinds.filter(k=>kindDest(k)==='draft'):S.kinds,cur=poolKinds(),all=!kindsOn().length;
   const set=ids=>setKindFilter(ids);      // 비우면 전체
   return h('div',{class:'pkchips'},h('button',{class:'pkchip'+(all?' on':''),onclick:()=>set([])},'전체'),
-    ...S.kinds.map(k=>h('button',{class:'pkchip'+(!all&&cur.includes(k.id)?' on':''),style:`--kd:${kdark(k.colorMode==='random'?'#999':k.color)}`,
+    ...(ks.length?ks:S.kinds).map(k=>h('button',{class:'pkchip'+(!all&&cur.includes(k.id)?' on':''),style:`--kd:${kdark(k.colorMode==='random'?'#999':k.color)}`,
       onclick:()=>set(all?[k.id]:cur.includes(k.id)?cur.filter(x=>x!==k.id):[...cur,k.id])},h('i'),k.name)));
 }
 function renderPool(){
