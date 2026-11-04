@@ -24,7 +24,7 @@ function runSearch(q){
   });
   S.cards.forEach(c=>{if(has(c.text))out.push({kind:kindOf(c.kind).name,title:snippet(c.text,toks,60),sub:eff(c).map(id=>charById(id).name).join(', ')||'미분류',color:kindOf(c.kind).color,card:c,go:()=>goToCard(c.id)})});
   S.episodes.forEach((e,i)=>{if(has((e.title||'')+' '+(e.memo||'')))out.push({kind:'화',title:`${i+1}화${e.title?' · '+e.title:''}`,sub:snippet(e.memo,toks),color:'var(--acc)',go:()=>{UI.mode='tl';UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';renderAll();setTimeout(()=>{const col=document.querySelector(`[data-ep="${i}"]`);if(col){col.scrollIntoView({inline:'center',block:'start',behavior:'smooth'});flashEl(col)}},60)}})});
-  wikiRows().forEach(r=>{const t=wkText(r.body);if(has(r.title+' '+t))out.push({kind:'위키',title:r.title||'제목 없음',sub:wkOwnerName(rowOwner(r))+(t?' · '+snippet(t,toks):''),color:'var(--acc)',go:()=>goWikiRow(r.id)})});
+  wikiRows().forEach(r=>{const t=wkText(r.body),tt=rowTitle(r);if(has(tt+' '+t))out.push({kind:'위키',title:tt,sub:rowChain(r).slice(0,-1).map(rowTitle).join(' › ')+(t?' · '+snippet(t,toks):''),color:'var(--acc)',go:()=>goWikiRow(r.id)})});
   const order={'캐릭터':0,'설정':0,'위키':1,'화':1};
   out.sort((a,b)=>((order[a.kind]??2)-(order[b.kind]??2)));
   return {out:out.slice(0,60),toks};

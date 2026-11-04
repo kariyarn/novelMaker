@@ -51,21 +51,44 @@ function migrate(st){
   migrateWiki(st);
   return st;
 }
-/* 위키 (features/wiki.js): 행 목록을 바로잡고, 메모 카드의 '정리됨'(filed) 표시를 행과 맞춤 */
+/* 위키 (features/wiki.js): 작품 하나를 뿌리로 하는 나무. 행 목록을 바로잡고, 메모 카드의 '정리됨'(filed) 표시를 행과 맞춤
+   인물 · 설정 문서(ent)를 처음 만들 때는 구상 화면의 폴더를 따라 '인물' · '설정' · 폴더 이름 묶음 아래에 둠 (그다음은 사용자가 옮긴 자리 그대로)
+   묶음 · 문서 id 는 규칙으로 정해서(wg_ · we_) 두 기기에서 따로 만들어도 같은 행이 됨 */
+function wikiGroupFor(st,c){
+  const L=st.wiki,mk=(id,title,parent)=>{let g=L.find(r=>r.id===id);if(!g){const t=Date.now();g={id,parent:parent||null,title,body:'',created:t,updated:t};L.push(g)}return g};
+  const fs=st.folders||[],fid=c&&c.folder&&fs.some(f=>f.id===c.folder)?c.folder:null;
+  if(!fid||fid==='f_setting')return c&&c.kind==='setting'?mk('wg_set','설정'):mk('wg_char','인물');
+  const chain=[];let f=fs.find(x=>x.id===fid),n=0;while(f&&n++<20){chain.unshift(f);f=f.parent&&fs.find(x=>x.id===f.parent)}
+  let g=null;chain.forEach(x=>{g=mk(x.id==='f_setting'?'wg_set':'wg_'+x.id,x.name||'폴더',g&&g.id)});return g;
+}
+function wikiEnsureEnt(st,entId){
+  let r=st.wiki.find(x=>x.ent===entId);if(r)return r;
+  const c=(st.characters||[]).find(x=>x.id===entId),t=Date.now(),g=c?wikiGroupFor(st,c):null;
+  r={id:'we_'+entId,parent:g?g.id:null,ent:entId,title:c?c.name:'',body:'',created:t,updated:t};st.wiki.push(r);return r;
+}
 function migrateWiki(st){
   st.wiki=Array.isArray(st.wiki)?st.wiki.filter(r=>r&&typeof r==='object'&&r.id):[];
   {const seen=new Set();st.wiki=st.wiki.filter(r=>!seen.has(r.id)&&seen.add(r.id))}
-  st.wiki.forEach(r=>{r.title=String(r.title||'');r.body=String(r.body||'');r.owner=r.owner?String(r.owner):'work';if(!r.parent)r.parent=null});
-  const byId=new Map(st.wiki.map(r=>[r.id,r]));
+  st.wiki.forEach(r=>{r.title=String(r.title||'');r.body=String(r.body||'');if(!r.parent)r.parent=null;if(r.ent!=null)r.ent=String(r.ent);if(!r.ent)delete r.ent});
+  let byId=new Map(st.wiki.map(r=>[r.id,r]));
   st.wiki.forEach(r=>{if(r.parent&&(!byId.has(r.parent)||r.parent===r.id))r.parent=null});
   st.wiki.forEach(r=>{const seen=new Set([r.id]);let p=r.parent&&byId.get(r.parent);while(p){if(seen.has(p.id)){r.parent=null;break}seen.add(p.id);p=p.parent&&byId.get(p.parent)}});      // 순환 방지
-  st.wiki.forEach(r=>{let p=r.parent&&byId.get(r.parent),n=0;while(p&&n++<200){if(!p.parent){r.owner=p.owner;break}p=byId.get(p.parent)}});      // 하위 행은 맨 위 행과 같은 인물 · 설정 아래
+  // 예전 모양(행마다 owner = 어느 인물 · 설정 아래): 인물 · 설정마다 이어진 문서를 만들고, 그 아래 맨 위 행들을 옮김. '작품 전체'(work) 행은 작품 바로 아래로
+  if(st.wiki.some(r=>'owner' in r)){
+    const roots=st.wiki.filter(r=>!r.parent&&r.owner&&r.owner!=='work');
+    const order=(st.characters||[]).map(c=>c.id),owners=[...new Set(roots.map(r=>String(r.owner)))].sort((a,b)=>(order.indexOf(a)+1||1e9)-(order.indexOf(b)+1||1e9));
+    owners.forEach(o=>{const d=wikiEnsureEnt(st,o);if(!d.title)d.title='(지운 항목)';roots.filter(r=>String(r.owner)===o&&r!==d).forEach(r=>{r.parent=d.id})});
+    st.wiki.forEach(r=>{delete r.owner});
+    const top=st.wiki.filter(r=>!r.parent),grp=top.filter(r=>/^wg_/.test(r.id));      // 맨 위 층: 묶음이 먼저
+    st.wiki=[...grp,...st.wiki.filter(r=>!grp.includes(r))];
+    byId=new Map(st.wiki.map(r=>[r.id,r]));
+  }
   (st.cards||[]).forEach(c=>{if(c.filed&&!byId.has(c.filed))delete c.filed});
-  // 예전 설정 노트의 '설정 메모' 칸 → 그 설정 아래 '설정 메모' 행 하나 (두 기기에서 따로 옮겨도 같은 행이 되게 id 를 정해 둠)
+  // 예전 설정 노트의 '설정 메모' 칸 → 그 설정 문서 아래 '설정 메모' 행 하나 (id 를 정해 둬서 두 기기에서 같은 행)
   (st.characters||[]).forEach(c=>{
     const t=String(c.memo||'').trim();if(c.kind!=='setting'||!t)return;
-    const id='wm_'+c.id,old=byId.get(id),body=textToHtml(t);
-    if(!old){const r=newWikiRow(c.id,null,'설정 메모',body);r.id=id;r.oldMemo=true;st.wiki.push(r);byId.set(id,r)}
+    const id='wm_'+c.id,old=st.wiki.find(r=>r.id===id),body=textToHtml(t);
+    if(!old){const r=newWikiRow(wikiEnsureEnt(st,c.id).id,'설정 메모',body);r.id=id;r.oldMemo=true;st.wiki.push(r)}
     else if(!old.body.includes(body))old.body+=body;
     c.memo='';
   });

@@ -52,64 +52,77 @@ function wkText(html){      // 검색 · 미리보기 · 내보내기용 글만
   return d.textContent.replace(/\n{3,}/g,'\n\n').trim();
 }
 
-/* ---------- 인물 · 설정 (첫 열) ---------- */
-const wkOwnerName=o=>o==='work'?'작품 전체':((charById(o)||{}).name||'(지운 항목)');
+/* ---------- 인물 · 설정 문서 ---------- */
+const wkOwnerName=o=>((charById(o)||{}).name||'(지운 항목)');
 function wkOwnerIc(o){
-  if(o==='work')return h('span',{class:'wkic'},'📚');
   const c=charById(o);if(!c)return h('span',{class:'wkic'},'·');
   return c.icon?h('span',{class:'wkic'},c.icon):h('span',{class:'wkdot',style:`--c:${c.color}`});
 }
-function wkGroups(){      // 왼쪽 목록과 같은 묶음: 폴더 안이면 폴더 경로, 아니면 인물 · 설정
-  const g=new Map(),add=(k,c)=>{if(!g.has(k))g.set(k,[]);g.get(k).push(c)};
-  S.characters.filter(c=>c.kind!=='setting'&&!folderOf(c)).forEach(c=>add('👤 인물',c));
-  S.folders.forEach(f=>{const key=(f.icon||'📁')+' '+folderPath(f);S.characters.filter(c=>folderOf(c)===f.id).forEach(c=>add(key,c))});
-  return [...g.entries()];
-}
+const wkWorkName=()=>{try{return (Repo.novels&&LIB&&curNovel().name)||'작품'}catch(e){return '작품'}};
 const wkLive=c=>!c.discarded&&!c.filed&&!episodeOf(c.id)&&!shelfOf(c.id)&&isWikiKind(c.kind);      // 아직 정리 안 한 위키 분류 카드
-function wkMemos(owner){return S.cards.filter(c=>wkLive(c)&&(owner==null||(owner==='work'?!eff(c).length:eff(c).includes(owner))))}
-const wkCount=o=>wikiRows().filter(r=>rowOwner(r)===o).length;
+function wkMemos(ent){return S.cards.filter(c=>wkLive(c)&&(ent==null||eff(c).includes(ent)))}
+const wkCount=ent=>{const d=entRow(ent);return d?rowDesc(d.id).length:0};      // 그 인물 · 설정 문서 아래 행 수
+const wkEnsure=ent=>wikiEnsureEnt(S,ent);      // 문서가 없으면 처음 자리(구상 폴더를 따라간 묶음)에 만듦 (state.js) — act 안에서 부름
+function goWikiEnt(ent,opt={}){      // 인물 · 설정 문서로 (없으면 만들기)
+  if(!charById(ent))return;
+  let d=entRow(ent);
+  if(!d){if(opt.noCreate)return;act(()=>{d=wkEnsure(ent)})}
+  goWikiRow(d.id);
+}
+const wkRowIc=r=>r.ent?wkOwnerIc(r.ent):(r.from?h('span',{class:'fm',title:'메모에서 만든 행'},'✎'):null);
 
-/* ---------- 지금 연 자리: [owner, 행, 하위 행, …] ---------- */
+/* ---------- 지금 연 자리: [맨 위 행, 하위 행, …] (비어 있으면 작품 첫 화면) ---------- */
 function wkPath(){
-  let p=Array.isArray(UIP.wpath)?UIP.wpath.slice():[];
-  const o=p[0];if(!(o==='work'||charById(o)))p=[S.characters[0]?S.characters[0].id:'work'];
-  const out=[p[0]];
-  for(let i=1;i<p.length;i++){const r=rowById(p[i]);if(!r)break;const ok=i===1?(!r.parent&&rowOwner(r)===out[0]):r.parent===out[i-1];if(!ok)break;out.push(r.id)}
+  const p=Array.isArray(UIP.wpath)?UIP.wpath:[],out=[];
+  for(const id of p){const r=rowById(id);if(!r||(r.parent||null)!==(out[out.length-1]||null))break;out.push(id)}
   return out;
 }
-const wkPathOf=r=>[rowOwner(rowChain(r)[0]),...rowChain(r).map(x=>x.id)];
+const wkPathOf=r=>rowChain(r).map(x=>x.id);
+const wkKey=p=>p.length?p[p.length-1]:'@root';
 function wkSetPath(p,opt={}){UIP.wpath=p;saveUIP();UI.wkRead=null;if(opt.focusCol!=null)UI.wkFocus=opt.focusCol;renderMid()}
 function goWikiRow(id,opt={}){const r=rowById(id);if(!r)return;UIP.wpath=wkPathOf(r);saveUIP();UI.wkRead=null;if(opt.edit)UI.wkEdit=id;if(UI.mode!=='wiki')goMode('wiki');else renderAll();setTimeout(()=>flashEl(document.querySelector(`#mid .wkrow[data-row="${id}"]`)),60)}
-function goWikiOwner(o){UIP.wpath=[o];saveUIP();UI.wkRead=null;if(UI.mode!=='wiki')goMode('wiki');else renderAll()}
 
 /* ---------- 행 만들기 · 옮기기 · 지우기 ---------- */
 function wkInsert(row,before){      // 같은 층에서 before 행 앞에 (없으면 그 층 맨 뒤)
   const L=wikiRows(),i=before?L.findIndex(r=>r.id===before):-1;
   if(i>=0)L.splice(i,0,row);
-  else{const sib=rowKids(row.owner,row.parent),last=sib[sib.length-1],j=last?L.indexOf(last):-1;if(j>=0)L.splice(j+1,0,row);else L.push(row)}
+  else{const sib=rowKids(row.parent).filter(x=>x!==row),last=sib[sib.length-1],j=last?L.indexOf(last):-1;if(j>=0)L.splice(j+1,0,row);else L.push(row)}
 }
-function wkNewRow(owner,parent,before){
-  const p=wkPath();owner=owner||p[0];if(parent===undefined)parent=p.length>2?p[p.length-2]:null;
-  const r=newWikiRow(owner,parent,'','');
-  act(()=>{wkInsert(r,before);UIP.wpath=parent?[...wkPathOf(rowById(parent)),r.id]:[owner,r.id];UI.wkEdit=r.id;UI.wkTitle=true});saveUIP();
+const wkCurParent=()=>{const p=wkPath();return p.length?(rowById(p[p.length-1]).parent||null):null};      // 지금 고른 행과 같은 층
+function wkNewRow(parent,before){
+  if(parent===undefined)parent=wkCurParent();
+  const r=newWikiRow(parent,'','');
+  act(()=>{wkInsert(r,before);UIP.wpath=wkPathOf(r);UI.wkEdit=r.id;UI.wkTitle=true});saveUIP();
   (UI.wkNew=UI.wkNew||new Set()).add(r.id);
 }
-function wkMove(id,owner,parent,before){
+function wkNewEntDoc(at,parent){      // '＋ 인물 · 설정 문서': 아직 문서가 없는 인물 · 설정을 골라 이 자리에 만듦
+  const free=S.characters.filter(c=>!entRow(c.id)),has=S.characters.filter(c=>entRow(c.id));
+  const it=c=>({label:`${c.icon?c.icon+' ':''}${c.name}`,hint:c.kind==='setting'?'설정':'인물',fn:()=>{const r={id:'we_'+c.id,parent:parent||null,ent:c.id,title:c.name,body:'',created:Date.now(),updated:Date.now()};
+    if(rowById(r.id))r.id=uid();act(()=>{wkInsert(r);UIP.wpath=wkPathOf(r)});saveUIP()}});
+  const items=[{title:'이 자리에 만들 인물 · 설정 문서'}];
+  if(free.length){const ch=free.filter(c=>c.kind!=='setting'),st=free.filter(c=>c.kind==='setting');if(ch.length)items.push({title:'인물'},...ch.map(it));if(st.length)items.push({title:'설정'},...st.map(it))}
+  else items.push({label:S.characters.length?'모든 인물 · 설정에 문서가 있어요':'구상 화면에서 인물 · 설정을 먼저 만들어요',fn:()=>{}});
+  if(has.length)items.push('sep',{title:'이미 있는 문서로 가기'},...has.slice(0,12).map(c=>({label:c.name,fn:()=>goWikiEnt(c.id)})));
+  popMenu(wkAnchor(at),items);
+}
+function wkMove(id,parent,before){
   const r=rowById(id);if(!r)return;
   if(parent&&(parent===id||rowDesc(id).some(x=>x.id===parent)))return toast('자기 안으로는 옮길 수 없어요');
   if(before===id)return;
-  act(()=>{const L=wikiRows();L.splice(L.indexOf(r),1);r.owner=owner;r.parent=parent||null;rowDesc(id).forEach(x=>x.owner=owner);wkInsert(r,before);r.updated=Date.now();UIP.wpath=wkPathOf(r)});saveUIP();
+  act(()=>{const L=wikiRows();L.splice(L.indexOf(r),1);r.parent=parent||null;wkInsert(r,before);r.updated=Date.now();UIP.wpath=wkPathOf(r)});saveUIP();
 }
-/* 메모 카드 → 행: 한 장이면 첫 줄 = 제목 · 나머지 = 본문, 여러 장이면 첫 장의 첫 줄이 제목이고 나머지 장은 본문 목록 */
-function wkFile(ids,owner,parent,before){
+/* 메모 카드 → 행: 한 장이면 첫 줄 = 제목 · 나머지 = 본문, 여러 장이면 첫 장의 첫 줄이 제목이고 나머지 장은 본문 목록
+   parent 가 '@ent:<id>' 면 그 인물 · 설정 문서 아래 (문서가 없으면 만듦) */
+function wkFile(ids,parent,before){
   const cs=ids.map(cardById).filter(c=>c&&!c.filed&&isWikiKind(c.kind));
   if(!cs.length){if(ids.length)toast('위키로 가는 분류의 카드만 넣을 수 있어요');return}
   const lines=t=>String(t||'').split('\n').map(x=>x.trim()).filter(Boolean);
   const first=lines(cs[0].text),title=(first[0]||'메모').slice(0,200);
   let body=textToHtml(first.slice(1).join('\n'));
   if(cs.length>1)body+='<ul>'+cs.slice(1).map(c=>`<li>${lines(c.text).map(escHtml).join('<br>')}</li>`).join('')+'</ul>';
-  const r=newWikiRow(owner,parent||null,title,body);r.from=cs[0].id;if(cs.length>1)r.froms=cs.map(c=>c.id);
-  act(()=>{wkInsert(r,before);cs.forEach(c=>{c.filed=r.id;delete c.clock;delete c.discarded;delete c.graveAt});UIP.wpath=wkPathOf(r)});
+  const r=newWikiRow(null,title,body);r.from=cs[0].id;if(cs.length>1)r.froms=cs.map(c=>c.id);
+  act(()=>{r.parent=typeof parent==='string'&&parent.startsWith('@ent:')?wkEnsure(parent.slice(5)).id:(parent||null);
+    wkInsert(r,before);cs.forEach(c=>{c.filed=r.id;delete c.clock;delete c.discarded;delete c.graveAt});UIP.wpath=wkPathOf(r)});
   saveUIP();MSEL.clear();msRender();
   toast(cs.length>1?`메모 ${cs.length}장을 행 하나로 정리했어요`:`‘${title.slice(0,20)}’ 행으로 정리했어요`,{undo:true});
 }
@@ -123,14 +136,14 @@ function wkRevert(id){      // 메모로 되돌리기: 행은 휴지통 · 메�
 }
 async function wkDelete(id){
   const r=rowById(id);if(!r)return;const ds=rowDesc(id);
-  if(ds.length&&!await askConfirm(`‘${r.title||'제목 없음'}’ 아래 하위 행 ${ds.length}개도 함께 휴지통으로 가요. 지울까요?`,{ok:'휴지통으로',danger:true}))return;
+  if(ds.length&&!await askConfirm(`‘${rowTitle(r)}’ 아래 하위 행 ${ds.length}개도 함께 휴지통으로 가요. 지울까요?`,{ok:'휴지통으로',danger:true}))return;
   const rows=[r,...ds],ids=new Set(rows.map(x=>x.id)),cs=S.cards.filter(c=>ids.has(c.filed));
   act(()=>{S.wiki=wikiRows().filter(x=>!ids.has(x.id));S.trash.push({id:uid(),type:'wiki',data:{rows,cards:cs.map(c=>c.id)},at:Date.now()});wkUnfile(cs);UIP.wpath=wkPathOf(r).slice(0,-1)});
   saveUIP();toast(cs.length?`휴지통으로 보냈어요 · 넣어 둔 메모 ${cs.length}장은 오른쪽 목록으로`:'휴지통으로 보냈어요',{undo:true});
 }
 function wkRestore(t){      // 휴지통에서 되살리기 (modals/settings.js)
   const rows=(t.data&&t.data.rows)||[];
-  rows.forEach(r=>{if(rowById(r.id))return;if(r.parent&&!rowById(r.parent)&&!rows.some(x=>x.id===r.parent))r.parent=null;wikiRows().push(r)});
+  rows.forEach(r=>{if(rowById(r.id))return;delete r.owner;if(r.ent&&entRow(r.ent))delete r.ent;if(r.parent&&!rowById(r.parent)&&!rows.some(x=>x.id===r.parent))r.parent=null;wikiRows().push(r)});
   ((t.data&&t.data.cards)||[]).map(cardById).forEach(c=>{if(c&&!c.filed&&!c.discarded){const r=rows.find(x=>(x.froms||[x.from]).includes(c.id))||rows[0];if(r){c.filed=r.id;delete c.clock}}});
 }
 
@@ -143,20 +156,20 @@ function wkAnchor(at){
 function wkPlaceMenu(at,ids){
   ids=ids.filter(id=>{const c=cardById(id);return c&&!c.filed&&isWikiKind(c.kind)});
   if(!ids.length)return toast('위키로 가는 분류의 메모만 넣을 수 있어요');
-  const owners=[...new Set(ids.flatMap(id=>eff(cardById(id))))].filter(charById);
+  const ents=[...new Set(ids.flatMap(id=>eff(cardById(id))))].filter(charById);
   const items=[{title:ids.length>1?`메모 ${ids.length}장을 넣을 곳`:'이 메모를 넣을 곳'}];
-  owners.slice(0,6).forEach(o=>items.push({label:`${charById(o).icon?charById(o).icon+' ':''}${wkOwnerName(o)} 아래`,hint:'연결됨',fn:()=>wkFile(ids,o,null)}));
-  if(UI.mode==='wiki'){const p=wkPath(),last=p.length>1?rowById(p[p.length-1]):null;
-    if(last)items.push({label:`지금 연 행 아래: ${last.title||'제목 없음'}`.slice(0,40),fn:()=>wkFile(ids,p[0],last.id)});
-    else if(!owners.includes(p[0]))items.push({label:`지금 연 곳: ${wkOwnerName(p[0])} 아래`,fn:()=>wkFile(ids,p[0],null)})}
-  if(!owners.length)items.push({label:'📚 작품 전체 아래',fn:()=>wkFile(ids,'work',null)});
-  items.push('sep',{label:'다른 곳 고르기…',fn:()=>setTimeout(()=>wkPickOwner(wkAnchor(),o=>wkFile(ids,o,null)),0)});
+  ents.slice(0,6).forEach(o=>{const c=charById(o);items.push({label:`${c.icon?c.icon+' ':''}${c.name} 문서 아래`,hint:entRow(o)?'연결됨':'새 문서',fn:()=>wkFile(ids,'@ent:'+o)})});
+  if(UI.mode==='wiki'){const p=wkPath(),last=p.length?rowById(p[p.length-1]):null;
+    if(last&&!(last.ent&&ents.includes(last.ent)))items.push({label:`지금 연 행 아래: ${rowTitle(last)}`.slice(0,40),fn:()=>wkFile(ids,last.id)})}
+  items.push({label:`📚 ${wkWorkName()} 바로 아래`,fn:()=>wkFile(ids,null)});
+  items.push('sep',{label:'다른 곳 고르기…',fn:()=>setTimeout(()=>wkPickRow(wkAnchor(),pid=>wkFile(ids,pid)),0)});
   popMenu(wkAnchor(at),items);
 }
-function wkPickOwner(at,fn){
-  const items=[{title:'어디 아래에 둘까요'}];
-  wkGroups().forEach(([g,cs])=>{items.push({title:g});cs.forEach(c=>items.push({label:`${c.icon?c.icon+' ':''}${c.name}`,fn:()=>fn(c.id)}))});
-  items.push('sep',{label:'📚 작품 전체',fn:()=>fn('work')});
+function wkPickRow(at,fn,except){      // 위키 나무에서 자리 고르기 (세 단계까지 · except 와 그 아래는 뺌)
+  const no=except?new Set([except,...rowDesc(except).map(x=>x.id)]):new Set();
+  const items=[{title:'어디 아래에 둘까요'},{label:`📚 ${wkWorkName()} 바로 아래`,fn:()=>fn(null)}];
+  const walk=(pid,d)=>rowKids(pid).forEach(r=>{if(no.has(r.id)||items.length>60)return;items.push({label:`${'　'.repeat(d)}${r.ent?((charById(r.ent)||{}).icon||'●')+' ':''}${rowTitle(r)}`,fn:()=>fn(r.id)});if(d<2)walk(r.id,d+1)});
+  walk(null,0);
   popMenu(wkAnchor(at),items);
 }
 
@@ -165,28 +178,23 @@ let WDRAG=null;      // 끌고 있는 행 id
 function wkDropEmpty(keep){      // 이번에 새로 만든 행 중 제목 · 본문 · 하위 행이 모두 빈 채로 남은 것은 조용히 지움 (포스트잇과 같음)
   if(!UI.wkNew||!UI.wkNew.size)return;let n=0;
   [...UI.wkNew].forEach(id=>{const r=rowById(id);if(!r){UI.wkNew.delete(id);return}if(keep.includes(id))return;
-    if(!r.title.trim()&&!wkText(r.body)&&!/data-ref/.test(r.body)&&!rowKids(null,id).length){S.wiki=wikiRows().filter(x=>x!==r);n++}UI.wkNew.delete(id)});
+    if(!r.title.trim()&&!wkText(r.body)&&!/data-ref/.test(r.body)&&!rowKids(id).length){S.wiki=wikiRows().filter(x=>x!==r);n++}UI.wkNew.delete(id)});
   if(n){idxClear();save()}
 }
 function renderWiki(m){
   wkDropEmpty(Array.isArray(UIP.wpath)?UIP.wpath:[]);
   const old=m.querySelector('.wkcols'),sl0=old?old.scrollLeft:0;
   const p=wkPath(),wrap=h('div',{class:'wk'}),cols=h('div',{class:'wkcols',role:'tree'});
-  cols.append(wkEntCol(p));
-  for(let i=1;i<=p.length;i++){
-    const parent=i===1?null:p[i-1];
-    if(i>1&&!rowKids(p[0],parent).length)break;      // 하위 행이 없는 행은 열을 더 열지 않음 (편집기만)
-    cols.append(wkRowCol(p,i));
-  }
+  cols.append(wkCol(p,0));
+  for(let i=1;i<=p.length;i++){if(!rowKids(p[i-1]).length)break;cols.append(wkCol(p,i))}      // 하위 행이 없는 행은 열을 더 열지 않음 (편집기만)
   const ed=h('div',{class:'wked'});
   wrap.append(cols,ed);m.append(wrap);
-  const key=p.length>1?p[p.length-1]:'@'+p[0];
-  if(UI.wkRead===key)wkReadView(ed,p);else if(p.length>1)wkEditor(ed,rowById(p[p.length-1]),p);else wkOwnerPage(ed,p[0]);
+  if(UI.wkRead===wkKey(p))wkReadView(ed,p);else if(p.length)wkEditor(ed,rowById(p[p.length-1]),p);else wkWorkPage(ed);
   wkFit(cols,m);
   cols.addEventListener('keydown',wkColKey);
   cols.addEventListener('scroll',()=>cols.classList.toggle('wkcut',cols.scrollLeft>2),{passive:true});
   const f=UI.wkFocus;UI.wkFocus=null;
-  if(f!=null){const el=cols.querySelector(`.wkcol[data-col="${f}"] .wkrow.sel`)||cols.querySelector(`.wkcol[data-col="${f}"] .wkrow`);if(el)el.focus({preventScroll:true})}
+  if(f!=null){const el=cols.querySelector(`.wkcol[data-col="${f}"] .wkrow.sel`)||cols.querySelector(`.wkcol[data-col="${f}"] .wkrow.path`)||cols.querySelector(`.wkcol[data-col="${f}"] .wkrow`);if(el)el.focus({preventScroll:true})}
   cols.scrollLeft=sl0;
   requestAnimationFrame(()=>{cols.querySelectorAll('.wkrow.sel,.wkrow.path').forEach(el=>el.scrollIntoView({block:'nearest',inline:'nearest'}));
     const end=cols.scrollWidth-cols.clientWidth,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -198,71 +206,58 @@ function wkFit(cols,m){
   m=m||$('mid');const W=m.clientWidth||innerWidth;
   cols.style.maxWidth=Math.max(WK_ENTW,W-WK_EDMIN)+'px';
 }
-
-function wkEntCol(p){
-  const col=h('div',{class:'wkcol wkent','data-col':0});
-  col.append(h('div',{class:'wkch'},h('span',{},'인물 · 설정'),h('span',{class:'sp'})));
-  const list=h('div',{class:'wklist'});
-  const row=(o,c)=>{
-    const n=wkMemos(o).length,cnt=wkCount(o);
-    const el=h('div',{class:'wkrow ent'+(p[0]===o?(p.length>1?' path':' sel'):''),'data-owner':o,tabindex:p[0]===o?0:-1,role:'treeitem'},
-      wkOwnerIc(o),h('span',{class:'t'},wkOwnerName(o)),
-      n?h('button',{class:'wkmb'+(UI.wpOwner===o?' on':''),title:`아직 정리 안 한 메모 ${n}장 — 눌러서 오른쪽 목록에 이 메모만 보기`,onclick:e=>{e.stopPropagation();UI.wpOwner=UI.wpOwner===o?null:o;renderPool();renderMid()}},n):null,
-      cnt?h('span',{class:'n'},cnt):null,cnt?h('span',{class:'chev'},'›'):null);
-    el.addEventListener('click',()=>wkSetPath([o],{focusCol:0}));
-    wkDropOn(el,{owner:o,parent:null,into:true});
-    return el;
-  };
-  wkGroups().forEach(([g,cs])=>{list.append(h('div',{class:'wkgrp'},g));cs.forEach(c=>list.append(row(c.id,c)))});
-  list.append(h('div',{class:'wkgrp'},'📚 작품 전체'),row('work'));
-  if(!S.characters.length)list.prepend(h('div',{class:'wkempty'},'구상 화면 왼쪽에서 인물 · 설정을 만들면 여기에 나와요.'));
-  col.append(list,h('div',{class:'wkcf'},'인물 · 설정 · 폴더는 구상 화면 왼쪽 목록에서 만들고 옮겨요'));
-  return col;
-}
-function wkRowCol(p,i){
-  const owner=p[0],parent=i===1?null:p[i-1],kids=rowKids(owner,parent),selId=p[i];
-  const head=parent?(rowById(parent).title||'제목 없음'):wkOwnerName(owner);
-  const col=h('div',{class:'wkcol','data-col':i});
-    col.append(h('div',{class:'wkch'},h('span',{class:'tt',title:head},head),h('span',{class:'sp'}),
-    h('button',{class:'cbtn wkplus',title:'새 행 (⌘N)',onclick:()=>wkNewRow(owner,parent)},'＋')));
+/* 열 하나: i=0 은 작품 바로 아래, i>0 은 p[i-1] 행 아래 */
+function wkCol(p,i){
+  const parent=i?p[i-1]:null,kids=rowKids(parent);
+  const head=i?rowTitle(rowById(parent)):wkWorkName();
+  const col=h('div',{class:'wkcol'+(i?'':' wkroot'),'data-col':i});
+  const plus=h('button',{class:'cbtn wkplus','data-pop':'1',title:'새 행 (⌘N) · 인물 · 설정 문서',onclick:()=>popMenu(plus,[{label:'새 행',hint:'⌘N',fn:()=>wkNewRow(parent)},{label:'인물 · 설정 문서…',fn:()=>setTimeout(()=>wkNewEntDoc(plus,parent),0)}])},'＋');
+  col.append(h('div',{class:'wkch'},i?null:h('span',{class:'wkic'},'📚'),h('button',{class:'tt',title:i?head:'작품 첫 화면',onclick:()=>wkSetPath(p.slice(0,i),{focusCol:Math.max(0,i-1)})},head),h('span',{class:'sp'}),plus));
   const list=h('div',{class:'wklist'});
   kids.forEach(r=>list.append(wkRowEl(r,p,i)));
-  if(!kids.length)list.append(h('div',{class:'wkempty'},'아직 행이 없어요.',h('br'),'＋ 를 누르거나 오른쪽 메모를 여기로 끌어 놓아요.'));
-  wkDropOn(list,{owner,parent,end:true});
+  if(!kids.length)list.append(h('div',{class:'wkempty'},i?'아직 하위 행이 없어요.':'아직 행이 없어요.',h('br'),i?'＋ 를 누르거나 메모를 여기로 끌어 놓아요.':'＋ 로 ‘세계관’ · ‘인물’ 같은 묶음을 만들거나 오른쪽 메모를 끌어 놓아요.'));
+  wkDropOn(list,{parent,end:true});
   col.append(list);
-  if(i===1)col.append(h('div',{class:'wkcf'},h('span',{class:'fm'},'✎'),' 메모에서 만든 행'));
+  if(!i)col.append(h('div',{class:'wkcf'},h('span',{class:'fm'},'✎'),' 메모에서 만든 행 · ',h('span',{class:'wkdot',style:'--c:var(--acc)'}),' 인물 · 설정 문서'));
   return col;
 }
 function wkRowEl(r,p,i){
-  const kids=rowKids(null,r.id).length,on=p[i]===r.id,isLast=on&&i===p.length-1;
-  const el=h('div',{class:'wkrow'+(on?(isLast?' sel':' path'):''),'data-row':r.id,tabindex:on||(!p[i]&&i===p.length)?0:-1,draggable:true,role:'treeitem','aria-selected':on?'true':'false'},
-    r.from?h('span',{class:'fm',title:'메모에서 만든 행'},'✎'):null,
-    h('span',{class:'t'+(r.title?'':' none')},r.title||'제목 없음'),
+  const kids=rowKids(r.id).length,on=p[i]===r.id,isLast=on&&i===p.length-1,n=r.ent?wkMemos(r.ent).length:0;
+  const el=h('div',{class:'wkrow'+(r.ent?' ent':'')+(on?(isLast?' sel':' path'):''),'data-row':r.id,tabindex:on||(!p[i]&&i===p.length)?0:-1,draggable:true,role:'treeitem','aria-selected':on?'true':'false'},
+    wkRowIc(r),
+    h('span',{class:'t'+(r.title||r.ent?'':' none')},rowTitle(r)),
+    n?h('button',{class:'wkmb'+(UI.wpOwner===r.ent?' on':''),title:`아직 정리 안 한 메모 ${n}장 — 눌러서 오른쪽 목록에 이 메모만 보기`,onclick:e=>{e.stopPropagation();UI.wpOwner=UI.wpOwner===r.ent?null:r.ent;renderPool();renderMid()}},n):null,
     r.oldMemo?h('span',{class:'n',title:'예전 설정 메모 칸에서 옮겨 온 행'},'옛 메모'):null,
     kids?h('span',{class:'chev'},'›'):null);
   el.addEventListener('click',()=>{if(el._rn)return;wkSetPath([...p.slice(0,i),r.id],{focusCol:i})});
   el.addEventListener('dblclick',()=>wkRename(el,r));
   el.addEventListener('contextmenu',e=>{e.preventDefault();wkRowMenu({x:e.clientX,y:e.clientY},r)});
-  el.addEventListener('dragstart',e=>{WDRAG=r.id;e.dataTransfer.setData('text/plain',r.title||'');e.dataTransfer.effectAllowed='move';setTimeout(()=>el.classList.add('dragging'))});
+  el.addEventListener('dragstart',e=>{WDRAG=r.id;e.dataTransfer.setData('text/plain',rowTitle(r));e.dataTransfer.effectAllowed='move';setTimeout(()=>el.classList.add('dragging'))});
   el.addEventListener('dragend',()=>{WDRAG=null;wkDropClear();el.classList.remove('dragging')});
-  wkDropOn(el,{owner:p[0],parent:r.parent,row:r});
+  wkDropOn(el,{parent:r.parent,row:r});
   return el;
 }
-function wkRename(el,r){
+function wkRename(el,r){      // 이어진 문서는 인물 · 설정 이름을 바꿈
   const t=el.querySelector('.t');if(!t||el._rn)return;el._rn=true;el.draggable=false;
-  const inp=h('input',{class:'wkrn',value:r.title,placeholder:'제목'});t.replaceWith(inp);inp.focus();inp.select();
-  let done=false;const fin=ok=>{if(done)return;done=true;el._rn=false;const v=inp.value.trim().slice(0,200);if(ok&&v!==r.title)act(()=>{r.title=v;r.updated=Date.now()});else renderMid()};
+  const c=r.ent&&charById(r.ent),cur=c?c.name:r.title;
+  const inp=h('input',{class:'wkrn',value:cur,placeholder:c?'이름':'제목'});t.replaceWith(inp);inp.focus();inp.select();
+  let done=false;const fin=ok=>{if(done)return;done=true;el._rn=false;const v=inp.value.trim().slice(0,200);
+    if(!ok||v===cur)return renderMid();
+    if(c){const d=v&&dupName(v,c.id);if(!v||d){toast(!v?'이름은 비워둘 수 없어요':`'${d.name}'은(는) 이미 있는 이름이에요`);return renderMid()}act(()=>{c.name=v;r.title=v;autoLinkAll()})}
+    else act(()=>{r.title=v;r.updated=Date.now()})};
   inp.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='Enter'){e.preventDefault();e.stopPropagation();fin(true)}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fin(false)}e.stopPropagation()});
   inp.addEventListener('blur',()=>fin(true));inp.addEventListener('click',e=>e.stopPropagation());
 }
 function wkRowMenu(at,r){
   const cs=wkFrom(r);
-  popMenu(wkAnchor(at),[{title:r.title||'제목 없음'},
-    {label:'이름 바꾸기',hint:'Enter',fn:()=>{const el=document.querySelector(`#mid .wkrow[data-row="${r.id}"]`);if(el)wkRename(el,r)}},
-    {label:'새 하위 행',fn:()=>wkNewRow(rowOwner(r),r.id)},
-    {label:'다른 곳으로 옮기기…',fn:()=>setTimeout(()=>wkPickOwner(wkAnchor(at),o=>wkMove(r.id,o,null)),0)},
+  popMenu(wkAnchor(at),[{title:rowTitle(r)},
+    {label:r.ent?'이름 바꾸기 (인물 · 설정 이름)':'이름 바꾸기',hint:'Enter',fn:()=>{const el=document.querySelector(`#mid .wkrow[data-row="${r.id}"]`);if(el)wkRename(el,r)}},
+    {label:'새 하위 행',fn:()=>wkNewRow(r.id)},
+    {label:'아래에 인물 · 설정 문서…',fn:()=>setTimeout(()=>wkNewEntDoc(at,r.id),0)},
+    {label:'다른 곳으로 옮기기…',fn:()=>setTimeout(()=>wkPickRow(wkAnchor(at),pid=>wkMove(r.id,pid),r.id),0)},
     {label:'여기부터 몰아 보기',fn:()=>{UIP.wpath=wkPathOf(r);saveUIP();UI.wkRead=r.id;renderMid()}},
     {label:'이 행 아래 .md로 내보내기',fn:()=>exportWikiMd({row:r.id})},
+    ...(r.ent&&charById(r.ent)?['sep',{label:'구상 보드에서 보기',fn:()=>{UI.mode='story';setSel(r.ent)}}]:[]),
     ...(cs.length?['sep',{label:cs.length>1?`원본 메모 ${cs.length}장 보기`:'원본 메모 보기',fn:()=>frOpen(cs[0].id,'left')},{label:'메모로 되돌리기',fn:()=>wkRevert(r.id)}]:[]),
     'sep',{label:'휴지통으로',hint:'⌘⌫',fn:()=>wkDelete(r.id)}]);
 }
@@ -277,19 +272,19 @@ function wkDropOn(el,t){
     e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';
     wkDropClear();const z=zone(e);
     if(t.row)el.classList.add(z==='b'?'wkdb':z==='a'?'wkda':'wkdi');else el.classList.add('wkover');
-    const openable=t.row?(z==='in'&&rowKids(null,t.row.id).length&&!wkPath().includes(t.row.id)):(t.into&&wkPath()[0]!==t.owner);      // 파인더처럼: 머무르면 열림
+    const openable=t.row&&z==='in'&&rowKids(t.row.id).length&&!wkPath().includes(t.row.id);      // 파인더처럼: 하위 행이 있는 행 위에 머무르면 열림
     if(openable&&!el._ho)el._ho=setTimeout(()=>{el._ho=0;if(!(WDRAG||DRAG))return;
-      if(t.row){const col=+el.closest('.wkcol').dataset.col;UIP.wpath=[...wkPath().slice(0,col),t.row.id]}else UIP.wpath=[t.owner];saveUIP();renderMid()},700);
+      const col=+el.closest('.wkcol').dataset.col;UIP.wpath=[...wkPath().slice(0,col),t.row.id];saveUIP();renderMid()},700);
     else if(!openable&&el._ho){clearTimeout(el._ho);el._ho=0}
   });
   el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget)){el.classList.remove('wkdb','wkda','wkdi','wkover');clearTimeout(el._ho);el._ho=0}});
   el.addEventListener('drop',e=>{
     if(!WDRAG&&!DRAG)return;e.preventDefault();e.stopPropagation();
     const z=zone(e);wkDropClear();
-    let owner=t.owner,parent=t.parent,before=null;
-    if(t.row){if(z==='in'){parent=t.row.id}else if(z==='b'){before=t.row.id}else{const sib=rowKids(owner,t.row.parent),j=sib.indexOf(t.row);before=sib[j+1]?sib[j+1].id:null}}
-    if(WDRAG){const id=WDRAG;WDRAG=null;if(before===id)return;wkMove(id,owner,parent,before)}
-    else{const id=DRAG.id;DRAG=null;const ids=MSEL.has(id)&&MSEL.size>1?[...MSEL]:[id];wkFile(ids,owner,parent,before)}
+    let parent=t.parent||null,before=null;
+    if(t.row){if(z==='in'){parent=t.row.id}else if(z==='b'){before=t.row.id}else{const sib=rowKids(t.row.parent),j=sib.indexOf(t.row);before=sib[j+1]?sib[j+1].id:null}}
+    if(WDRAG){const id=WDRAG;WDRAG=null;if(before===id)return;wkMove(id,parent,before)}
+    else{const id=DRAG.id;DRAG=null;const ids=MSEL.has(id)&&MSEL.size>1?[...MSEL]:[id];wkFile(ids,parent,before)}
   });
 }
 
@@ -302,11 +297,11 @@ function wkColKey(e){
   const el=e.target.closest('.wkrow');if(!el)return;
   const col=+el.closest('.wkcol').dataset.col,p=wkPath();
   const items=[...el.closest('.wklist').querySelectorAll('.wkrow')],i=items.indexOf(el);
-  const pick=x=>{if(!x)return;if(x.dataset.owner)wkSetPath([x.dataset.owner],{focusCol:0});else wkSetPath([...p.slice(0,col),x.dataset.row],{focusCol:col})};
+  const pick=x=>{if(x)wkSetPath([...p.slice(0,col),x.dataset.row],{focusCol:col})};
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();pick(items[i+(e.key==='ArrowDown'?1:-1)])}
-  else if(e.key==='ArrowRight'){e.preventDefault();const o=p[0],kids=col===0?rowKids(o,null):rowKids(o,el.dataset.row);
-    if(kids.length)wkSetPath([...p.slice(0,col+1),kids[0].id],{focusCol:col+1});else{const t=document.querySelector('#mid .wkbody');if(t&&col>0)t.focus()}}
-  else if(e.key==='ArrowLeft'){e.preventDefault();if(col>0)wkSetPath(p.slice(0,col),{focusCol:col-1})}
+  else if(e.key==='ArrowRight'){e.preventDefault();const kids=rowKids(el.dataset.row);
+    if(kids.length)wkSetPath([...p.slice(0,col),el.dataset.row,kids[0].id],{focusCol:col+1});else{const t=document.querySelector('#mid .wkbody');if(t)t.focus()}}
+  else if(e.key==='ArrowLeft'){e.preventDefault();if(col>0)wkSetPath(p.slice(0,col),{focusCol:col-1});else wkSetPath([],{focusCol:0})}
   else if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const r=rowById(el.dataset.row);if(r)wkRename(el,r)}
   else if((e.key==='Backspace'||e.key==='Delete')&&modKey(e)){e.preventDefault();e.stopPropagation();if(el.dataset.row)wkDelete(el.dataset.row)}
   else if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&e.key!==' '){      // 글자를 치면 그 글자로 시작하는 항목으로
@@ -320,7 +315,7 @@ let WKSAVE=0,WKFLUSH=null,WKAUTO=null;
 const wkFlushNow=()=>{if(WKFLUSH&&document.querySelector('#mid .wkbody'))WKFLUSH()};
 function wkLinkName(k,ref){
   if(k==='ent'){const c=charById(ref);return c?c.name:null}
-  if(k==='row'){const r=rowById(ref);return r?(r.title||'제목 없음'):null}
+  if(k==='row'){const r=rowById(ref);return r?rowTitle(r):null}
   if(k==='ep'){const i=S.episodes.findIndex(e=>e.id===ref);return i<0?null:`${i+1}화${S.episodes[i].title?' · '+S.episodes[i].title:''}`}
   return null;
 }
@@ -332,85 +327,96 @@ function wkLinksFix(root,editable){      // 링크 이름을 지금 이름으로
 }
 function wkGoLink(a){
   const k=a.dataset.k,ref=a.dataset.ref;if(!wkLinkName(k,ref))return toast('연결된 곳이 사라졌어요');
-  if(k==='ent')goWikiOwner(ref);
+  if(k==='ent')goWikiEnt(ref);
   else if(k==='row')goWikiRow(ref);
   else{const i=S.episodes.findIndex(e=>e.id===ref);UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';UI.scrollEp=i;goMode('tl')}
 }
 function wkEpisodesOf(o){      // 이 인물 · 설정이 나온 화
-  if(o==='work')return [];const set=new Set();cardsOf(o).forEach(c=>{const e=episodeOf(c.id);if(e)set.add(e.i)});return [...set].sort((a,b)=>a-b);
+  if(!o)return [];const set=new Set();cardsOf(o).forEach(c=>{const e=episodeOf(c.id);if(e)set.add(e.i)});return [...set].sort((a,b)=>a-b);
 }
 function wkBack(k,ref){return wikiRows().filter(r=>r.body.includes(`data-k="${k}" data-ref="${ref}"`))}
-function wkBackEl(row,owner){
-  const back=row?wkBack('row',row.id):wkBack('ent',owner),eps=wkEpisodesOf(owner);
-  const rowLink=r=>h('button',{class:'wkbl',onclick:()=>goWikiRow(r.id)},`${wkOwnerName(rowOwner(r))} › ${r.title||'제목 없음'}`);
+const wkTrail=r=>rowChain(r).map(rowTitle).join(' › ');
+function wkBackEl(row){
+  const ent=row&&row.ent,back=row?[...new Set([...wkBack('row',row.id),...(ent?wkBack('ent',ent):[])])].filter(x=>x!==row):[],eps=wkEpisodesOf(ent);
+  const rowLink=r=>h('button',{class:'wkbl',onclick:()=>goWikiRow(r.id)},wkTrail(r));
   return h('div',{class:'wkback'},
-    h('div',{},h('b',{},row?'이 행을 가리키는 행':'이 인물 · 설정을 가리키는 행'),back.length?h('div',{class:'wkbls'},...back.slice(0,12).map(rowLink)):h('span',{class:'muted'},'아직 없어요 · 다른 행에서 [[ 로 연결해요')),
-    owner!=='work'?h('div',{},h('b',{},`${wkOwnerName(owner)}이(가) 나온 화`),eps.length?h('div',{class:'wkeps'},...eps.slice(0,24).map(i=>h('button',{class:'wkep',title:S.episodes[i].title||'',onclick:()=>{UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';UI.scrollEp=i;goMode('tl')}},h('em',{},i+1),S.episodes[i].title||'화'))):h('span',{class:'muted'},'아직 화에 넣은 카드가 없어요')):null);
+    h('div',{},h('b',{},ent?'이 인물 · 설정을 가리키는 행':'이 행을 가리키는 행'),back.length?h('div',{class:'wkbls'},...back.slice(0,12).map(rowLink)):h('span',{class:'muted'},'아직 없어요 · 다른 행에서 [[ 로 연결해요')),
+    ent?h('div',{},h('b',{},`${wkOwnerName(ent)}이(가) 나온 화`),eps.length?h('div',{class:'wkeps'},...eps.slice(0,24).map(i=>h('button',{class:'wkep',title:S.episodes[i].title||'',onclick:()=>{UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';UI.scrollEp=i;goMode('tl')}},h('em',{},i+1),S.episodes[i].title||'화'))):h('span',{class:'muted'},'아직 화에 넣은 카드가 없어요')):null);
 }
 function wkCrumb(p,extra){
-  const segs=[h('button',{class:'wkcb',onclick:()=>wkSetPath([p[0]])},wkOwnerName(p[0]))];
-  p.slice(1).forEach((id,j)=>{const r=rowById(id);segs.push(h('i',{},'›'),h('button',{class:'wkcb',onclick:()=>wkSetPath(p.slice(0,j+2))},r.title||'제목 없음'))});
-  const key=p.length>1?p[p.length-1]:'@'+p[0],on=UI.wkRead===key;
-  const rb=h('button',{class:'wkrdbtn'+(on?' on':''),'aria-pressed':on?'true':'false',title:'이 행과 하위 행을 한 화면에 이어서 읽기 (인물 · 설정에서는 그 아래 전부)',onclick:()=>{wkFlushNow();UI.wkRead=on?null:key;renderMid()}},icon('book'),'몰아 보기');
+  const segs=[h('button',{class:'wkcb',onclick:()=>wkSetPath([])},'📚 '+wkWorkName())];
+  p.forEach((id,j)=>{const r=rowById(id);segs.push(h('i',{},'›'),h('button',{class:'wkcb',onclick:()=>wkSetPath(p.slice(0,j+1))},rowTitle(r)))});
+  const key=wkKey(p),on=UI.wkRead===key;
+  const rb=h('button',{class:'wkrdbtn'+(on?' on':''),'aria-pressed':on?'true':'false',title:p.length?'이 행과 하위 행 전부를 한 화면에 이어서 읽기':'위키 전체를 한 화면에 이어서 읽기',onclick:()=>{wkFlushNow();UI.wkRead=on?null:key;renderMid()}},icon('book'),'몰아 보기');
   return h('div',{class:'wkcrumb'},h('div',{class:'wkcbs'},...segs),h('span',{class:'sp'}),rb,...(extra||[]));
 }
-/* 몰아 보기: 이 행과 하위 행 전부(인물 · 설정이면 그 아래 전부)를 한 화면에 이어서 읽음 — 읽기 전용
+/* 몰아 보기: 이 행과 하위 행 전부(작품 첫 화면에서는 위키 전체)를 한 화면에 이어서 읽음 — 읽기 전용
    위에 목차(누르면 그 행으로 스크롤) · 행마다 번호(1.2.3) · 경로 · '고치기'(그 행 편집기로). 연결은 그대로 눌림 */
 function wkReadList(p){
-  const L=[],walk=(r,d,num)=>{L.push({r,d,num});rowKids(null,r.id).forEach((x,i)=>walk(x,d+1,num?`${num}.${i+1}`:String(i+1)))};
-  if(p.length>1)walk(rowById(p[p.length-1]),0,'');
-  else rowKids(p[0],null).forEach((r,i)=>walk(r,0,String(i+1)));
+  const L=[],walk=(r,d,num)=>{L.push({r,d,num});rowKids(r.id).forEach((x,i)=>walk(x,d+1,num?`${num}.${i+1}`:String(i+1)))};
+  if(p.length)walk(rowById(p[p.length-1]),0,'');
+  else rowKids(null).forEach((r,i)=>walk(r,0,String(i+1)));
   return L;
 }
 function wkReadView(ed,p){
-  const L=wkReadList(p),base=p.length>1?rowById(p[p.length-1]):null;
-  ed.append(wkCrumb(p,[h('button',{class:'cbtn',title:'몰아 본 내용을 .md로 내보내기',onclick:()=>exportWikiMd(base?{row:base.id}:{owner:p[0]})},icon('download'))]));
-  const bar=h('div',{class:'wkrdbar'},h('b',{},icon('book'),'몰아 보기'),h('span',{class:'muted'},`${base?`‘${base.title||'제목 없음'}’ 부터`:`${wkOwnerName(p[0])} 전체`} · 행 ${L.length}개`),h('span',{class:'sp'}),
+  const L=wkReadList(p),base=p.length?rowById(p[p.length-1]):null;
+  ed.append(wkCrumb(p,[h('button',{class:'cbtn',title:'몰아 본 내용을 .md로 내보내기',onclick:()=>exportWikiMd(base?{row:base.id}:{})},icon('download'))]));
+  const bar=h('div',{class:'wkrdbar'},h('b',{},icon('book'),'몰아 보기'),h('span',{class:'muted'},`${base?`‘${rowTitle(base)}’ 부터`:'위키 전체'} · 행 ${L.length}개`),h('span',{class:'sp'}),
     h('button',{class:'quiet',onclick:()=>{UI.wkRead=null;renderMid()}},'편집으로 돌아가기'));
   const page=h('div',{class:'wkrd'});
-  if(L.length>1)page.append(h('nav',{class:'wkrdtoc','aria-label':'목차'},...L.map(({r,d,num},i)=>h('button',{style:`padding-left:${6+Math.min(d,6)*14}px`,onclick:()=>{const s=page.querySelector(`[data-rdi="${i}"]`);if(s)s.scrollIntoView({block:'start',behavior:'smooth'})}},num?h('span',{class:'no'},num):null,r.title||'제목 없음'))));
+  if(L.length>1)page.append(h('nav',{class:'wkrdtoc','aria-label':'목차'},...L.map(({r,d,num},i)=>h('button',{style:`padding-left:${6+Math.min(d,6)*14}px`,onclick:()=>{const s=page.querySelector(`[data-rdi="${i}"]`);if(s)s.scrollIntoView({block:'start',behavior:'smooth'})}},num?h('span',{class:'no'},num):null,rowTitle(r)))));
   L.forEach(({r,d,num},i)=>{
     const b=h('div',{class:'wkrdb'});b.innerHTML=wkClean(r.body);wkLinksFix(b);
-    const trail=rowChain(r).slice(0,-1).map(x=>x.title||'제목 없음').join(' › ');
+    const c=r.ent&&charById(r.ent),trail=rowChain(r).slice(0,-1).map(rowTitle).join(' › ');
     page.append(h('section',{class:'wkrds','data-rdi':i,'data-d':Math.min(d,3)},
-      h('div',{class:'wkrdh'},h('div',{class:'t'},num?h('span',{class:'no'},num):null,r.from?h('span',{class:'fm',title:'메모에서 만든 행'},'✎ '):null,r.title||'제목 없음'),
+      h('div',{class:'wkrdh'},h('div',{class:'t'},num?h('span',{class:'no'},num):null,r.ent?wkOwnerIc(r.ent):null,r.ent?' ':null,r.from?h('span',{class:'fm',title:'메모에서 만든 행'},'✎ '):null,rowTitle(r)),
         h('button',{class:'quiet',title:'이 행을 편집기로 열어요',onclick:()=>wkSetPath(wkPathOf(r))},'고치기')),
-      d&&trail?h('div',{class:'wkrdp'},trail):null,b));
+      d&&trail?h('div',{class:'wkrdp'},trail):null,
+      c&&c.summary?h('p',{class:'wkrdsum'},c.summary):null,b));
   });
   if(!L.length)page.append(h('div',{class:'wkempty big'},'몰아 볼 행이 없어요.'));
   page.addEventListener('click',e=>{const a=e.target.closest('a.lk');if(a){e.preventDefault();wkGoLink(a)}});
   ed.append(bar,h('div',{class:'wkdoc wkrdwrap'},page));
 }
-function wkOwnerPage(ed,o){
-  const c=charById(o),rows=rowKids(o,null),memos=wkMemos(o),p=[o];
-  ed.append(wkCrumb(p,[h('button',{class:'cbtn',title:'이 인물 · 설정의 위키를 .md로 내보내기',onclick:()=>exportWikiMd({owner:o})},icon('download'))]));
+function wkWorkPage(ed){      // 작품 첫 화면: 맨 위 묶음들 · 정리할 메모 · 위키 전체 몰아 보기
+  const rows=rowKids(null),memos=wkMemos(null),noDoc=S.characters.filter(c=>!entRow(c.id)).length;
+  ed.append(wkCrumb([],[h('button',{class:'cbtn',title:'위키 전체를 .md로 내보내기',onclick:()=>exportWikiMd({})},icon('download'))]));
   const doc=h('div',{class:'wkdoc'});
-  doc.append(...[h('div',{class:'wkoh'},wkOwnerIc(o),h('h2',{class:'wkot'},wkOwnerName(o)),c?h('span',{class:'wkkind'},c.kind==='setting'?'설정':(c.role||'인물')):null),
-    c&&c.summary?h('p',{class:'wksum'},c.summary):o==='work'?h('p',{class:'wksum'},'어느 인물 · 설정에도 묶이지 않는 이야기 — 시대 배경, 세계의 규칙, 연재 메모 같은 것'):null,
-    h('div',{class:'wkstat'},h('span',{},`행 ${wkCount(o)}개`),memos.length?h('button',{class:'wkmb'+(UI.wpOwner===o?' on':''),onclick:()=>{UI.wpOwner=UI.wpOwner===o?null:o;renderPool();renderMid()}},`정리할 메모 ${memos.length}장`):h('span',{class:'muted'},'정리할 메모 없음'),
-      h('span',{class:'sp'}),h('button',{class:'on',onclick:()=>wkNewRow(o,null)},'＋ 새 행'))].filter(Boolean));
+  const plus=h('button',{class:'quiet','data-pop':'1',onclick:()=>wkNewEntDoc(plus,null)},'＋ 인물 · 설정 문서');
+  doc.append(h('div',{class:'wkoh'},h('span',{class:'wkic'},'📚'),h('h2',{class:'wkot'},wkWorkName()),h('span',{class:'wkkind'},'위키')),
+    h('p',{class:'wksum'},'작품 하나가 뿌리예요. ‘세계관’ · ‘인물’ · ‘세력’ · ‘연표’처럼 묶음을 자유롭게 만들고, 인물 · 설정 문서도 그 안 어디에든 둬요.'),
+    h('div',{class:'wkstat'},h('span',{},`행 ${wikiRows().length}개`),memos.length?h('span',{class:'wkmb on'},`정리할 메모 ${memos.length}장`):h('span',{class:'muted'},'정리할 메모 없음'),
+      noDoc?h('span',{class:'muted'},`문서가 없는 인물 · 설정 ${noDoc}개`):null,h('span',{class:'sp'}),plus,h('button',{class:'on',onclick:()=>wkNewRow(null)},'＋ 새 행')));
   const grid=h('div',{class:'wkcards'});
   rows.forEach(r=>{const t=wkText(r.body),n=rowDesc(r.id).length;
-    grid.append(h('button',{class:'wkcard',onclick:()=>wkSetPath([o,r.id])},h('b',{},r.from?h('span',{class:'fm'},'✎ '):null,r.title||'제목 없음'),t?h('span',{class:'s'},t.slice(0,90)):h('span',{class:'s muted'},'본문 없음'),n?h('small',{},`하위 행 ${n}개`):null))});
-  if(!rows.length)grid.append(h('div',{class:'wkempty big'},'아직 행이 없어요. 오른쪽 메모를 왼쪽 열에 끌어 놓거나, 메모의 ‘위키로 ▸’를 누르거나, ＋ 새 행을 만들어요.'));
-  doc.append(grid);ed.append(doc,wkBackEl(null,o));
+    grid.append(h('button',{class:'wkcard',onclick:()=>wkSetPath([r.id])},h('b',{},r.ent?wkOwnerIc(r.ent):null,r.ent?' ':null,r.from?h('span',{class:'fm'},'✎ '):null,rowTitle(r)),
+      t?h('span',{class:'s'},t.slice(0,90)):(n?h('span',{class:'s'},rowKids(r.id).slice(0,5).map(rowTitle).join(' · ')):h('span',{class:'s muted'},'비어 있음')),n?h('small',{},`하위 행 ${n}개`):null))});
+  if(!rows.length)grid.append(h('div',{class:'wkempty big'},'아직 행이 없어요. ＋ 새 행으로 ‘세계관’ 같은 묶음을 만들거나, 오른쪽 메모의 ‘위키로 ▸’를 눌러요.'));
+  doc.append(grid);ed.append(doc);
 }
 function wkEditor(ed,r,p){
-  const cs=wkFrom(r),owner=p[0];
+  const cs=wkFrom(r),c=r.ent&&charById(r.ent);
   ed.append(wkCrumb(p,[h('button',{class:'cbtn','data-pop':'1',title:'메뉴',onclick:e=>wkRowMenu(e.currentTarget,r)},icon('more'))]));
-  const body=h('div',{class:'wkbody',contenteditable:'true',spellcheck:'false','data-ph':'여기에 정리해요 · [[ 로 인물 · 설정 · 다른 행 · 화를 연결'});
+  const body=h('div',{class:'wkbody',contenteditable:'true',spellcheck:'false','data-ph':c?`${c.name}에 대해 정리해요 · [[ 로 다른 인물 · 설정 · 행 · 화를 연결`:'여기에 정리해요 · [[ 로 인물 · 설정 · 다른 행 · 화를 연결'});
   body.innerHTML=wkClean(r.body);wkLinksFix(body,true);
   const tb=wkToolbar(body);
-  const title=h('textarea',{class:'wktitle autofit',rows:1,placeholder:'제목',maxlength:200,
+  let title;
+  if(r.ent){      // 인물 · 설정 문서: 이름 · 역할 · 소개는 인물을 따라감 (이름은 열에서 Enter 로 바꿈)
+    title=h('div',{class:'wkenth'},h('div',{class:'wkoh'},wkOwnerIc(r.ent),h('h2',{class:'wkot'},rowTitle(r)),c?h('span',{class:'wkkind'},c.kind==='setting'?'설정':(c.role||'인물')):h('span',{class:'wkkind'},'지운 항목'),
+        c?h('button',{class:'quiet',title:'구상 화면의 이 인물 · 설정 보드로',onclick:()=>{UI.mode='story';setSel(c.id)}},'구상에서 보기 ›'):null),
+      c&&c.summary?h('p',{class:'wksum'},c.summary):null);
+  }else title=h('textarea',{class:'wktitle autofit',rows:1,placeholder:'제목',maxlength:200,
     oninput:e=>{const v=e.target.value.replace(/\n/g,' ');edit(()=>{r.title=v;r.updated=Date.now()});fitOne(e.target);document.querySelectorAll(`#mid .wkrow[data-row="${r.id}"] .t`).forEach(t=>{t.textContent=v||'제목 없음';t.classList.toggle('none',!v)});const cb=document.querySelector('#mid .wkcbs .wkcb:last-child');if(cb)cb.textContent=v||'제목 없음'},
     onkeydown:e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();body.focus();const s=getSelection();s.selectAllChildren(body);s.collapseToStart()}}},r.title);
+  const n=r.ent?wkMemos(r.ent).length:0;
   const meta=h('div',{class:'wkmeta'},
     cs.length?h('span',{class:'wkfrom',title:'이 행은 메모에서 만들었어요'},`✎ 메모에서${cs.length>1?` ${cs.length}장`:''} · ${wkDate(r.created)}`):null,
     cs.length?h('button',{class:'wkml',onclick:()=>frOpen(cs[0].id,'left')},'원본 메모 보기'):null,
     cs.length?h('button',{class:'wkml',onclick:()=>wkRevert(r.id)},'메모로 되돌리기'):null,
+    n?h('button',{class:'wkmb'+(UI.wpOwner===r.ent?' on':''),onclick:()=>{UI.wpOwner=UI.wpOwner===r.ent?null:r.ent;renderPool();renderMid()}},`정리할 메모 ${n}장`):null,
     h('span',{class:'muted'},`고친 날 ${wkDate(r.updated)}`));
   const doc=h('div',{class:'wkdoc'},title,meta,body);
-  ed.append(tb,doc,wkBackEl(r,owner));
+  ed.append(tb,doc,wkBackEl(r));
   const flush=WKFLUSH=()=>{clearTimeout(WKSAVE);WKSAVE=0;const v=wkClean(body.innerHTML);if(v!==r.body)edit(()=>{r.body=v;r.updated=Date.now()})};
   body.addEventListener('input',e=>{body.classList.toggle('empty',wkEmpty(body));clearTimeout(WKSAVE);WKSAVE=setTimeout(flush,350);wkAcCheck(body,r)});
   body.addEventListener('blur',()=>{flush();setTimeout(()=>{if(document.activeElement!==body)wkAcClose()},120)});
@@ -420,8 +426,8 @@ function wkEditor(ed,r,p){
   body.addEventListener('click',e=>{const a=e.target.closest('a.lk');if(a){e.preventDefault();wkGoLink(a)}});
   body.classList.toggle('empty',wkEmpty(body));
   try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(x){}
-  requestAnimationFrame(()=>{fitOne(title);
-    if(UI.wkEdit===r.id){UI.wkEdit=null;if(UI.wkTitle||!r.title){UI.wkTitle=false;title.focus()}else{body.focus();const s=getSelection();s.selectAllChildren(body);s.collapseToEnd()}}});
+  requestAnimationFrame(()=>{if(title.tagName==='TEXTAREA')fitOne(title);
+    if(UI.wkEdit===r.id){UI.wkEdit=null;if(title.tagName==='TEXTAREA'&&(UI.wkTitle||!r.title)){UI.wkTitle=false;title.focus()}else{body.focus();const s=getSelection();s.selectAllChildren(body);s.collapseToEnd()}}});
 }
 const wkEmpty=b=>!b.textContent.trim()&&!b.querySelector('li,a.lk');
 const wkDate=t=>{if(!t)return '';const d=new Date(t);return `${d.getMonth()+1}월 ${d.getDate()}일`};
@@ -493,7 +499,7 @@ let WKAC=null;
 function wkCands(q,selfId){
   const k=nameKey(q),out=[];
   S.characters.forEach(c=>{const hit=!k||[c.name,...(c.aliases||[])].some(x=>nameKey(x).includes(k));if(hit)out.push({k:'ent',ref:c.id,label:c.name,sub:c.kind==='setting'?'설정':'인물',ic:c.icon||'',col:c.color,score:nameKey(c.name).startsWith(k)?0:1})});
-  wikiRows().forEach(r=>{if(r.id===selfId||!r.title)return;if(!k||nameKey(r.title).includes(k))out.push({k:'row',ref:r.id,label:r.title,sub:'행 · '+wkOwnerName(rowOwner(r)),ic:'📄',score:nameKey(r.title).startsWith(k)?2:3})});
+  wikiRows().forEach(r=>{if(r.id===selfId||r.ent||!r.title)return;if(!k||nameKey(r.title).includes(k))out.push({k:'row',ref:r.id,label:r.title,sub:'행 · '+(rowChain(r).slice(0,-1).map(rowTitle).pop()||wkWorkName()),ic:'📄',score:nameKey(r.title).startsWith(k)?2:3})});
   S.episodes.forEach((e,i)=>{const lab=`${i+1}화${e.title?' · '+e.title:''}`;if(k&&(nameKey(lab).includes(k)||String(i+1)===q.trim()))out.push({k:'ep',ref:e.id,label:lab,sub:'화',ic:'🎬',score:String(i+1)===q.trim()?0:4})});
   return out.sort((a,b)=>a.score-b.score).slice(0,8);
 }
@@ -531,7 +537,7 @@ document.addEventListener('pointerdown',e=>{if(WKAC&&!WKAC.el.contains(e.target)
 
 /* ---------- 오른쪽: 정리할 메모 (위키 탭에서만) ---------- */
 function renderWikiPool(p){
-  const own=UI.wpOwner&&(UI.wpOwner==='work'||charById(UI.wpOwner))?UI.wpOwner:(UI.wpOwner=null);
+  const own=UI.wpOwner&&charById(UI.wpOwner)?UI.wpOwner:(UI.wpOwner=null);
   const all=wkMemos(own==null?null:own);
   const ord=c=>{const d=graveLeft(c);return d?d:9};
   all.sort((a,b)=>ord(a)-ord(b)||(b.star?1:0)-(a.star?1:0)||(b.created||0)-(a.created||0));      // 곧 무덤 갈 메모가 맨 위 → 별 → 최신
@@ -539,7 +545,7 @@ function renderWikiPool(p){
   p.append(h('div',{class:'phead'},h('b',{title:'아직 위키에 넣지 않은 메모'},'정리할 메모'),h('small',{class:'wkpn'},`${all.length}장`),h('span',{class:'sp'}),ptog('pool')));
   const qi=h('input',{placeholder:qk?`한 줄 쓰고 Enter → ${qk.name}`:'위키로 가는 분류가 없어요',disabled:!qk,
     onkeydown:e=>{if(e.key!=='Enter'||e.isComposing||!qk)return;const v=qi.value.trim();if(!v)return;
-      act(()=>{const c=newCard(qk.id,v);autoLinkCard(c);if(own&&own!=='work'&&!eff(c).includes(own))c.chars.push(own);S.cards.unshift(c)});setTimeout(()=>{const i=document.querySelector('#pool .wkpq input');if(i)i.focus()})}});
+      act(()=>{const c=newCard(qk.id,v);autoLinkCard(c);if(own&&!eff(c).includes(own))c.chars.push(own);S.cards.unshift(c)});setTimeout(()=>{const i=document.querySelector('#pool .wkpq input');if(i)i.focus()})}});
   p.append(h('div',{class:'pquick wkpq'},qi,
     wk.length>1?h('div',{class:'pkchips'},...wk.map(k=>h('button',{class:'pkchip'+(k===qk?' on':''),style:`--kd:${kdark(k.color)}`,onclick:()=>{UI.wqkind=k.id;renderPool()}},h('i'),k.name))):null,
     own?h('div',{class:'wkpf'},h('span',{},wkOwnerIc(own),`${wkOwnerName(own)}의 메모만`),h('button',{class:'cbtn',title:'모든 메모 보기',onclick:()=>{UI.wpOwner=null;renderPool();renderMid()}},'✕')):null));
@@ -570,10 +576,11 @@ function wkMemoEl(c){
 
 /* ---------- 인물 시트 · 설정 노트 안의 위키 칸 ---------- */
 function wkSheetBlock(c){
-  const rows=rowKids(c.id,null),n=wkMemos(c.id).length;
+  const d=entRow(c.id),rows=d?rowKids(d.id):[],n=wkMemos(c.id).length;
   return h('div',{class:'sgrp wksheet'},
-    h('div',{class:'wksh'},h('b',{},'위키'),h('span',{class:'muted'},`행 ${wkCount(c.id)}개${n?` · 정리할 메모 ${n}장`:''}`),h('span',{class:'sp'}),h('button',{class:'quiet',onclick:()=>goWikiOwner(c.id)},'위키에서 열기 ›')),
-    rows.length?h('div',{class:'wkshl'},...rows.slice(0,8).map(r=>h('button',{class:'wkbl',onclick:()=>goWikiRow(r.id)},r.from?'✎ ':'',r.title||'제목 없음')),rows.length>8?h('span',{class:'muted'},`외 ${rows.length-8}개`):null)
+    h('div',{class:'wksh'},h('b',{},'위키'),h('span',{class:'muted'},d?`행 ${wkCount(c.id)}개${n?` · 정리할 메모 ${n}장`:''}`:(n?`정리할 메모 ${n}장`:'문서 없음')),h('span',{class:'sp'}),
+      h('button',{class:'quiet',onclick:()=>goWikiEnt(c.id)},d?'위키에서 열기 ›':'위키 문서 만들기 ›')),
+    rows.length?h('div',{class:'wkshl'},...rows.slice(0,8).map(r=>h('button',{class:'wkbl',onclick:()=>goWikiRow(r.id)},r.from?'✎ ':'',rowTitle(r))),rows.length>8?h('span',{class:'muted'},`외 ${rows.length-8}개`):null)
       :h('p',{class:'muted wkshe'},c.kind==='setting'?'세계관 · 장소 · 조직 · 규칙은 위키 탭에서 행으로 정리해요.':'설정 · 비밀 · 메모는 위키 탭에서 행으로 정리해요.'));
 }
 
@@ -611,14 +618,14 @@ function wkPeekHide(){clearTimeout(WKPEEKT);if(WKPEEK){WKPEEK.remove();WKPEEK=nu
 function wkPeekShow(t){
   const o=t.dataset.ent;if(!charById(o))return;
   wkPeekHide();
-  const rows=rowKids(o,null),memos=wkMemos(o).length,box=h('div',{class:'wkpeek'});
+  const d=entRow(o),rows=d?rowKids(d.id):[],memos=wkMemos(o).length,box=h('div',{class:'wkpeek'});
   const prev=h('div',{class:'wkpv'});
   const item=(r,d)=>{const b=h('button',{class:'wkpr',style:`--d:${d}`,onclick:()=>{const on=b.classList.toggle('on');box.querySelectorAll('.wkpr').forEach(x=>{if(x!==b)x.classList.remove('on')});
-      prev.innerHTML=on?wkClean(r.body)||'<p class="muted">본문이 비어 있어요</p>':'';wkLinksFix(prev);prev.classList.toggle('on',on)}},r.from?'✎ ':'',r.title||'제목 없음');return b};
+      prev.innerHTML=on?wkClean(r.body)||'<p class="muted">본문이 비어 있어요</p>':'';wkLinksFix(prev);prev.classList.toggle('on',on)}},r.from?'✎ ':'',rowTitle(r));return b};
   const lst=h('div',{class:'wkpl2'});
-  const walk=(list,d)=>list.forEach(r=>{if(lst.children.length>=14)return;lst.append(item(r,d));if(d<2)walk(rowKids(null,r.id),d+1)});walk(rows,0);
-  box.append(h('div',{class:'wkph'},wkOwnerIc(o),h('b',{},wkOwnerName(o)),h('span',{class:'sp'}),h('button',{class:'quiet',onclick:()=>{wkPeekHide();goWikiOwner(o)}},'위키에서 열기 ›')),
-    rows.length?lst:h('div',{class:'muted wkpe'},'아직 위키 행이 없어요'),prev,
+  const walk=(list,dp)=>list.forEach(r=>{if(lst.children.length>=14)return;lst.append(item(r,dp));if(dp<2)walk(rowKids(r.id),dp+1)});walk(rows,0);
+  box.append(h('div',{class:'wkph'},wkOwnerIc(o),h('b',{},wkOwnerName(o)),h('span',{class:'sp'}),h('button',{class:'quiet',onclick:()=>{wkPeekHide();goWikiEnt(o)}},d?'위키에서 열기 ›':'문서 만들기 ›')),
+    rows.length?lst:h('div',{class:'muted wkpe'},d?'문서 아래 행이 아직 없어요':'아직 위키 문서가 없어요'),prev,
     ...(memos?[h('div',{class:'wkpm'},`정리할 메모 ${memos}장`)]:[]));
   document.body.append(box);WKPEEK=box;
   const r=t.getBoundingClientRect(),bw=box.offsetWidth,bh=box.offsetHeight;
@@ -649,14 +656,10 @@ function wkMd(html){
   return out.join('\n').trim();
 }
 function exportWikiMd(opt={}){
-  const L=[],rowMd=(r,d)=>{L.push(`${'#'.repeat(Math.min(6,d))} ${r.title||'제목 없음'}`,'');const b=wkMd(r.body);if(b)L.push(b,'');rowKids(null,r.id).forEach(x=>rowMd(x,d+1))};
+  const L=[],rowMd=(r,d)=>{L.push(`${'#'.repeat(Math.min(6,d))} ${rowTitle(r)}`,'');const c=r.ent&&charById(r.ent);if(c&&c.summary)L.push(`> ${c.summary}`,'');const b=wkMd(r.body);if(b)L.push(b,'');rowKids(r.id).forEach(x=>rowMd(x,d+1))};
   let name='wiki';
-  if(opt.row){const r=rowById(opt.row);if(!r)return;name='wiki-'+(r.title||'row').slice(0,20);L.push(`> ${wkOwnerName(rowOwner(r))} · 내보낸 날짜: ${new Date().toLocaleString()}`,'');rowMd(r,1)}
-  else{const owners=opt.owner?[opt.owner]:[...S.characters.map(c=>c.id),'work'];
-    L.push(`# ${opt.owner?wkOwnerName(opt.owner)+' · 위키':'위키'}`,'',`> 내보낸 날짜: ${new Date().toLocaleString()}`,'');
-    owners.forEach(o=>{const rs=rowKids(o,null);if(!rs.length)return;if(!opt.owner)L.push(`## ${wkOwnerName(o)}`,'');rs.forEach(r=>rowMd(r,opt.owner?2:3))});
-    if(opt.owner)name='wiki-'+wkOwnerName(opt.owner)}
-  if(L.length<5&&!opt.row)return toast('내보낼 위키 행이 없어요');
+  if(opt.row){const r=rowById(opt.row);if(!r)return;name='wiki-'+rowTitle(r).slice(0,20);L.push(`> ${wkTrail(r)} · 내보낸 날짜: ${new Date().toLocaleString()}`,'');rowMd(r,1)}
+  else{L.push(`# ${wkWorkName()} · 위키`,'',`> 내보낸 날짜: ${new Date().toLocaleString()}`,'');rowKids(null).forEach(r=>rowMd(r,2));if(!wikiRows().length)return toast('내보낼 위키 행이 없어요')}
   dlBlob(`${fileBase()}-${name.replace(/[\\/:*?"<>|]/g,'_')}-${todayStr()}.md`,new Blob([L.join('\n')],{type:'text/markdown'}));toast('위키를 Markdown으로 내보냈어요');
 }
 

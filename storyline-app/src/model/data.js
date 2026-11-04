@@ -46,11 +46,12 @@ const newCard=(kind,text)=>{
 const cardColor=c=>c.color||kindOf(c.kind).color;
 const stamp=c=>{c.updated=Date.now()};      // 수정일 (글 · 분류 · 인물 연결 · 별을 고칠 때)
 const newEp=()=>({id:uid(),title:'',memo:'',cardIds:[]});
-/* 위키 행: owner(인물 · 설정 id, 작품 전체면 'work') · parent(상위 행 id, 인물 · 설정 바로 아래면 null) · 같은 층의 순서는 S.wiki 배열 순서
-   body 는 허용 목록으로 거른 HTML (features/wiki.js wkClean) · from: 메모에서 만들었으면 그 카드 id (froms: 여러 장) */
+/* 위키 행: 위키는 작품 하나를 뿌리로 하는 나무. parent(상위 행 id, 작품 바로 아래면 null) · 같은 층의 순서는 S.wiki 배열 순서
+   ent: 인물 · 설정과 이어진 문서면 그 id (이름 · 색은 인물을 따라감) · body 는 허용 목록으로 거른 HTML (features/wiki.js wkClean)
+   from: 메모에서 만들었으면 그 카드 id (froms: 여러 장) */
 const escHtml=t=>String(t==null?'':t).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const textToHtml=t=>String(t||'').split(/\n/).map(x=>x.trim()).filter(Boolean).map(x=>`<p>${escHtml(x)}</p>`).join('');      // 줄마다 문단 하나
-const newWikiRow=(owner,parent,title,body)=>{const t=Date.now();return {id:uid(),owner,parent:parent||null,title:title||'',body:body||'',created:t,updated:t}};
+const newWikiRow=(parent,title,body)=>{const t=Date.now();return {id:uid(),parent:parent||null,title:title||'',body:body||'',created:t,updated:t}};
 
 function seed(){
   const a=newChar('이도윤',PAL[3]),b=newChar('서하린',PAL[5]);
@@ -83,7 +84,8 @@ function seed(){
   eps[0].title='새벽의 접촉사고';eps[1].title='반지하';eps[2].title='봉투';
   eps[0].memo='둘의 아비투스가 처음 충돌';
   eps[0].cardIds=[cards[0].id,cards[1].id,cards[2].id];eps[1].cardIds=[cards[3].id];eps[2].cardIds=[cards[6].id];
-  const wm=cards[7],wr=newWikiRow(b.id,null,'하린은 돈이 아닌 자신을 봐 주길 바란다','<p>그런데 정작 먼저 돈 얘기를 꺼낸다. 그게 이 집안에서 살아남는 말버릇이라서.</p><ul><li>처음 만난 사람에게: 가격 · 조건부터</li><li>도윤 앞에서만: 질문이 먼저</li></ul>');
-  wr.from=wm.id;wm.filed=wr.id;      // 위키 예시: 메모 한 장을 행으로 정리한 모습
-  return {version:1,characters:[a,b],cards,episodes:eps,wiki:[wr],kinds:defKinds(),noneBoard:{},trash:[],settings:{theme:'auto',font:null,family:'',showUsed:false,boardBg:''},demo:true,z:1};
+  const wg=newWikiRow(null,'인물',''),wd=newWikiRow(wg.id,b.name,'');wg.id='wg_char';wd.parent=wg.id;wd.id='we_'+b.id;wd.ent=b.id;      // 위키 예시: 인물 묶음 › 서하린 문서 › 메모로 만든 행
+  const wm=cards[7],wr=newWikiRow(wd.id,'하린은 돈이 아닌 자신을 봐 주길 바란다','<p>그런데 정작 먼저 돈 얘기를 꺼낸다. 그게 이 집안에서 살아남는 말버릇이라서.</p><ul><li>처음 만난 사람에게: 가격 · 조건부터</li><li>도윤 앞에서만: 질문이 먼저</li></ul>');
+  wr.from=wm.id;wm.filed=wr.id;
+  return {version:1,characters:[a,b],cards,episodes:eps,wiki:[wg,wd,wr],kinds:defKinds(),noneBoard:{},trash:[],settings:{theme:'auto',font:null,family:'',showUsed:false,boardBg:''},demo:true,z:1};
 }
