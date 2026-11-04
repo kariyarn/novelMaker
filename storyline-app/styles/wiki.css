@@ -146,10 +146,6 @@ a.lk:hover{background:color-mix(in srgb,var(--acc) 22%,transparent)}
 #pool .wkpl .morebtn{width:100%}
 .wkpfoot{padding:10px 16px 14px;font-size:11.5px;color:var(--sub);opacity:.85;border-top:1px solid var(--line);margin-top:auto}
 
-/* ---------- 구상 보드: 위키에 넣은 메모는 흐리게 ---------- */
-.kcard.board.filed{opacity:.55}
-.kcard.board.filed:hover{opacity:.9}
-.kcard.board .wkbadge{position:absolute;right:8px;bottom:-11px;z-index:3;font-size:11px;font-weight:600;color:var(--acc);background:var(--panel);border-radius:99px;padding:2px 9px;box-shadow:var(--shadow),0 0 0 .5px var(--line);white-space:nowrap}
 
 /* ---------- 시트 안의 위키 칸 ---------- */
 .wksheet{padding-top:12px}
