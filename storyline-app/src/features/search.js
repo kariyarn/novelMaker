@@ -31,6 +31,7 @@ function runSearch(q){
 }
 function goToCard(id){      // 카드가 있는 보드로 가서 보여줌 (필터에 가려져 있으면 보기를 '전체'로)
   const c=cardById(id);if(!c)return;
+  if(c.filed&&rowById(c.filed))return goWikiRow(c.filed);      // 위키에 넣은 메모는 그 행으로
   UI.folderView=null;
   if(!(onBoard()&&validSel()&&cardsOf(UI.sel).some(x=>x.id===id))){
     if(UI.mode==='tl')UI.mode='story';

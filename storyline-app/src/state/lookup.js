@@ -44,11 +44,12 @@ const boardCards=key=>cardsOf(key).filter(c=>{
   if(!kindOk(c))return false;      // 분류 필터 · 사용 여부 모두 핀 꽂힌 카드도 똑같이 따름
   if(key==='grave')return true;      // 무덤 보드: 무덤 카드 전부
   if(c.discarded)return false;      // 무덤 카드는 다른 보드에는 안 나옴 (features/grave.js)
+  if(c.filed)return false;      // 위키에 넣은 메모는 위키에서만 (features/wiki.js)
   const m=useMode();
   if(m==='all')return true;
   if(c.pin&&S.settings.pinAlways)return true;      // (켜 두면) 핀 꽂은 카드는 사용했어도 계속 보임
   const u=!!(episodeOf(c.id)||shelfOf(c.id));return m==='used'?u:!u});      // 보관 칸의 카드는 사용한 카드처럼: 미사용 보기에선 숨고, 사용 · 전체 보기에서 보임
-const usedHidden=key=>cardsOf(key).length-boardCards(key).length;
+const usedHidden=key=>cardsOf(key).filter(c=>!c.filed).length-boardCards(key).length;      // 위키에 넣은 메모는 '숨김' 수에 안 셈
 
 /* 이름 자동 연결: 글 안에 인물 이름·별칭(2글자 이상)이 있으면 연결. 직접 뺀 인물은 다시 붙이지 않음 */
 const terms=c=>[c.name,...c.aliases].map(x=>String(x).trim()).filter(x=>x.length>=2).map(x=>x.toLowerCase());
