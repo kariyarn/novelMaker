@@ -16,11 +16,11 @@ document.addEventListener('keydown',e=>{
     }
     if((e.key==='Backspace'||e.key==='Delete')&&!e.shiftKey&&!$('modal').classList.contains('on')&&!document.querySelector('.dlg')){      // ⌘⌫: 선택 · 편집 중인 포스트잇 삭제
       const a=document.activeElement,ed=a&&a.classList&&a.classList.contains('ktext')?a.closest('.kcard'):null;
-      const typing=a&&(a.tagName==='INPUT'||(a.tagName==='TEXTAREA'&&!ed));
+      const typing=a&&(a.tagName==='INPUT'||(a.tagName==='TEXTAREA'&&!ed)||a.isContentEditable);
       const id=ed?ed.dataset.id:(SELCARD&&document.querySelector(`.kcard[data-id="${SELCARD}"]`)?SELCARD:null);
       if(id&&!typing){e.preventDefault();deleteCardKey(id);return}
     }
-    const typingNow=(()=>{const a=document.activeElement;return !!a&&((a.tagName==='TEXTAREA'&&!a.readOnly)||(a.tagName==='INPUT'&&/^(text|search|)$/.test(a.type||'')))})();
+    const typingNow=(()=>{const a=document.activeElement;return !!a&&((a.tagName==='TEXTAREA'&&!a.readOnly)||(a.tagName==='INPUT'&&/^(text|search|)$/.test(a.type||''))||a.isContentEditable)})();      // 위키 본문(contenteditable)도 글 쓰는 중
     if((e.key==='z'||e.key==='Z'||e.key==='y')&&typingNow){e.preventDefault();document.execCommand((e.key==='y'||e.shiftKey)?'redo':'undo');return}      // 글을 쓰는 중의 ⌘Z / ⌘⇧Z는 그 글(입력칸) 안에서만 되돌리기 · 다시 하기 — 노트 전체 되돌리기는 입력을 마친 뒤에
     if(e.key==='z'||e.key==='Z'){e.preventDefault();e.shiftKey?redo():undo()}
     else if(e.key==='y'){e.preventDefault();redo()}
@@ -33,10 +33,10 @@ document.addEventListener('keydown',e=>{
     else if(e.code==='KeyF'&&e.shiftKey){e.preventDefault();setFull(!document.body.classList.contains('full'))}
     return;
   }
-  if(e.key==='?'){const a=document.activeElement;if(!(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'||a.tagName==='SELECT'))&&!SPOT){e.preventDefault();showShortcuts()}}
+  if(e.key==='?'){const a=document.activeElement;if(!(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'||a.tagName==='SELECT'||a.isContentEditable))&&!SPOT){e.preventDefault();showShortcuts()}}
   if(e.key==='Home'){const a=document.activeElement;if(!(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'))&&onBoard()&&document.querySelector('.bview')){e.preventDefault();goOrigin(UI.sel)}}
   if(e.key==='Escape'){
-    const a=document.activeElement,typing=a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT');
+    const a=document.activeElement,typing=a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'||a.isContentEditable);
     closePop();closeModal();clearPinFocus();if(!typing)selectCard(null);if(a&&a.blur)a.blur();
     if(!typing&&document.body.classList.contains('full'))setFull(false);
     else if(!typing&&UI.mode==='graph'&&!$('modal').classList.contains('on'))goMode(UI.prevMode&&UI.prevMode!=='graph'?UI.prevMode:'story');      // 관계망에서 Esc: 하던 화면으로
@@ -48,6 +48,9 @@ let PTR={x:-1,y:-1};document.addEventListener('mousemove',e=>{PTR={x:e.clientX,y
 function newNoteShortcut(kindId){
   if($('modal').classList.contains('on'))return;
   if(UI.mode==='graph')return;
+  if(UI.mode==='wiki'){      // 위키: ⌘N 은 새 행, 분류 단축키는 오른쪽 '정리할 메모' 입력칸으로
+    if(!kindId)return wkNewRow();
+    if(isWikiKind(kindId))UI.wqkind=kindId;if(poolClosed())setPoolClosed(false);renderPool();applyLayout();setTimeout(()=>{const i=document.querySelector('#pool .wkpq input');if(i)i.focus()},30);return}
   if(UI.sel==='work'&&UI.mode==='story')return addWorkIdea();
   if(UI.mode==='story'&&UI.folderView){const i=document.querySelector('.tadd input');if(i)i.focus();return}      // 표 보기에서는 새 항목 입력칸으로
   let kid;

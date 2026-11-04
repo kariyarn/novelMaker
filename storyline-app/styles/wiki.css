@@ -1,0 +1,175 @@
+/* ============ 위키 탭 (features/wiki.js) ============
+   열 보기는 앱 옆 패널과 같은 바탕(--side), 편집기는 원고처럼 하얀 종이(--card). 색은 모두 테마 값을 따름 */
+.wk{flex:1;min-height:0;display:flex;background:var(--bg)}
+.wkcols{display:flex;flex:none;overflow-x:auto;overflow-y:hidden;border-right:1px solid var(--line);scrollbar-width:thin;overscroll-behavior-x:contain}
+/* 앞쪽 열이 왼쪽으로 밀려 나가면(파인더처럼) 왼쪽 가장자리를 흐리게 */
+.wkcols.wkcut{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 28px);mask-image:linear-gradient(to right,transparent 0,#000 28px)}
+.wkcol{flex:none;width:212px;display:flex;flex-direction:column;min-height:0;background:var(--side);border-right:1px solid var(--line)}
+.wkcol:last-child{border-right:0}
+.wkcol.wkent{width:208px}
+.wkcol+.wkcol{background:color-mix(in srgb,var(--side) 55%,var(--panel))}
+.wkcol+.wkcol+.wkcol{background:color-mix(in srgb,var(--side) 30%,var(--panel))}
+.wkch{display:flex;align-items:center;gap:6px;padding:12px 12px 6px 14px;font-size:11.5px;font-weight:600;color:var(--sub);letter-spacing:.02em;min-height:38px}
+.wkch .tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkch .sp{flex:1}
+.wkch .wkplus{color:var(--acc);padding:0 4px}
+.wklist{flex:1;overflow-y:auto;padding:0 0 12px;min-height:40px}
+.wkgrp{font-size:11px;color:var(--sub);opacity:.8;padding:10px 14px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkrow{position:relative;display:flex;align-items:center;gap:7px;margin:1px 6px;padding:5px 8px;border-radius:7px;font-size:13px;color:var(--ink);cursor:default;user-select:none;outline:none}
+.wkrow .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkrow .t.none{color:var(--sub);font-style:italic}
+.wkrow .n{font-size:11px;color:var(--sub);opacity:.75;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wkrow .chev{color:var(--sub);opacity:.7;font-size:13px;line-height:1}
+.wkrow .fm,.wkcf .fm{font-size:10.5px;color:#2f8a5b;flex:none}
+:root.dk .wkrow .fm,:root.dk .wkcf .fm{color:#7fcf9c}
+.wkic{width:16px;text-align:center;font-size:12.5px;flex:none}
+.wkdot{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin:0 3.5px;display:inline-block}
+.wkrow:hover{background:var(--fill)}
+.wkrow.path{background:var(--acc-soft)}
+.wkrow.path .t{font-weight:600}
+.wkrow.sel{background:var(--acc);color:var(--onacc,#fff)}
+.wkrow.sel :is(.n,.chev,.fm,.t.none){color:inherit;opacity:.85}
+.wkcols:not(:focus-within) .wkrow.sel{background:color-mix(in srgb,var(--acc) 72%,var(--side))}
+.wkrow:focus-visible{box-shadow:0 0 0 2px var(--acc)}
+.wkrow.dragging{opacity:.4}
+.wkrn{flex:1;min-width:0;font:inherit;padding:1px 5px;border-radius:5px;border:1px solid var(--acc);background:var(--panel);color:var(--ink)}
+/* 초록 숫자: 아직 정리 안 한 메모 */
+.wkmb{font-size:10.5px;font-weight:650;line-height:16px;min-width:18px;padding:0 6px;border-radius:99px;background:#d9f2e6;color:#1f5a3d;box-shadow:inset 0 0 0 1px rgba(30,110,70,.18);cursor:pointer}
+.wkmb.on{background:#2f8a5b;color:#fff}
+:root.dk .wkmb{background:#1f3a30;color:#cdeedd}
+:root.dk .wkmb.on{background:#7fcf9c;color:#10241a}
+.wkrow.sel .wkmb{box-shadow:none}
+.wkempty{padding:14px 16px;font-size:12px;color:var(--sub);line-height:1.6}
+.wkempty.big{grid-column:1/-1;border:1.5px dashed var(--line);border-radius:12px;padding:26px 22px;text-align:center}
+.wkcf{flex:none;padding:9px 14px 11px;font-size:11px;color:var(--sub);opacity:.8;border-top:1px solid var(--line);line-height:1.5}
+/* 끌어다 놓을 자리 */
+.wkrow.wkdb::before,.wkrow.wkda::after{content:"";position:absolute;left:4px;right:4px;height:2px;border-radius:2px;background:var(--acc)}
+.wkrow.wkdb::before{top:-2px}.wkrow.wkda::after{bottom:-2px}
+.wkrow.wkdi{background:var(--acc-soft);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.wklist.wkover,.wkrow.ent.wkover{background:var(--acc-soft)}
+.wkrow.ent.wkover{box-shadow:inset 0 0 0 1.5px var(--acc)}
+
+/* ---------- 편집기 ---------- */
+.wked{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--card);overflow:hidden}
+.wkcrumb{display:flex;align-items:center;gap:6px;padding:10px 18px 0 12px;font-size:12px;color:var(--sub);min-height:36px}
+.wkcbs{display:flex;align-items:center;gap:2px;min-width:0;overflow:hidden;white-space:nowrap}
+.wkcbs i{font-style:normal;opacity:.6;margin:0 1px}
+.wkcb{padding:2px 6px;border-radius:6px;background:transparent;color:var(--sub);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wkcb:hover{background:var(--fill);color:var(--ink)}
+.wkcb:last-child{color:var(--ink);font-weight:600}
+.wkcrumb .sp{flex:1}
+.wktbar{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:8px 26px 0;padding:3px;border-radius:9px;background:var(--fill);width:max-content;max-width:calc(100% - 52px);font-size:12.5px}
+.wktb{padding:2px 9px;border-radius:6px;color:var(--sub);background:transparent}
+.wktb:hover{background:var(--panel);color:var(--ink)}
+.wktb.hl{background:#fff1a6;color:#4a3d12}
+:root.dk .wktb.hl{background:rgba(255,220,90,.28);color:var(--ink)}
+.wktbar .sep{width:1px;align-self:stretch;margin:3px 3px;background:var(--line)}
+.wkdoc{flex:1;overflow-y:auto;padding:16px 32px 30px}
+.wktitle{display:block;width:100%;border:0;background:transparent;resize:none;overflow:hidden;color:var(--ink);font:700 25px/1.35 var(--fr-story);padding:2px 0;margin:0 0 4px;outline:none;field-sizing:content}
+.wktitle::placeholder{color:var(--sub);opacity:.5}
+.wkmeta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11.5px;color:var(--sub);margin:0 0 16px}
+.wkfrom{display:inline-flex;align-items:center;gap:4px;color:#2f8a5b;background:rgba(47,138,91,.1);border-radius:99px;padding:1px 9px;font-weight:600}
+:root.dk .wkfrom{color:#7fcf9c;background:rgba(127,207,156,.12)}
+.wkml{color:var(--acc);font-size:11.5px;padding:0 2px;background:transparent}
+.wkml:hover{text-decoration:underline}
+.wkbody{position:relative;outline:none;min-height:180px;font:15px/1.85 var(--fr-story);color:var(--ink);word-break:keep-all;overflow-wrap:anywhere;padding-bottom:40px}
+.wkbody.empty::before,.wkbody:empty::before{content:attr(data-ph);color:var(--sub);opacity:.55;pointer-events:none;position:absolute;left:0;top:0}
+.wkbody p,.wkpv p{margin:0 0 .35em}
+.wkbody h3,.wkpv h3{font:700 17px/1.45 var(--fr-story);margin:1.1em 0 .3em}
+.wkbody h4,.wkpv h4{font:700 15px/1.45 var(--fr-story);margin:.9em 0 .2em;color:var(--sub)}
+.wkbody ul,.wkbody ol,.wkpv ul,.wkpv ol{margin:.2em 0 .5em;padding-left:1.4em}
+.wkbody blockquote,.wkpv blockquote{margin:.5em 0;padding:4px 14px;border-left:3px solid var(--line);color:var(--sub)}
+.wkbody mark,.wkpv mark{background:#fff1a6;color:inherit;border-radius:2px;padding:0 1px}
+:root.dk .wkbody mark,:root.dk .wkpv mark{background:rgba(255,220,90,.28)}
+a.lk{display:inline-flex;align-items:baseline;gap:4px;font:600 .86em var(--ff,inherit);color:var(--acc);background:var(--acc-soft);border-radius:5px;padding:0 6px;margin:0 1px;cursor:pointer;text-decoration:none;white-space:nowrap;user-select:all}
+a.lk[data-k="ent"]::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,var(--acc));align-self:center}
+a.lk[data-k="row"]::before{content:"📄";font-size:.85em}
+a.lk[data-k="ep"]::before{content:"🎬";font-size:.85em}
+a.lk.gone{color:var(--sub);background:var(--fill);text-decoration:line-through}
+a.lk:hover{background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.wkback{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 32px;padding:11px 0 14px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);max-height:34%;overflow:auto}
+.wkback b{display:block;font-size:11px;font-weight:600;margin-bottom:5px;opacity:.85}
+.wkbls{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.wkbl{padding:1px 6px;margin-left:-6px;border-radius:6px;color:var(--ink);font-size:12px;text-align:left;background:transparent}
+.wkbl:hover{background:var(--fill);color:var(--acc)}
+.wkeps{display:flex;flex-wrap:wrap;gap:5px}
+.wkep{background:var(--fill);border-radius:6px;padding:1px 8px;font-size:11.5px;color:var(--ink);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wkep em{font-style:normal;color:var(--acc);font-weight:650;margin-right:4px}
+.wkep:hover{background:var(--acc-soft)}
+/* 인물 · 설정 첫 화면 */
+.wkoh{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+.wkoh .wkic{font-size:22px;width:auto}.wkoh .wkdot{width:14px;height:14px}
+.wkot{font:700 26px/1.3 var(--fr-story);margin:0}
+.wkkind{font-size:12px;color:var(--sub);background:var(--fill);border-radius:99px;padding:1px 9px}
+.wksum{color:var(--sub);margin:4px 0 0;font-size:13.5px}
+.wkstat{display:flex;align-items:center;gap:10px;margin:16px 0 14px;font-size:12.5px;color:var(--sub)}
+.wkstat .sp{flex:1}
+.wkstat .wkmb{font-size:12px;line-height:20px;padding:0 10px}
+.wkcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.wkcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px 14px;border-radius:10px;background:var(--panel);box-shadow:0 0 0 1px var(--line);color:var(--ink);min-height:84px}
+.wkcard:hover{box-shadow:0 0 0 1.5px var(--acc)}
+.wkcard b{font:700 14.5px/1.4 var(--fr-story)}
+.wkcard .s{font-size:12px;color:var(--sub);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wkcard small{font-size:11px;color:var(--sub);opacity:.8;margin-top:auto}
+/* [[ 자동 완성 */
+.wkac{position:fixed;z-index:60;width:262px;background:var(--panel);border-radius:10px;box-shadow:0 0 0 1px var(--line),0 10px 30px rgba(0,0,0,.18);padding:5px;font-size:13px}
+.wkac .h{font-size:11px;color:var(--sub);padding:3px 8px}
+.wkac .o{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border-radius:6px;text-align:left;background:transparent;color:var(--ink)}
+.wkac .o .l{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkac .o small{color:var(--sub);font-size:11px;white-space:nowrap}
+.wkac .o.on,.wkac .o:hover{background:var(--acc-soft)}
+.wkac .ic2{width:16px;text-align:center}
+
+/* ---------- 오른쪽: 정리할 메모 ---------- */
+#pool .wkpn{color:var(--sub);font-size:12px}
+.wkpq{display:flex;flex-direction:column;gap:8px}
+.wkpf{display:flex;align-items:center;gap:6px;font-size:12px;color:#1f5a3d;background:#d9f2e6;border-radius:8px;padding:3px 4px 3px 10px}
+.wkpf>span{display:flex;align-items:center;gap:5px;flex:1}
+:root.dk .wkpf{background:#1f3a30;color:#cdeedd}
+.wkpl{display:flex;flex-direction:column;gap:9px;padding:4px 14px 14px}
+#pool .kcard.wkm{position:relative;display:block;margin:0;padding:10px 12px 8px;border:0;border-radius:3px;background:var(--kc);color:#1d1d1f;box-shadow:0 1px 1px rgba(0,0,0,.05),0 4px 10px -4px rgba(0,0,0,.14);cursor:grab;outline:none}
+#pool .kcard.wkm .tx{font:13px/1.6 var(--fr-story);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+#pool .kcard.wkm .ft{display:flex;align-items:center;gap:4px;margin-top:6px;min-height:20px}
+#pool .kcard.wkm .ft .sp{flex:1}
+#pool .kcard.wkm .who{display:flex;gap:3px}
+#pool .kcard.wkm .who i{width:17px;height:17px;border-radius:50%;background:var(--c);color:#fff;font:600 9.5px/17px var(--ff,inherit);font-style:normal;text-align:center}
+#pool .kcard.wkm .wkto{font-size:11.5px;font-weight:600;color:var(--acc);background:color-mix(in srgb,var(--panel) 80%,transparent);border-radius:99px;padding:1px 10px;opacity:0;transition:opacity .12s}
+#pool .kcard.wkm:is(:hover,:focus-visible,.selc,.msel) .wkto{opacity:1}
+#pool .kcard.wkm .dday{position:absolute;right:8px;top:7px;font:700 10px var(--ff,inherit);color:#c4492f}
+#pool .kcard.wkm:has(.dday) .tx{padding-right:28px}
+#pool .kcard.wkm .wkst{position:absolute;right:8px;bottom:30px;color:#e3a008;font-size:11px}
+#pool .kcard.wkm.wilt{opacity:.82}
+#pool .kcard.wkm.selc{box-shadow:0 0 0 1.5px var(--acc),0 4px 10px -4px rgba(0,0,0,.14)}
+#pool .kcard.wkm.msel{box-shadow:0 0 0 2px var(--acc),0 4px 10px -4px rgba(0,0,0,.14)}
+#pool .kcard.wkm.dragging{opacity:.35}
+#pool .wkpl .empty{padding:24px 6px;color:var(--sub);font-size:12.5px;text-align:center}
+#pool .wkpl .morebtn{width:100%}
+.wkpfoot{padding:10px 16px 14px;font-size:11.5px;color:var(--sub);opacity:.85;border-top:1px solid var(--line);margin-top:auto}
+
+/* ---------- 구상 보드: 위키에 넣은 메모는 흐리게 ---------- */
+.kcard.board.filed{opacity:.55}
+.kcard.board.filed:hover{opacity:.9}
+.kcard.board .wkbadge{position:absolute;right:8px;bottom:-11px;z-index:3;font-size:11px;font-weight:600;color:var(--acc);background:var(--panel);border-radius:99px;padding:2px 9px;box-shadow:var(--shadow),0 0 0 .5px var(--line);white-space:nowrap}
+
+/* ---------- 시트 안의 위키 칸 ---------- */
+.wksheet{padding-top:12px}
+.wksh{display:flex;align-items:center;gap:8px;font-size:13px}
+.wksh .sp{flex:1}
+.wksh .muted{font-size:12px}
+.wkshl{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-top:6px}
+.wkshe{font-size:12px;margin:6px 0 0}
+.kdest{display:inline-flex;align-items:center;gap:6px}
+
+/* ---------- 엿보기 ---------- */
+.wkpeek{position:fixed;z-index:70;width:300px;max-height:420px;overflow:auto;background:var(--panel);border-radius:12px;box-shadow:0 0 0 1px var(--line),0 12px 34px rgba(0,0,0,.2);padding:8px 8px 10px;font-size:13px}
+.wkph{display:flex;align-items:center;gap:7px;padding:2px 4px 6px}
+.wkph .sp{flex:1}
+.wkph .quiet{font-size:12px;padding:1px 6px}
+.wkpl2{display:flex;flex-direction:column}
+.wkpr{text-align:left;padding:4px 8px 4px calc(8px + var(--d,0) * 14px);border-radius:6px;color:var(--ink);background:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkpr:hover,.wkpr.on{background:var(--acc-soft)}
+.wkpv{display:none;margin:6px 4px 0;padding:8px 10px;border-radius:8px;background:var(--fill);font:13px/1.7 var(--fr-story)}
+.wkpv.on{display:block}
+.wkpe{padding:4px 8px}
+.wkpm{font-size:11.5px;color:var(--sub);padding:6px 8px 0}
+

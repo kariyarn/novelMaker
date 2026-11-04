@@ -9,7 +9,7 @@ const frLive=c=>brs(c).filter(b=>!b.discarded);
 /* 인물 첫 글자: 세 글자 이름은 성을 빼고 (이도윤 → 도) */
 const frInitial=n=>{n=String(n||'').trim();return /^[가-힣]{3}$/.test(n)?n[1]:(n[0]||'?')};
 function frCast(ids){
-  return h('span',{class:'frcast'},...ids.map(charById).filter(Boolean).map(c=>h('i',{style:`--c:${c.color}`,title:c.name},frInitial(c.name))));
+  return h('span',{class:'frcast'},...ids.map(charById).filter(Boolean).map(c=>h('i',{style:`--c:${c.color}`,title:c.name,'data-ent':c.id},frInitial(c.name))));      // data-ent: 올리면 위키 엿보기
 }
 /* 타임라인 카드를 새단장 모양으로: kcard(…,'tl') 를 만든 뒤 덧붙임 */
 function frCard(el,card,bar){
@@ -295,7 +295,7 @@ function frPeek(card,r,prefer){
   if(!p){p=h('div',{class:'frpk','aria-hidden':'true'});document.body.append(p)}
   const k=kindOf(card.kind);p.style.setProperty('--bg',cardColor(card));p.innerHTML='';
   p.append(h('small',{},h('span',{},k.name),h('span',{class:'s'},card.star?'★':''),card.discarded?h('span',{class:'dday gone'},'무덤'):ddayEl(card)),h('p',{},card.text||'(빈 포스트잇)'),
-    h('div',{class:'who'},...eff(card).map(charById).filter(Boolean).map(c=>h('span',{},h('i',{style:`--c:${c.color}`}),c.name))));
+    h('div',{class:'who'},...eff(card).map(charById).filter(Boolean).map(c=>h('span',{'data-ent':c.id},h('i',{style:`--c:${c.color}`}),c.name))));
   frPlace(p,r,prefer);requestAnimationFrame(()=>{frPlace(p,r,prefer);p.classList.add('on')});
 }
 function frPeekHide(){document.querySelectorAll('.frpk:not(.open)').forEach(p=>p.classList.remove('on'))}

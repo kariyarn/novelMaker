@@ -25,7 +25,7 @@ document.addEventListener('pointerdown',e=>{
   e.preventDefault();e.stopPropagation();msToggle(c.dataset.id);
   addEventListener('pointerup',()=>{const sup=ev=>{ev.stopPropagation();ev.preventDefault()};addEventListener('click',sup,{capture:true,once:true});setTimeout(()=>removeEventListener('click',sup,true),80)},{once:true,capture:true})},true);      // 같은 클릭의 뒤따르는 click만 막음
 function msMove(ids,target,after){      // target: {ep:index} | {newAfter:index} | {newEnd:true} · after: 같은 되돌리기 안에서 할 뒷처리
-  const list=ids.filter(cardById);if(!list.length)return;
+  const list=draftOnly(ids.filter(cardById));if(!list.length)return;
   list.forEach(id=>{const c=cardById(id);if(c)ensureKindVisible(c.kind)});
   act(()=>{
     detach(list);
@@ -40,7 +40,7 @@ function msMove(ids,target,after){      // target: {ep:index} | {newAfter:index}
   MSEL.clear();toast(`${n}장을 ${at+1}화로 옮겼어요`,{undo:true});msRender();
 }
 async function msShelve(ids,shelfId,after){
-  const list=ids.filter(cardById);if(!list.length)return;
+  const list=draftOnly(ids.filter(cardById));if(!list.length)return;
   let sh=S.shelves.find(x=>x.id===shelfId);
   if(shelfId==='__ask'||shelfId==='__new'||!sh){
     let name='보관';if(shelfId==='__ask'){name=((await askText('보관 칸 이름 (예: 25화쯤, 30화 이후)','보관'))||'').trim();if(!name)return}
@@ -51,6 +51,9 @@ async function msShelve(ids,shelfId,after){
 async function msMenu(btn,only){
   const ids=only||[...MSEL],E=S.episodes,here=[...new Set(ids.map(id=>{const e=episodeOf(id);return e?e.i:-1}).filter(i=>i>=0))].sort((a,b)=>a-b);
   const items=only?[{title:only.length>1?`${only.length}장을 보낼 화`:'이 카드를 보낼 화'}]:[];
+  {const wk=ids.map(cardById).filter(c=>c&&!c.filed&&isWikiKind(c.kind));      // 위키로 가는 메모: 화 대신 위키로 (features/wiki.js)
+   if(wk.length){const at={x:PTR.x,y:PTR.y};items.unshift({label:wk.length>1?`메모 ${wk.length}장을 위키에 넣기…`:'위키에 넣기…',fn:()=>setTimeout(()=>wkPlaceMenu(at,wk.map(c=>c.id)),0)},'sep');
+     if(wk.length===ids.length)return popMenu(btn,items.slice(0,1))}}
   if(here.length)items.push({label:`${here[here.length-1]+1}화 다음에 새 화로`,fn:()=>msMove(ids,{newAfter:here[here.length-1]})});
   items.push({label:'맨 뒤에 새 화로',fn:()=>msMove(ids,{newEnd:true})},{label:'화 번호 입력…',fn:async()=>{
       const v=parseInt(await askText(`몇 화로 보낼까요? (1~${E.length||1})`,String(here[0]!=null?here[0]+1:E.length)),10);
@@ -67,8 +70,10 @@ function msRender(){
   let bar=document.getElementById('msel');
   if(!MSEL.size){if(bar)bar.remove();return}
   if(!bar){bar=h('div',{id:'msel'});document.body.append(bar)}
+  const allWiki=[...MSEL].every(id=>{const c=cardById(id);return c&&isWikiKind(c.kind)&&!c.filed});
   bar.replaceChildren(h('b',{},`${MSEL.size}장 선택`),
-    (()=>{const b=h('button',{class:'on','data-pop':'1',onclick:()=>msMenu(b)},'화로 보내기 ▾');return b})(),
+    allWiki?(()=>{const b=h('button',{class:'on','data-pop':'1',title:'고른 메모를 행 하나로 정리',onclick:()=>wkPlaceMenu(b,[...MSEL])},'위키로 ▾');return b})()
+      :(()=>{const b=h('button',{class:'on','data-pop':'1',onclick:()=>msMenu(b)},'화로 보내기 ▾');return b})(),
     h('button',{class:'quiet',onclick:msClear},'해제'));
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&MSEL.size&&!document.querySelector('.dlg')&&!POP){msClear()}},true);

@@ -35,8 +35,6 @@ function renderSettingSheet(p,c){
     h('label',{class:'fl'},'별칭',h('span',{class:'muted'},'쉼표로 구분 · 글에 나오면 카드가 자동으로 연결돼요')),
     h('textarea',{class:'ghost box autofit',rows:1,placeholder:'예: 지하, 월세방',style:'resize:none;overflow:hidden',onchange:e=>act(()=>{c.aliases=e.target.value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);autoLinkAll()}),oninput:e=>fitOne(e.target)},c.aliases.join(', '))));
   sheetProps(p.lastChild,c);
-  p.append(h('div',{class:'sgrp'},
-    h('label',{class:'fl'},'설정 메모',h('span',{class:'muted'},'세계관 · 장소 · 조직 · 규칙 … 자유롭게')),
-    h('textarea',{class:'fval autofit',rows:4,placeholder:'이 설정에 대해 적어 두세요',oninput:e=>{edit(()=>c.memo=e.target.value);fitOne(e.target)}},c.memo||'')));
+  p.append(wkSheetBlock(c));      // 예전 '설정 메모' 칸 자리: 위키 행 목록 (features/wiki.js)
   p.append(h('div',{class:'sgrp',style:'padding:10px 20px 30px'},h('button',{class:'quiet',style:'color:var(--warn)',onclick:async()=>{if(await askConfirm(`'${c.name}' 설정 노트를 휴지통으로 보낼까요? (카드는 남아요)`)){act(()=>{S.trash.push({id:uid(),type:'char',data:c,at:Date.now()});S.characters=S.characters.filter(x=>x!==c);UI.sel=firstEntity()});toast('휴지통으로 보냈어요',{undo:true})}}},'이 설정 노트 삭제')));
 }

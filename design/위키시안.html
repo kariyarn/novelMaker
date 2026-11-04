@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>위키 탭 시안</title>
+<style>
+/* 새단장 시안과 같은 색 · 글꼴. 위키는 '정리된 쪽'이라 하얀 종이, 아직 정리 안 한 메모는 초록 포스트잇 */
+:root{
+  --ground:#e9ecf1;--paper:#ffffff;--ink:#1c2230;--sub:#687083;--faint:#a9b0be;--hair:rgba(28,34,48,.10);
+  --acc:#2b5fd9;--acc-soft:rgba(43,95,217,.10);--memo-n:#d9f2e6;--memo-ink:#1f4a37;--memo-edge:rgba(30,110,70,.18);
+  --hl:#fff1a6;--lift:0 1px 1px rgba(28,34,48,.06),0 3px 10px rgba(28,34,48,.06);--page:#f6f7f9;--side:#f4f6f9;--ok:#2f7d4f;
+  --story:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  --ui:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--memo-n:#1f3a30;--memo-ink:#cdeedd;--memo-edge:rgba(120,220,170,.16);
+  --hl:rgba(255,220,90,.28);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1c2026;--ok:#7fcf9c;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#15181d;--paper:#22262d;--ink:#e8eaee;--sub:#9198a6;--faint:#5c6370;--hair:rgba(255,255,255,.09);
+  --acc:#7aa2ff;--acc-soft:rgba(122,162,255,.14);--memo-n:#1f3a30;--memo-ink:#cdeedd;--memo-edge:rgba(120,220,170,.16);
+  --hl:rgba(255,220,90,.28);--lift:0 1px 1px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);--page:#101216;--side:#1c2026;--ok:#7fcf9c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 var(--ui);letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none}
+main{max-width:1240px;margin:0 auto;padding:36px 16px 80px}
+h1{font:700 1.7em/1.3 var(--story);margin:0 0 6px}
+h2.sec{font:700 1.25em/1.3 var(--story);margin:56px 0 4px}
+.lead{color:var(--sub);margin:0 0 18px;max-width:48em}
+.lead b{color:var(--ink);font-weight:600}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.ctl .sp{flex:1}
+.pill{display:inline-flex;gap:2px;background:var(--hair);border-radius:10px;padding:3px}
+.pill button{padding:5px 14px;border-radius:8px;color:var(--sub)}
+.pill button.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.pill button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px 28px;margin:22px 0 0;padding:0;list-style:none;color:var(--sub);font-size:.92em}
+.notes b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+.notes q{color:var(--ink);quotes:"‘" "’"}
+
+/* ---------- 노트북 화면 1440×860 (페이지 폭에 맞게 줄임) ---------- */
+.frame{border-radius:12px;overflow:hidden;box-shadow:0 0 0 7px #111317,0 22px 50px rgba(0,0,0,.28);margin:7px}
+.app{position:relative;width:1440px;height:860px;transform-origin:0 0;display:grid;grid-template-rows:52px minmax(0,1fr);background:var(--ground);font-family:var(--ui)}
+.top{display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--paper);border-bottom:1px solid var(--hair)}
+.top .nm{font:700 15px var(--story)}
+.top nav{margin:0 auto;display:flex;gap:28px;font-size:14px;color:var(--sub);transform:translateX(-40px)}
+.top nav span{padding:14px 2px;border-bottom:2px solid transparent}
+.top nav span.on{color:var(--ink);font-weight:600;border-color:var(--ink)}
+.top nav .new{font-size:9.5px;font-weight:700;color:var(--acc);vertical-align:super;margin-left:3px}
+.top .r{color:var(--sub);letter-spacing:12px;font-size:15px}
+.body{display:grid;grid-template-columns:200px 216px 196px minmax(0,1fr) 288px;min-height:0}
+
+/* 열 보기 */
+.col{background:var(--side);border-right:1px solid var(--hair);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.col:nth-child(2){background:color-mix(in srgb,var(--side) 55%,var(--paper))}
+.col:nth-child(3){background:color-mix(in srgb,var(--side) 25%,var(--paper))}
+.ch{display:flex;align-items:center;gap:6px;padding:14px 14px 8px;font-size:11.5px;color:var(--faint);font-weight:600;letter-spacing:.02em}
+.ch .sp{flex:1}
+.ch .plus{color:var(--acc);font-size:15px;font-weight:500}
+.grp{font-size:11px;color:var(--faint);padding:10px 14px 3px;display:flex;gap:6px;align-items:center}
+.row{position:relative;display:flex;align-items:center;gap:7px;margin:1px 6px;padding:5px 8px;border-radius:7px;font-size:13px;color:var(--ink);min-width:0}
+.row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ic{width:16px;text-align:center;font-size:12px;flex:none}
+.row .dot{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin:0 3px}
+.row .n{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.row .mb{font-size:10.5px;font-weight:600;color:var(--memo-ink);background:var(--memo-n);border-radius:99px;padding:0 6px;box-shadow:inset 0 0 0 1px var(--memo-edge)}
+.row .chev{color:var(--faint);font-size:12px}
+.row .fm{font-size:10px;color:var(--ok);flex:none}
+.row:hover{background:var(--hair)}
+.row.on{background:var(--acc);color:#fff}
+.row.on .n,.row.on .chev,.row.on .fm{color:rgba(255,255,255,.8)}
+.row.path{background:var(--acc-soft)}
+.row.path .t{font-weight:600}
+.drop{position:relative;height:0;margin:0 10px}
+.drop::before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--acc)}
+.drop::after{content:"";position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--acc);background:var(--paper)}
+.drop span{position:absolute;left:6px;top:6px;right:0;font-size:11px;color:var(--acc);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--paper);border-radius:6px;padding:2px 8px;box-shadow:var(--lift);z-index:2}
+.cfoot{margin-top:auto;padding:10px 14px 14px;font-size:11.5px;color:var(--faint);border-top:1px solid var(--hair)}
+
+/* 편집기 */
+.ed{background:var(--paper);overflow:hidden;display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--hair)}
+.crumb{display:flex;align-items:center;gap:6px;padding:14px 32px 0;font-size:12px;color:var(--sub);white-space:nowrap}
+.crumb i{font-style:normal;color:var(--faint)}
+.crumb .sp{flex:1}
+.crumb .act{color:var(--faint);letter-spacing:8px}
+.tb{display:flex;gap:2px;margin:10px 26px 0;padding:4px;border-radius:9px;background:var(--side);width:max-content;font-size:12.5px;color:var(--sub)}
+.tb span{padding:2px 9px;border-radius:6px}
+.tb span.hl{background:var(--hl);color:var(--ink)}
+.tb .sep{width:1px;background:var(--hair);padding:0;margin:3px 3px}
+.doc{flex:1;overflow:hidden;padding:18px 32px 0}
+.doc h3.t{font:700 26px/1.3 var(--story);margin:0 0 4px}
+.doc .meta{font-size:11.5px;color:var(--faint);margin:0 0 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.doc .meta .from{display:inline-flex;align-items:center;gap:5px;color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:99px;padding:1px 9px;font-weight:600}
+.doc .meta u{text-decoration:none;color:var(--acc)}
+.doc h4{font:700 15px/1.4 var(--story);margin:16px 0 4px}
+.doc p,.doc li{font:14.5px/1.85 var(--story);margin:0;word-break:keep-all}
+.doc ul{margin:2px 0 0;padding-left:20px}
+.doc mark{background:var(--hl);color:inherit;border-radius:2px;padding:0 1px}
+.doc blockquote{margin:10px 0 0;padding:6px 14px;border-left:3px solid var(--hair);color:var(--sub)}
+.lk{display:inline-flex;align-items:baseline;gap:3px;font:600 12.5px var(--ui);color:var(--acc);background:var(--acc-soft);border-radius:5px;padding:0 6px;margin:0 1px;white-space:nowrap}
+.lk .d{width:7px;height:7px;border-radius:50%;background:var(--c);align-self:center}
+.typing{position:relative}
+.ac{position:absolute;left:0;top:26px;width:240px;background:var(--paper);border-radius:10px;box-shadow:0 0 0 1px var(--hair),0 10px 30px rgba(0,0,0,.16);padding:6px;font:13px var(--ui);z-index:5}
+.ac .h{font-size:11px;color:var(--faint);padding:3px 8px}
+.ac .o{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:6px}
+.ac .o small{margin-left:auto;color:var(--faint);font-size:11px}
+.ac .o.on{background:var(--acc-soft)}
+.caret{display:inline-block;width:1.5px;height:1.1em;background:var(--acc);vertical-align:-2px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.back{border-top:1px solid var(--hair);margin:0 32px;padding:12px 0 16px;display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:12px;color:var(--sub)}
+.back b{display:block;font-size:11px;color:var(--faint);font-weight:600;margin-bottom:4px}
+.back .ep{display:flex;gap:6px;flex-wrap:wrap}
+.back .ep span{background:var(--side);border-radius:6px;padding:1px 8px}
+.back .ep span em{font-style:normal;color:var(--acc);font-weight:600;margin-right:3px}
+
+/* 오른쪽 목록 */
+.pool{background:var(--paper);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.ph{display:flex;align-items:baseline;gap:8px;padding:16px 18px 6px}
+.ph b{font-size:14px}
+.ph small{color:var(--sub);font-size:12px}
+.chips{display:flex;gap:6px;padding:4px 18px 10px;font-size:11.5px}
+.chips span{border-radius:99px;padding:1px 10px;color:var(--sub);box-shadow:inset 0 0 0 1px var(--hair)}
+.chips span.on{background:var(--memo-n);color:var(--memo-ink);box-shadow:inset 0 0 0 1px var(--memo-edge);font-weight:600}
+.pin{margin:0 18px 10px;padding:8px 12px;border-radius:9px;background:var(--side);color:var(--faint);font-size:12.5px}
+.ml{flex:1;overflow:hidden;padding:2px 18px;display:flex;flex-direction:column;gap:10px}
+.memo{position:relative;background:var(--memo-n);color:var(--memo-ink);border-radius:3px;padding:10px 12px 9px;font:13px/1.6 var(--story);box-shadow:0 1px 1px rgba(0,0,0,.05),0 4px 10px -4px rgba(0,0,0,.12)}
+.memo .who{display:flex;gap:4px;margin-top:6px}
+.memo .who i{width:16px;height:16px;border-radius:50%;background:var(--c);color:#fff;font:600 9.5px/16px var(--ui);font-style:normal;text-align:center}
+.memo:has(.dd){padding-right:34px}
+.memo .dd{position:absolute;right:8px;top:8px;font:700 10px var(--ui);color:#c4492f}
+.memo.ghost{opacity:.35;outline:1.5px dashed var(--memo-edge);box-shadow:none}
+.memo.fly{position:absolute;width:236px;z-index:9;transform:rotate(-3deg);box-shadow:0 18px 36px rgba(0,0,0,.24);pointer-events:none}
+.cursor{position:absolute;z-index:10;width:18px;height:18px;pointer-events:none}
+.pfoot{padding:10px 18px 14px;font-size:11.5px;color:var(--faint);border-top:1px solid var(--hair)}
+
+/* 상태 바꾸기 */
+.app[data-s="view"] [data-on]:not([data-on~="view"]),
+.app[data-s="drag"] [data-on]:not([data-on~="drag"]),
+.app[data-s="link"] [data-on]:not([data-on~="link"]){display:none}
+
+/* ---------- 아래 작은 그림들 ---------- */
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:14px}
+.box{background:var(--paper);border-radius:14px;box-shadow:0 0 0 1px var(--hair);padding:18px;min-width:0}
+.box h3{margin:0 0 10px;font-size:13.5px}
+.box .cap{font-size:12.5px;color:var(--sub);margin:12px 0 0}
+.arrow{display:flex;align-items:center;gap:12px}
+.arrow .to{color:var(--faint);font-size:20px;flex:none}
+.arrow>div{flex:1;min-width:0}
+.mini-row{background:var(--side);border-radius:9px;padding:10px 12px}
+.mini-row .t{font:700 14px/1.4 var(--story)}
+.mini-row .b{font:12.5px/1.7 var(--story);color:var(--sub);margin-top:4px}
+.mini-row .b.empty{font-family:var(--ui);color:var(--faint)}
+.mini-row hr{border:0;border-top:1px dashed var(--hair);margin:6px 0}
+.kset{display:flex;flex-direction:column;gap:8px}
+.krow{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px}
+.krow i{width:14px;height:14px;border-radius:4px;background:var(--c)}
+.seg{display:inline-flex;background:var(--hair);border-radius:8px;padding:2px;font-size:12px}
+.seg span{padding:2px 10px;border-radius:6px;color:var(--sub)}
+.seg span.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.board{position:relative;height:170px;border-radius:10px;background:var(--ground);background-image:radial-gradient(var(--hair) 1px,transparent 1px);background-size:16px 16px;overflow:hidden}
+.board .pi{position:absolute;width:150px;padding:9px 11px;border-radius:3px;font:12px/1.55 var(--story);box-shadow:0 1px 1px rgba(0,0,0,.05),0 5px 12px -5px rgba(0,0,0,.18)}
+.board .pi.y{background:#fff1a6;color:#4a3d12}
+.board .pi.g{background:var(--memo-n);color:var(--memo-ink)}
+.board .pi.filed{opacity:.5;box-shadow:none;outline:1px dashed var(--memo-edge)}
+.board .pi .wk{position:absolute;right:6px;bottom:-9px;font:600 10.5px var(--ui);color:var(--acc);background:var(--paper);border-radius:99px;padding:1px 8px;box-shadow:var(--lift);opacity:1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .board .pi.y{background:#3a3420;color:#efe2b0}}
+:root[data-theme="dark"] .board .pi.y{background:#3a3420;color:#efe2b0}
+</style>
+</head>
+<body>
+<main>
+<h1>위키 탭 시안</h1>
+<p class="lead"><b>장면은 화에 넣고, 메모는 위키에 넣어요.</b> 구상은 어디서든 포스트잇으로 자유롭게 하고, 설정 정리는 새 <b>위키</b> 탭에서 해요. 오른쪽 목록의 메모를 끌어 나무에 놓으면 그 메모가 행 하나가 되고, 메모 글이 행 제목이 돼요. 13인치 노트북 화면(1440×860)을 줄여서 보여 줘요.</p>
+
+<div class="ctl">
+  <div class="pill" id="st" role="group" aria-label="장면">
+    <button class="on" data-v="view">행 읽기</button><button data-v="drag">메모 끌어 넣기</button><button data-v="link">[[ 로 연결</button>
+  </div>
+  <span class="sp"></span>
+  <div class="pill" id="th" role="group" aria-label="테마">
+    <button class="on" data-v="">자동</button><button data-v="light">밝게</button><button data-v="dark">어둡게</button>
+  </div>
+</div>
+
+<div class="frame" id="fr">
+<div class="app" id="app" data-s="view">
+  <div class="top">
+    <span class="nm">캐릭터 스토리라인</span>
+    <nav><span>전체</span><span>구상</span><span>타임라인</span><span>관계망</span><span class="on">위키</span></nav>
+    <span class="r">⌕ ⋯</span>
+  </div>
+  <div class="body">
+
+    <!-- 1열: 폴더 · 인물 · 설정 (왼쪽 목록과 같은 데이터) -->
+    <div class="col">
+      <div class="ch">인물 · 설정<span class="sp"></span><span>⌕</span></div>
+      <div class="grp">👤 인물</div>
+      <div class="row"><span class="dot" style="--c:#32ade6"></span><span class="t">이도윤</span><span class="n">4</span></div>
+      <div class="row"><span class="dot" style="--c:#af52de"></span><span class="t">서하린</span><span class="mb" title="아직 정리 안 한 메모">2</span><span class="n">3</span></div>
+      <div class="row"><span class="dot" style="--c:#ff9f43"></span><span class="t">서진우</span><span class="n">1</span></div>
+      <div class="grp">📍 장소</div>
+      <div class="row"><span class="ic">🏠</span><span class="t">반지하 원룸</span><span class="n">2</span></div>
+      <div class="row"><span class="ic">🏛️</span><span class="t">한남동 저택</span><span class="n">1</span></div>
+      <div class="row"><span class="ic">🛵</span><span class="t">배달 대행 사무실</span><span class="n">0</span></div>
+      <div class="grp">💼 조직</div>
+      <div class="row path"><span class="ic">🏢</span><span class="t">서진그룹</span><span class="mb" data-on="view link">1</span><span class="n">5</span><span class="chev">›</span></div>
+      <div class="grp">🎲 물건</div>
+      <div class="row"><span class="ic">✉️</span><span class="t">흰 봉투</span><span class="n">1</span></div>
+      <div class="row"><span class="ic">☂️</span><span class="t">우산</span><span class="n">0</span></div>
+      <div class="grp">📚 작품 전체</div>
+      <div class="row"><span class="ic">📄</span><span class="t">시대 배경 · 2026 서울</span><span class="n">2</span></div>
+      <div class="cfoot">폴더 · 인물 · 설정은 왼쪽 목록에서 만들고 옮겨요</div>
+    </div>
+
+    <!-- 2열: 서진그룹 아래 행 -->
+    <div class="col">
+      <div class="ch">서진그룹<span class="sp"></span><span class="plus" title="새 행">＋</span></div>
+      <div class="row"><span class="t">지배 구조</span><span class="chev">›</span></div>
+      <div class="row path"><span class="t">후계 구도</span><span class="chev">›</span></div>
+      <div class="drop" data-on="drag"><span>새 행 · 회장실은 저녁 6시 이후…</span></div>
+      <div class="row"><span class="fm" title="메모에서 만든 행">✎</span><span class="t">회장 비서실 사람들</span></div>
+      <div class="row"><span class="fm" title="메모에서 만든 행">✎</span><span class="t">본사 37층은 엘리베이터가 따로</span></div>
+      <div class="row"><span class="t">설정 메모</span><span class="n" title="예전 설정 메모 칸에서 옮겨 온 행">옛 메모</span></div>
+      <div class="cfoot">✎ 표시는 메모에서 만든 행</div>
+    </div>
+
+    <!-- 3열: 후계 구도 아래 하위 행 -->
+    <div class="col">
+      <div class="ch">후계 구도<span class="sp"></span><span class="plus">＋</span></div>
+      <div class="row on"><span class="fm">✎</span><span class="t">하린은 후계에서 밀려나 있다</span></div>
+      <div class="row"><span class="t">진우의 지분</span></div>
+      <div class="row"><span class="fm">✎</span><span class="t">이사회 표 계산</span></div>
+    </div>
+
+    <!-- 편집기 -->
+    <div class="ed">
+      <div class="crumb">서진그룹 <i>›</i> 후계 구도 <i>›</i> 하린은 후계에서 밀려나 있다<span class="sp"></span><span class="act">⤓ ⋯</span></div>
+      <div class="tb"><span><b>B</b></span><span><i>I</i></span><span>제목</span><span>• 목록</span><span>❝</span><span class="sep"></span><span class="hl">형광펜</span><span class="sep"></span><span>[[ 연결</span></div>
+      <div class="doc">
+        <h3 class="t">하린은 후계에서 밀려나 있다</h3>
+        <div class="meta"><span class="from">✎ 메모에서 · 10월 28일</span><span>원본 메모 보기</span><u>되돌리기</u><span>· 고친 날 11월 3일</span></div>
+        <p>회장은 공식적으로 후계를 정하지 않았지만, 그룹 안에서는 다들 <span class="lk"><span class="d" style="--c:#ff9f43"></span>서진우</span> 쪽으로 기울었다고 본다. <mark>하린은 그걸 알고 있고, 모르는 척한다.</mark></p>
+        <h4>왜 밀려났나</h4>
+        <ul>
+          <li>재단 이사장 자리 — 이름은 크지만 결재권이 없다</li>
+          <li>이사회 표는 진우 6 : 하린 2 (<span class="lk">이사회 표 계산</span>)</li>
+          <li data-on="view drag">어머니 쪽 지분이 <span class="lk"><span class="d" style="--c:#8a8f98"></span>흰 봉투</span> 사건 뒤로 묶였다</li>
+          <li data-on="link"><span class="typing">어머니 쪽 지분이 [[흰<span class="caret"></span>
+            <span class="ac"><span class="h">연결할 곳</span>
+              <span class="o on">✉️ 흰 봉투<small>설정 · 물건</small></span>
+              <span class="o">📄 흰 봉투를 거절한 이유<small>행 · 이도윤</small></span>
+              <span class="o">🎬 3화 봉투<small>화</small></span>
+            </span></span></li>
+        </ul>
+        <h4>원고에서 쓸 때</h4>
+        <blockquote>하린이 돈 얘기부터 꺼내는 건 이 자리에서 살아남는 법이라서다. <span class="lk"><span class="d" style="--c:#32ade6"></span>이도윤</span>이 그걸 처음 꿰뚫어 본다.</blockquote>
+      </div>
+      <div class="back">
+        <div><b>이 행을 가리키는 행</b>서하린 › 핵심 결함<br>이도윤 › 흰 봉투를 거절한 이유</div>
+        <div><b>서진그룹이 나온 화</b><span class="ep"><span><em>3</em>봉투</span><span><em>7</em>이사회</span><span><em>11</em>저택</span></span></div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 목록: 위키 탭에서는 메모만 -->
+    <div class="pool">
+      <div class="ph"><b>정리할 메모</b><small><span data-on="view link">4장</span><span data-on="drag">3장</span></small></div>
+      <div class="chips"><span>장면 · 대사</span><span class="on">메모</span></div>
+      <div class="pin">한 줄 쓰고 Enter</div>
+      <div class="ml">
+        <div class="memo" data-on="view link">회장실은 저녁 6시 이후 아무도 못 들어간다. 비서실장만 예외.<div class="who"><i style="--c:#8a8f98">서</i></div></div>
+        <div class="memo ghost" data-on="drag">회장실은 저녁 6시 이후 아무도 못 들어간다. 비서실장만 예외.<div class="who"><i style="--c:#8a8f98">서</i></div></div>
+        <div class="memo">하린은 클래식 대신 트로트를 몰래 듣는다. 어머니가 좋아하던 노래.<div class="who"><i style="--c:#af52de">하</i></div></div>
+        <div class="memo"><span class="dd">D-2</span>도윤은 숫자를 소리 내지 않고 입술로만 센다<div class="who"><i style="--c:#32ade6">도</i></div></div>
+        <div class="memo">하린의 운전기사는 사실 회장이 붙인 사람<div class="who"><i style="--c:#af52de">하</i><i style="--c:#8a8f98">서</i></div></div>
+      </div>
+      <div class="pfoot">위키에 넣은 메모는 여기서 빠지고 무덤에도 안 가요</div>
+    </div>
+  </div>
+
+  <!-- 끌고 가는 메모 -->
+  <div class="memo fly" data-on="drag" style="left:262px;top:186px">회장실은 저녁 6시 이후 아무도 못 들어간다. 비서실장만 예외.<div class="who"><i style="--c:#8a8f98">서</i></div></div>
+  <svg class="cursor" data-on="drag" style="left:372px;top:206px" viewBox="0 0 18 18"><path d="M2 1l13 7-6 1.5L6 16z" fill="#111" stroke="#fff" stroke-width="1.2"/></svg>
+</div>
+</div>
+
+<ul class="notes">
+  <li><b>새 탭, 열 보기</b>업무 위키처럼 맥 파인더 같은 열 보기예요. 왼쪽부터 <q>인물 · 설정 → 행 → 하위 행 → 편집기</q>. 첫 열은 왼쪽 목록과 같은 데이터라 위키에서 따로 관리할 게 없어요.</li>
+  <li><b>인물도 설정도 위키 문서</b>인물 · 설정 노트 아래에 행을 달아요. 어디에도 안 묶인 이야기(시대 배경 같은)는 맨 아래 <q>작품 전체</q>에.</li>
+  <li><b>초록 숫자는 아직 정리 안 한 메모</b>그 인물 · 설정에 연결된 메모 중 위키에 아직 안 넣은 수예요. 오른쪽 목록에서 그 메모만 골라 보여 줘요.</li>
+  <li><b>메모를 끌어 놓으면 행이 돼요</b>위의 <q>메모 끌어 넣기</q>를 눌러 보세요. 파란 선이 놓일 자리예요. 행 사이에 놓으면 같은 층, 행 위에 놓으면 그 아래 하위 행.</li>
+  <li><b>✎ 는 메모에서 온 행</b>편집기 위에 <q>메모에서 · 날짜</q>가 붙고, 원본 메모를 보거나 되돌릴 수 있어요. 되돌리면 메모가 오른쪽 목록으로 돌아가요.</li>
+  <li><b>[[ 로 연결</b>위의 <q>[[ 로 연결</q>을 눌러 보세요. 인물 · 설정 · 다른 행 · 화를 골라 이어요. 이름을 바꿔도 링크는 그대로.</li>
+  <li><b>아래는 저절로</b>이 행을 가리키는 행, 이 인물 · 설정이 나온 화를 자동으로 모아 보여 줘요.</li>
+  <li><b>서식은 꼭 필요한 것만</b>굵게 · 기울임 · 제목 · 목록 · 인용 · 형광펜. 표 · 사진 · 글자색은 1단계에서 빼요.</li>
+</ul>
+
+<h2 class="sec">메모 → 행, 분류 설정, 구상 보드</h2>
+<div class="trio">
+  <div class="box">
+    <h3>메모 글이 행 제목이 돼요</h3>
+    <div class="arrow">
+      <div><div class="memo">하린은 후계에서 밀려나 있다<div class="who"><i style="--c:#af52de">하</i></div></div></div>
+      <span class="to">→</span>
+      <div class="mini-row"><div class="t">하린은 후계에서 밀려나 있다</div><div class="b empty">본문은 비어 있어요 · 여기서 키워요</div></div>
+    </div>
+    <div class="arrow" style="margin-top:14px">
+      <div><div class="memo">이사회 표 계산<br>진우 6 : 하린 2. 기권 1은 비서실장</div></div>
+      <span class="to">→</span>
+      <div class="mini-row"><div class="t">이사회 표 계산</div><hr><div class="b">진우 6 : 하린 2. 기권 1은 비서실장</div></div>
+    </div>
+    <p class="cap">한 줄이면 그대로 제목. 여러 줄이면 첫 줄은 제목, 나머지는 본문. 제목은 나중에 따로 고쳐도 원래 메모 글은 그대로예요.</p>
+  </div>
+  <div class="box">
+    <h3>분류마다 가는 곳 (설정 → 글쓰기)</h3>
+    <div class="kset">
+      <div class="krow"><i style="--c:#fff1a6"></i><span>장면 · 대사</span><span class="seg"><span class="on">원고</span><span>위키</span></span></div>
+      <div class="krow"><i style="--c:#b9ecd2"></i><span>메모</span><span class="seg"><span>원고</span><span class="on">위키</span></span></div>
+      <div class="krow"><i style="--c:#ffd6a8"></i><span>떡밥 <small style="color:var(--faint)">(새 분류)</small></span><span class="seg"><span>원고</span><span class="on">위키</span></span></div>
+    </div>
+    <p class="cap"><b style="color:var(--ink)">원고</b>는 타임라인 · 원고 내보내기로, <b style="color:var(--ink)">위키</b>는 위키로 가요. 오른쪽 목록과 구상 보드에는 둘 다 나와요. 분류를 늘려도 규칙은 이 두 가지뿐이에요.</p>
+  </div>
+  <div class="box">
+    <h3>구상 보드에선 흐리게 남아요 <small style="color:var(--faint);font-weight:500">(제안)</small></h3>
+    <div class="board">
+      <div class="pi y" style="left:16px;top:18px">하린의 아버지가 도윤에게 봉투를 내민다.</div>
+      <div class="pi g filed" style="left:180px;top:30px">하린은 후계에서 밀려나 있다<span class="wk">📖 위키에서 보기</span></div>
+      <div class="pi g" style="left:70px;top:100px">하린은 트로트를 몰래 듣는다</div>
+    </div>
+    <p class="cap">위키에 넣은 메모는 보드에서 사라지지 않고 흐려져요. 누르면 위키의 그 행으로 가요. 구상하던 자리가 갑자기 비지 않게요.</p>
+  </div>
+</div>
+</main>
+
+<script>
+(()=>{
+  const fr=document.getElementById('fr'),app=document.getElementById('app');
+  const fit=()=>{const w=fr.clientWidth,s=Math.min(1,w/1440);app.style.transform=`scale(${s})`;fr.style.height=(860*s)+'px'};
+  addEventListener('resize',fit);fit();
+  const pill=(id,fn)=>{const p=document.getElementById(id);p.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;p.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));fn(b.dataset.v)})};
+  pill('st',v=>{app.dataset.s=v});
+  pill('th',v=>{if(v)document.documentElement.dataset.theme=v;else delete document.documentElement.dataset.theme});
+})();
+</script>
+</body>
+</html>

@@ -34,6 +34,7 @@ function renderSheet0(){
   sheetProps(head,c);
   p.append(head);
   p.append(goalSection(c));
+  p.append(wkSheetBlock(c));      // 이 인물의 위키 행 (features/wiki.js)
   const groups=[];c.fields.forEach(f=>{if(!groups.includes(f.group))groups.push(f.group)});
   groups.forEach(g=>{
     const open=UIP.gc[c.id+':'+g]===false;      // 칸 묶음은 기본으로 접혀 있음

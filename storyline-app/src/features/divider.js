@@ -82,7 +82,7 @@ function zenFit(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight+
 // 집중 모드의 키보드: 열려 있는 동안 다른 단축키보다 먼저 받음
 document.addEventListener('keydown',e=>{
   if(e.altKey&&!e.metaKey&&!e.ctrlKey&&e.code==='KeyZ'&&!e.isComposing){const a=document.activeElement;if(ZEN){e.preventDefault();e.stopPropagation();zenClose();return}
-    if(!(a&&(a.tagName==='INPUT'||(a.tagName==='TEXTAREA'&&!a.readOnly)))&&!$('modal').classList.contains('on')){e.preventDefault();zenOpen();return}}
+    if(!(a&&(a.tagName==='INPUT'||(a.tagName==='TEXTAREA'&&!a.readOnly)||a.isContentEditable))&&UI.mode!=='wiki'&&!$('modal').classList.contains('on')){e.preventDefault();zenOpen();return}}
   if(!ZEN||document.querySelector('.dlg'))return;
   const k=e.code;
   if(k==='Escape'){e.preventDefault();e.stopPropagation();if(POP){closePop();return}zenClose();return}

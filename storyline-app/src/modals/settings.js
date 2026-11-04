@@ -74,6 +74,8 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
     h('input',{type:'color',value:k.color,title:k.colorMode==='random'?'랜덤 색 사용 중':'포스트잇 색',style:k.colorMode==='random'?'opacity:.3':'',disabled:k.colorMode==='random',onchange:e=>{act(()=>k.color=e.target.value);showSettings()},oninput:e=>edit(()=>k.color=e.target.value)}),
     h('input',{value:k.name,class:'kname',onchange:e=>{const v=e.target.value.trim();if(!v||S.kinds.some(x=>x!==k&&nameKey(x.name)===nameKey(v))){e.target.value=k.name;return toast('이름이 비었거나 이미 있어요')}act(()=>k.name=v);showSettings()}}),
     seg([['fixed','고정'],['random','랜덤']],k.colorMode||'fixed',v=>{act(()=>{k.colorMode=v});showSettings()}),
+    h('span',{class:'kdest',title:'원고: 타임라인 · 원고 내보내기로 · 위키: 위쪽 위키 탭에서 행으로 정리 (오른쪽 목록 · 구상 보드에는 둘 다 나와요)'},h('span',{class:'muted'},'가는 곳'),
+      segOld([['draft','원고'],['wiki','위키']],kindDest(k),v=>{act(()=>{k.dest=v});showSettings()})),
     h('span',{class:'khk',title:'이 키를 누르면 이 분류의 포스트잇이 바로 만들어져요'},h('span',{class:'muted'},'⌘'),
       sel(HOTKEYS.map(x=>[x,x||'없음']),k.key||'',v=>{
         const o=v&&S.kinds.find(x=>x!==k&&x.key===v);
@@ -114,7 +116,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       row('백업',null,h('button',{onclick:exportJson},'백업 파일 만들기'),Repo.backups?h('button',{onclick:showRestore},'자동 백업에서 복구'):null),
       ...syncRows(row),
       ...appUpdRows(row),
-      row('내보내기',null,h('button',{onclick:()=>showManuscriptExport([0,S.episodes.length])},'원고 .txt'),h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
+      row('내보내기',null,h('button',{onclick:()=>showManuscriptExport([0,S.episodes.length])},'원고 .txt'),h('button',{onclick:exportTimelineMd},'타임라인 .md'),h('button',{onclick:()=>exportWikiMd()},'위키 .md'),h('button',{onclick:exportSheetsMd},'인물 · 설정 .md'),h('button',{onclick:exportBoardPng},'코르크보드 .png')),
       row('정리',null,h('button',{onclick:showTrash},`휴지통 (${S.trash.length})`),S.demo?h('button',{onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지울까요?')){closeModal();clearDemo()}}},'예시 지우고 시작'):null),
       ...(Repo.openFolder?more('data',row('폴더',null,h('button',{onclick:()=>Repo.openFolder('data')},'저장 폴더 열기'),h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기'),h('button',{title:'저장 · 백업 · 동기화가 실패하면 여기에 기록돼요',onclick:()=>Repo.openFolder('logs')},'오류 기록 폴더 열기'))):[])]};
   openModal(h('h3',{class:'mtitle'},'설정'),
@@ -127,8 +129,8 @@ function showTrash(){
     h('p',{class:'muted'},'삭제한 카드와 캐릭터가 여기에 모여요. 복구하면 원래 목록으로 돌아가요.'),
     !S.trash.length?h('p',{class:'muted'},'비어 있어요.'):null,
     ...[...S.trash].reverse().map(t=>h('div',{class:'mrow'},
-      h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
-      h('button',{onclick:()=>{act(()=>{if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
+      h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:t.type==='wiki'?`위키 · ${((t.data.rows||[])[0]||{}).title||'제목 없음'}${(t.data.rows||[]).length>1?` 외 ${t.data.rows.length-1}개`:''}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
+      h('button',{onclick:()=>{act(()=>{if(t.type==='wiki')wkRestore(t);else if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
       h('button',{onclick:async()=>{if(await askConfirm('완전히 삭제할까요? 되돌릴 수 없어요.')){S.trash=S.trash.filter(x=>x!==t);save();renderTop();showTrash()}}},'✕'))),
     closeRow(S.trash.length?h('button',{style:'color:var(--warn)',onclick:async()=>{if(await askConfirm('휴지통을 모두 비울까요?')){S.trash=[];save();renderTop();showTrash()}}},'휴지통 비우기'):null));
 }

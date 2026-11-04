@@ -1,5 +1,5 @@
 /* ---------- 설정 표: 폴더 안의 항목을 사전처럼 한눈에 (이름 · 한 줄 정의 · 별칭 · 카드 수) ---------- */
-const isEmptyEntry=c=>c.kind==='setting'&&!(c.summary||'').trim()&&!(c.memo||'').trim()&&!(c.aliases||[]).length&&!cardsOf(c.id).length;
+const isEmptyEntry=c=>c.kind==='setting'&&!(c.summary||'').trim()&&!(c.memo||'').trim()&&!(c.aliases||[]).length&&!cardsOf(c.id).length&&!wkCount(c.id);
 const scopeIds=fid=>{const out=[fid];let grow=true;while(grow){grow=false;S.folders.forEach(f=>{const pr=parentOf(f);if(pr&&out.includes(pr)&&!out.includes(f.id)){out.push(f.id);grow=true}})}return out};
 const parseEntry=l=>{const t=String(l).trim();if(!t)return null;const m=t.match(/^(.+?)\s*(?:[:：]|\s[-—–]\s|\t)\s*(.+)$/);return m?{name:m[1].trim(),def:m[2].trim()}:{name:t,def:''}};
 function openFolderTable(fid){
@@ -79,7 +79,7 @@ function renderFolderTable(m){
       h('td',{},h('input',{class:'tin',value:c.summary||'',placeholder:'한 줄 정의',oninput:e=>edit(()=>c.summary=e.target.value)})),
       h('td',{},h('input',{class:'tin',value:(c.aliases||[]).join(', '),placeholder:'별칭',title:'쉼표로 구분 · 글에 나오면 카드가 자동으로 연결돼요',onchange:e=>act(()=>{c.aliases=e.target.value.split(/[,，]/).map(x=>x.trim()).filter(Boolean);autoLinkAll()})})),
       h('td',{class:'tc',title:n?'눌러서 이 항목의 카드 보기':'',onclick:n?()=>setSel(c.id):null},n||''),
-      h('td',{class:'tm'+(UI.tmemo===c.id?' open':''),title:'메모 보기 · 쓰기',onclick:e=>{e.stopPropagation();UI.tmemo=UI.tmemo===c.id?null:c.id;renderMid()}},c.memo&&c.memo.trim()?'●':'＋'),
+      h('td',{class:'tm',title:'위키에서 열기 — 이 설정 아래 행',onclick:e=>{e.stopPropagation();goWikiOwner(c.id)}},wkCount(c.id)?'📖 '+wkCount(c.id):'＋'),
       h('td',{class:'ta'},mb));
     tr.addEventListener('focusin',()=>selectInTable(c.id));tr.addEventListener('click',e=>{if(!e.target.closest('input,button,.eic,.tc'))selectInTable(c.id)});
     return tr;
@@ -89,7 +89,7 @@ function renderFolderTable(m){
     const r=createEntries([v],fid);if(r.skipped)toast('이미 있는 이름이에요');
     setTimeout(()=>{const i=document.querySelector('.tadd input');if(i)i.focus()},30)}});
   const cols=['<col style="width:26%">','<col>','<col style="width:20%">','<col style="width:54px">','<col style="width:42px">','<col style="width:36px">'].join('');
-  const tbl=h('table',{class:'ftab'},h('thead',{},h('tr',{},sortTh('이름','name'),sortTh('한 줄 정의','def'),h('th',{},'별칭'),sortTh('카드','cards'),h('th',{title:'메모가 있는 항목'},'메모'),h('th',{}))),
+  const tbl=h('table',{class:'ftab'},h('thead',{},h('tr',{},sortTh('이름','name'),sortTh('한 줄 정의','def'),h('th',{},'별칭'),sortTh('카드','cards'),h('th',{title:'이 설정 아래 위키 행 수 — 누르면 위키에서 열기'},'위키'),h('th',{}))),
     h('tbody',{},...rowsOut(),!list.length?h('tr',{},h('td',{colspan:6,class:'sempty'},q?'일치하는 항목이 없어요.':'아직 항목이 없어요. 아래에 이름을 쓰고 Enter를 누르거나, 위의 “여러 개 추가”를 써 보세요.')):null),
     h('tbody',{},h('tr',{class:'tadd'},h('td',{colspan:6},addIn))));
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+cols+'</colgroup>');

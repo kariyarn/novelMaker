@@ -48,7 +48,27 @@ function migrate(st){
   st.trash.forEach(t=>{if(t&&t.type==='card')oldMarks(t.data)});
   st.graveBoard=st.graveBoard||{};      // 무덤 보드의 포스트잇 자리
   if(st.settings.useFilter==='disc')st.settings.useFilter='unused';      // 예전 보기 '폐기만'은 무덤 보드로 바뀜
+  migrateWiki(st);
   return st;
+}
+/* 위키 (features/wiki.js): 행 목록을 바로잡고, 메모 카드의 '정리됨'(filed) 표시를 행과 맞춤 */
+function migrateWiki(st){
+  st.wiki=Array.isArray(st.wiki)?st.wiki.filter(r=>r&&typeof r==='object'&&r.id):[];
+  {const seen=new Set();st.wiki=st.wiki.filter(r=>!seen.has(r.id)&&seen.add(r.id))}
+  st.wiki.forEach(r=>{r.title=String(r.title||'');r.body=String(r.body||'');r.owner=r.owner?String(r.owner):'work';if(!r.parent)r.parent=null});
+  const byId=new Map(st.wiki.map(r=>[r.id,r]));
+  st.wiki.forEach(r=>{if(r.parent&&(!byId.has(r.parent)||r.parent===r.id))r.parent=null});
+  st.wiki.forEach(r=>{const seen=new Set([r.id]);let p=r.parent&&byId.get(r.parent);while(p){if(seen.has(p.id)){r.parent=null;break}seen.add(p.id);p=p.parent&&byId.get(p.parent)}});      // 순환 방지
+  st.wiki.forEach(r=>{let p=r.parent&&byId.get(r.parent),n=0;while(p&&n++<200){if(!p.parent){r.owner=p.owner;break}p=byId.get(p.parent)}});      // 하위 행은 맨 위 행과 같은 인물 · 설정 아래
+  (st.cards||[]).forEach(c=>{if(c.filed&&!byId.has(c.filed))delete c.filed});
+  // 예전 설정 노트의 '설정 메모' 칸 → 그 설정 아래 '설정 메모' 행 하나 (두 기기에서 따로 옮겨도 같은 행이 되게 id 를 정해 둠)
+  (st.characters||[]).forEach(c=>{
+    const t=String(c.memo||'').trim();if(c.kind!=='setting'||!t)return;
+    const id='wm_'+c.id,old=byId.get(id),body=textToHtml(t);
+    if(!old){const r=newWikiRow(c.id,null,'설정 메모',body);r.id=id;r.oldMemo=true;st.wiki.push(r);byId.set(id,r)}
+    else if(!old.body.includes(body))old.body+=body;
+    c.memo='';
+  });
 }
 let S,UIP={};
 // 앱 전체 취향(작품을 바꿔도 그대로): 화면 · 글꼴 · 핀 · 줄 · 말 강조 · 패널 너비. 나머지는 작품마다 따로 저장
