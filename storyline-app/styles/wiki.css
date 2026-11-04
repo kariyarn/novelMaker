@@ -173,3 +173,37 @@ a.lk:hover{background:color-mix(in srgb,var(--acc) 22%,transparent)}
 .wkpe{padding:4px 8px}
 .wkpm{font-size:11.5px;color:var(--sub);padding:6px 8px 0}
 
+
+/* ---------- 몰아 보기 ---------- */
+.wkrdbtn{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 10px;border-radius:99px;color:var(--sub);background:transparent;box-shadow:inset 0 0 0 1px var(--line);white-space:nowrap}
+.wkrdbtn .ic,.wkrdbar .ic{width:14px;height:14px}
+.wkrdbtn:hover{color:var(--ink);background:var(--fill)}
+.wkrdbtn.on{color:var(--acc);background:var(--acc-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--acc) 40%,transparent)}
+.wkrdbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 32px 0;padding:0 0 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+.wkrdbar b{display:inline-flex;align-items:center;gap:6px;color:var(--ink)}.wkrdbar b .ic{color:var(--acc)}
+.wkrdbar .sp{flex:1}
+.wkrd{max-width:720px;margin:0 auto;font:15px/1.85 var(--fr-story);color:var(--ink)}
+.wkrdtoc{display:flex;flex-direction:column;gap:1px;background:var(--fill);border-radius:10px;padding:10px 12px;margin:4px 0 26px;font:13px/1.5 var(--ff,inherit)}
+.wkrdtoc button{text-align:left;background:transparent;color:var(--ink);padding:2px 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkrdtoc button:hover{background:var(--acc-soft)}
+.wkrd .no{color:var(--acc);margin-right:8px;font-variant-numeric:tabular-nums;font-weight:600}
+.wkrds{padding-top:18px;margin-top:18px;border-top:1px solid var(--line);scroll-margin-top:10px}
+.wkrds:first-of-type,.wkrdtoc+.wkrds{border-top:0;margin-top:0;padding-top:0}
+.wkrdh{display:flex;align-items:baseline;gap:10px}
+.wkrdh .t{flex:1;font-weight:700;line-height:1.35}
+.wkrds[data-d="0"] .wkrdh .t{font-size:21px}.wkrds[data-d="1"] .wkrdh .t{font-size:18px}.wkrds[data-d="2"] .wkrdh .t,.wkrds[data-d="3"] .wkrdh .t{font-size:16px}
+.wkrdh .quiet{font-size:12px;padding:1px 8px;opacity:0;transition:opacity .12s}
+.wkrds:hover .wkrdh .quiet,.wkrdh .quiet:focus-visible{opacity:1}
+.wkrdp{font:11.5px var(--ff,inherit);color:var(--sub);margin:2px 0 6px}
+.wkrdb p{margin:0 0 .35em}.wkrdb h3{font-size:16.5px;margin:.9em 0 .25em}.wkrdb h4{font-size:15px;margin:.8em 0 .2em;color:var(--sub)}
+.wkrdb ul,.wkrdb ol{margin:.2em 0 .5em;padding-left:1.4em}
+.wkrdb blockquote{margin:.5em 0;padding:4px 14px;border-left:3px solid var(--line);color:var(--sub)}
+.wkrdb mark{background:#fff1a6;color:inherit;border-radius:2px;padding:0 1px}
+:root.dk .wkrdb mark{background:rgba(255,220,90,.28)}
+/* 들여쓴 목록: 단계마다 글머리 모양을 바꿔 깊이가 보이게 */
+:is(.wkbody,.wkrdb,.wkpv) ul ul{list-style-type:circle;margin:.1em 0}
+:is(.wkbody,.wkrdb,.wkpv) ul ul ul{list-style-type:square}
+:is(.wkbody,.wkrdb,.wkpv) ol ol{list-style-type:lower-alpha;margin:.1em 0}
+:is(.wkbody,.wkrdb,.wkpv) li>:is(ul,ol){padding-left:1.3em}
+.wkrdh .fm{font-size:.62em;color:#2f8a5b;vertical-align:.15em;font-weight:600}
+:root.dk .wkrdh .fm{color:#7fcf9c}

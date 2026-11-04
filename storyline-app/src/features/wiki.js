@@ -78,9 +78,9 @@ function wkPath(){
   return out;
 }
 const wkPathOf=r=>[rowOwner(rowChain(r)[0]),...rowChain(r).map(x=>x.id)];
-function wkSetPath(p,opt={}){UIP.wpath=p;saveUIP();if(opt.focusCol!=null)UI.wkFocus=opt.focusCol;renderMid()}
-function goWikiRow(id,opt={}){const r=rowById(id);if(!r)return;UIP.wpath=wkPathOf(r);saveUIP();if(opt.edit)UI.wkEdit=id;if(UI.mode!=='wiki')goMode('wiki');else renderAll();setTimeout(()=>flashEl(document.querySelector(`#mid .wkrow[data-row="${id}"]`)),60)}
-function goWikiOwner(o){UIP.wpath=[o];saveUIP();if(UI.mode!=='wiki')goMode('wiki');else renderAll()}
+function wkSetPath(p,opt={}){UIP.wpath=p;saveUIP();UI.wkRead=null;if(opt.focusCol!=null)UI.wkFocus=opt.focusCol;renderMid()}
+function goWikiRow(id,opt={}){const r=rowById(id);if(!r)return;UIP.wpath=wkPathOf(r);saveUIP();UI.wkRead=null;if(opt.edit)UI.wkEdit=id;if(UI.mode!=='wiki')goMode('wiki');else renderAll();setTimeout(()=>flashEl(document.querySelector(`#mid .wkrow[data-row="${id}"]`)),60)}
+function goWikiOwner(o){UIP.wpath=[o];saveUIP();UI.wkRead=null;if(UI.mode!=='wiki')goMode('wiki');else renderAll()}
 
 /* ---------- 행 만들기 · 옮기기 · 지우기 ---------- */
 function wkInsert(row,before){      // 같은 층에서 before 행 앞에 (없으면 그 층 맨 뒤)
@@ -172,7 +172,8 @@ function renderWiki(m){
   }
   const ed=h('div',{class:'wked'});
   wrap.append(cols,ed);m.append(wrap);
-  if(p.length>1)wkEditor(ed,rowById(p[p.length-1]),p);else wkOwnerPage(ed,p[0]);
+  const key=p.length>1?p[p.length-1]:'@'+p[0];
+  if(UI.wkRead===key)wkReadView(ed,p);else if(p.length>1)wkEditor(ed,rowById(p[p.length-1]),p);else wkOwnerPage(ed,p[0]);
   wkFit(cols,m);
   cols.addEventListener('keydown',wkColKey);
   cols.addEventListener('scroll',()=>cols.classList.toggle('wkcut',cols.scrollLeft>2),{passive:true});
@@ -252,6 +253,7 @@ function wkRowMenu(at,r){
     {label:'이름 바꾸기',hint:'Enter',fn:()=>{const el=document.querySelector(`#mid .wkrow[data-row="${r.id}"]`);if(el)wkRename(el,r)}},
     {label:'새 하위 행',fn:()=>wkNewRow(rowOwner(r),r.id)},
     {label:'다른 곳으로 옮기기…',fn:()=>setTimeout(()=>wkPickOwner(wkAnchor(at),o=>wkMove(r.id,o,null)),0)},
+    {label:'여기부터 몰아 보기',fn:()=>{UIP.wpath=wkPathOf(r);saveUIP();UI.wkRead=r.id;renderMid()}},
     {label:'이 행 아래 .md로 내보내기',fn:()=>exportWikiMd({row:r.id})},
     ...(cs.length?['sep',{label:cs.length>1?`원본 메모 ${cs.length}장 보기`:'원본 메모 보기',fn:()=>frOpen(cs[0].id,'left')},{label:'메모로 되돌리기',fn:()=>wkRevert(r.id)}]:[]),
     'sep',{label:'휴지통으로',hint:'⌘⌫',fn:()=>wkDelete(r.id)}]);
@@ -300,7 +302,8 @@ function wkColKey(e){
 }
 
 /* ---------- 편집기 ---------- */
-let WKSAVE=0;
+let WKSAVE=0,WKFLUSH=null;
+const wkFlushNow=()=>{if(WKFLUSH&&document.querySelector('#mid .wkbody'))WKFLUSH()};
 function wkLinkName(k,ref){
   if(k==='ent'){const c=charById(ref);return c?c.name:null}
   if(k==='row'){const r=rowById(ref);return r?(r.title||'제목 없음'):null}
@@ -333,8 +336,36 @@ function wkBackEl(row,owner){
 function wkCrumb(p,extra){
   const segs=[h('button',{class:'wkcb',onclick:()=>wkSetPath([p[0]])},wkOwnerName(p[0]))];
   p.slice(1).forEach((id,j)=>{const r=rowById(id);segs.push(h('i',{},'›'),h('button',{class:'wkcb',onclick:()=>wkSetPath(p.slice(0,j+2))},r.title||'제목 없음'))});
-  const cols=document.querySelector('#mid .wkcols');
-  return h('div',{class:'wkcrumb'},h('div',{class:'wkcbs'},...segs),h('span',{class:'sp'}),...(extra||[]));
+  const key=p.length>1?p[p.length-1]:'@'+p[0],on=UI.wkRead===key;
+  const rb=h('button',{class:'wkrdbtn'+(on?' on':''),'aria-pressed':on?'true':'false',title:'이 행과 하위 행을 한 화면에 이어서 읽기 (인물 · 설정에서는 그 아래 전부)',onclick:()=>{wkFlushNow();UI.wkRead=on?null:key;renderMid()}},icon('book'),'몰아 보기');
+  return h('div',{class:'wkcrumb'},h('div',{class:'wkcbs'},...segs),h('span',{class:'sp'}),rb,...(extra||[]));
+}
+/* 몰아 보기: 이 행과 하위 행 전부(인물 · 설정이면 그 아래 전부)를 한 화면에 이어서 읽음 — 읽기 전용
+   위에 목차(누르면 그 행으로 스크롤) · 행마다 번호(1.2.3) · 경로 · '고치기'(그 행 편집기로). 연결은 그대로 눌림 */
+function wkReadList(p){
+  const L=[],walk=(r,d,num)=>{L.push({r,d,num});rowKids(null,r.id).forEach((x,i)=>walk(x,d+1,num?`${num}.${i+1}`:String(i+1)))};
+  if(p.length>1)walk(rowById(p[p.length-1]),0,'');
+  else rowKids(p[0],null).forEach((r,i)=>walk(r,0,String(i+1)));
+  return L;
+}
+function wkReadView(ed,p){
+  const L=wkReadList(p),base=p.length>1?rowById(p[p.length-1]):null;
+  ed.append(wkCrumb(p,[h('button',{class:'cbtn',title:'몰아 본 내용을 .md로 내보내기',onclick:()=>exportWikiMd(base?{row:base.id}:{owner:p[0]})},icon('download'))]));
+  const bar=h('div',{class:'wkrdbar'},h('b',{},icon('book'),'몰아 보기'),h('span',{class:'muted'},`${base?`‘${base.title||'제목 없음'}’ 부터`:`${wkOwnerName(p[0])} 전체`} · 행 ${L.length}개`),h('span',{class:'sp'}),
+    h('button',{class:'quiet',onclick:()=>{UI.wkRead=null;renderMid()}},'편집으로 돌아가기'));
+  const page=h('div',{class:'wkrd'});
+  if(L.length>1)page.append(h('nav',{class:'wkrdtoc','aria-label':'목차'},...L.map(({r,d,num},i)=>h('button',{style:`padding-left:${6+Math.min(d,6)*14}px`,onclick:()=>{const s=page.querySelector(`[data-rdi="${i}"]`);if(s)s.scrollIntoView({block:'start',behavior:'smooth'})}},num?h('span',{class:'no'},num):null,r.title||'제목 없음'))));
+  L.forEach(({r,d,num},i)=>{
+    const b=h('div',{class:'wkrdb'});b.innerHTML=wkClean(r.body);wkLinksFix(b);
+    const trail=rowChain(r).slice(0,-1).map(x=>x.title||'제목 없음').join(' › ');
+    page.append(h('section',{class:'wkrds','data-rdi':i,'data-d':Math.min(d,3)},
+      h('div',{class:'wkrdh'},h('div',{class:'t'},num?h('span',{class:'no'},num):null,r.from?h('span',{class:'fm',title:'메모에서 만든 행'},'✎ '):null,r.title||'제목 없음'),
+        h('button',{class:'quiet',title:'이 행을 편집기로 열어요',onclick:()=>wkSetPath(wkPathOf(r))},'고치기')),
+      d&&trail?h('div',{class:'wkrdp'},trail):null,b));
+  });
+  if(!L.length)page.append(h('div',{class:'wkempty big'},'몰아 볼 행이 없어요.'));
+  page.addEventListener('click',e=>{const a=e.target.closest('a.lk');if(a){e.preventDefault();wkGoLink(a)}});
+  ed.append(bar,h('div',{class:'wkdoc wkrdwrap'},page));
 }
 function wkOwnerPage(ed,o){
   const c=charById(o),rows=rowKids(o,null),memos=wkMemos(o),p=[o];
@@ -366,7 +397,7 @@ function wkEditor(ed,r,p){
     h('span',{class:'muted'},`고친 날 ${wkDate(r.updated)}`));
   const doc=h('div',{class:'wkdoc'},title,meta,body);
   ed.append(tb,doc,wkBackEl(r,owner));
-  const flush=()=>{clearTimeout(WKSAVE);WKSAVE=0;const v=wkClean(body.innerHTML);if(v!==r.body)edit(()=>{r.body=v;r.updated=Date.now()})};
+  const flush=WKFLUSH=()=>{clearTimeout(WKSAVE);WKSAVE=0;const v=wkClean(body.innerHTML);if(v!==r.body)edit(()=>{r.body=v;r.updated=Date.now()})};
   body.addEventListener('input',e=>{body.classList.toggle('empty',wkEmpty(body));clearTimeout(WKSAVE);WKSAVE=setTimeout(flush,350);wkAcCheck(body,r)});
   body.addEventListener('blur',()=>{flush();setTimeout(()=>{if(document.activeElement!==body)wkAcClose()},120)});
   body.addEventListener('keydown',e=>wkBodyKey(e,body,r,flush));
@@ -399,8 +430,30 @@ function wkToolbar(body){
     h('span',{class:'sep'}),b('형광펜','mark','형광펜 (⌘⇧H)','hl'),h('span',{class:'sep'}),b('[[ 연결','link','인물 · 설정 · 다른 행 · 화 연결 ([[ 입력)'));
 }
 function wkLinkStart(body){body.focus();document.execCommand('insertText',false,'[[');wkAcCheck(body)}
+function wkIndent(li,out,body){
+  const s=getSelection(),an=s.anchorNode,ao=s.anchorOffset,fn=s.focusNode,fo=s.focusOffset;      // 옮긴 뒤에도 커서를 같은 글자에
+  const list=li.parentNode;
+  if(!out){
+    const prev=li.previousElementSibling;if(!prev||prev.tagName!=='LI')return;      // 맨 첫 항목은 더 들어갈 곳이 없음
+    let sub=prev.lastElementChild&&/^(UL|OL)$/.test(prev.lastElementChild.tagName)?prev.lastElementChild:null;
+    if(!sub){sub=document.createElement(list.tagName);prev.append(sub)}
+    sub.append(li);
+  }else{
+    const outer=list.parentNode&&list.parentNode.tagName==='LI'?list.parentNode:null;
+    if(!outer){document.execCommand('outdent');body.dispatchEvent(new Event('input'));return}      // 맨 바깥: 목록을 끝내고 보통 문단으로
+    const rest=[];for(let x=li.nextElementSibling;x;x=x.nextElementSibling)rest.push(x);
+    if(rest.length){let sub=li.lastElementChild&&/^(UL|OL)$/.test(li.lastElementChild.tagName)?li.lastElementChild:null;if(!sub){sub=document.createElement(list.tagName);li.append(sub)}rest.forEach(y=>sub.append(y))}      // 뒤따르던 항목은 이 항목 아래로 (순서 유지)
+    outer.after(li);if(!list.children.length)list.remove();
+  }
+  try{const r=document.createRange();r.setStart(an,ao);s.removeAllRanges();s.addRange(r);s.extend(fn,fo)}catch(x){}
+  body.dispatchEvent(new Event('input'));
+}
 function wkBodyKey(e,body,r,flush){
   if(WKAC&&wkAcKey(e))return;
+  if(e.key==='Tab'&&!e.isComposing&&!e.metaKey&&!e.ctrlKey&&!e.altKey){      // 목록 안: Tab = 한 단계 안으로 · ⇧Tab = 한 단계 밖으로
+    const s=getSelection();let n=s.anchorNode;while(n&&n.nodeType!==1)n=n.parentNode;const li=n&&n.closest('li');
+    if(li&&body.contains(li)){e.preventDefault();e.stopPropagation();wkIndent(li,e.shiftKey,body);return}
+  }
   const mod=modKey(e);
   if(mod&&!e.altKey&&!e.shiftKey&&/^Key[BIU]$/.test(e.code)){e.preventDefault();e.stopPropagation();wkFormat({KeyB:'bold',KeyI:'italic',KeyU:'underline'}[e.code],body);return}      // ⌘B 가 분류 단축키로 새 포스트잇을 만들지 않게
   if(mod&&e.shiftKey&&e.code==='KeyH'){e.preventDefault();e.stopPropagation();wkFormat('mark',body);return}
@@ -543,7 +596,8 @@ function wkMd(html){
   const out=[];
   [...d.children].forEach(b=>{const t=b.tagName.toLowerCase();
     if(t==='h3')out.push(`**${inl(b)}**`,'');else if(t==='h4')out.push(`*${inl(b)}*`,'');
-    else if(t==='ul'||t==='ol'){[...b.children].forEach((li,i)=>out.push(`${t==='ol'?(i+1)+'.':'-'} ${inl(li)}`));out.push('')}
+    else if(t==='ul'||t==='ol'){const lst=(l,d)=>[...l.children].forEach((li,i)=>{const subs=[...li.children].filter(x=>/^(UL|OL)$/.test(x.tagName));subs.forEach(x=>x.remove());
+        out.push(`${'   '.repeat(d)}${l.tagName==='OL'?(i+1)+'.':'-'} ${inl(li).trim()}`);subs.forEach(x=>lst(x,d+1))});lst(b,0);out.push('')}
     else if(t==='blockquote')out.push(...inl(b).split('\n').map(x=>'> '+x),'');
     else out.push(inl(b),'')});
   return out.join('\n').trim();
