@@ -207,3 +207,12 @@ a.lk:hover{background:color-mix(in srgb,var(--acc) 22%,transparent)}
 :is(.wkbody,.wkrdb,.wkpv) li>:is(ul,ol){padding-left:1.3em}
 .wkrdh .fm{font-size:.62em;color:#2f8a5b;vertical-align:.15em;font-weight:600}
 :root.dk .wkrdh .fm{color:#7fcf9c}
+
+/* ---------- 작품을 뿌리로 하는 나무 ---------- */
+.wkch .tt{background:transparent;padding:0;margin:0;font:inherit;color:inherit;letter-spacing:inherit;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
+.wkch .tt:hover{color:var(--acc)}
+.wkroot .wkch{color:var(--ink)}
+.wkenth{margin:0 0 6px}
+.wkenth .wkoh .quiet{margin-left:auto;font-size:12px}
+.wkrdsum{color:var(--sub);font-size:13.5px;margin:2px 0 6px}
+.wkcard b .wkdot{vertical-align:middle}

@@ -24,8 +24,9 @@ function draftOnly(ids){
 /* 위키 행 찾기 (features/wiki.js) */
 const wikiRows=()=>S.wiki||(S.wiki=[]);
 const rowById=id=>id?wikiRows().find(r=>r.id===id):null;
-const rowOwner=r=>r.owner==='work'||charById(r.owner)?r.owner:'work';      // 인물 · 설정을 지웠으면 '작품 전체' 아래에 보임 (되살리면 돌아감)
-const rowKids=(owner,parent)=>wikiRows().filter(r=>(parent?r.parent===parent:(!r.parent&&rowOwner(r)===owner)));
+const rowKids=parent=>wikiRows().filter(r=>(r.parent||null)===(parent||null));      // 이 행 바로 아래 (null = 작품 바로 아래)
+const entRow=id=>wikiRows().find(r=>r.ent===id)||null;      // 이 인물 · 설정과 이어진 위키 문서
+const rowTitle=r=>{if(r.ent){const c=charById(r.ent);if(c)return c.name}return r.title||'제목 없음'};      // 이어진 문서는 인물 이름을 따라감
 function rowDesc(id){const out=[],walk=p=>wikiRows().forEach(r=>{if(r.parent===p){out.push(r);walk(r.id)}});walk(id);return out}
 function rowChain(r){const out=[];let x=r,n=0;while(x&&n++<200){out.unshift(x);x=x.parent?rowById(x.parent):null}return out}      // 맨 위 행 → 이 행
 const eff=c=>{const X=idx(),k=c.chars.join()+'|'+c.autoChars.join(),o=X.ef.get(c);if(o&&o.k===k)return o.v;
