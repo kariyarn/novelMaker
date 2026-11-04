@@ -62,6 +62,7 @@ function hlFill(box,text){
   groups.forEach(g=>{if(g.i>p)box.append(text.slice(p,g.i));box.append(h('span',{class:'hl '+g.cls,'data-k':g.k||'','data-mid':(g.cls==='hq'||g.cls==='hs')&&/\S/.test(text.slice(text.lastIndexOf('\n',g.i-1)+1,g.i))?'1':'','data-tl':(g.i>0&&!/\s/.test(text[g.i-1]))?'1':'','data-tr':(g.e<text.length&&!/\s/.test(text[g.e]))?'1':''},text.slice(g.i,g.e)));p=g.e});
   if(p<text.length)box.append(text.slice(p));
   if(text===''||text.endsWith('\n'))box.append('​');
+  if(typeof wkMarkNames==='function')wkMarkNames(box);      // 글 속 인물 · 설정 이름: 올리면 위키 엿보기 (features/wiki.js)
 }
 const PIN_COLORS=[['black','검정','#1a1a1c','#6a6a70','#050506'],['red','빨강','#d8402e','#ff9d8c','#85180c'],['blue','파랑','#2f6fd0','#8fb7ff','#10306b'],['green','초록','#2e8b57','#8fe0b0','#0f4527'],['yellow','노랑','#e0a526','#ffe08a','#7a5300'],['white','흰색','#e6e6e6','#ffffff','#9a9a9a'],['pink','분홍','#e0608f','#ffb3cc','#7a1f40']];
 (function(){      // 색마다 그라데이션을 만들어 둠

@@ -120,7 +120,8 @@ function resolveConflict(c,how){
   act(()=>{
     if(t&&how==='theirs')t.obj[t.key]=c.theirs;
     else if(t&&how==='both'){
-      if(!(c.path[0]==='cards'&&c.path[2]==='text'&&keepBothCard(c.path[1],c.theirs)))t.obj[t.key]=`${c.mine}\n\n${c.theirs}`;
+      if(c.path[0]==='wiki'&&c.path[c.path.length-1]==='body')t.obj[t.key]=wkClean(`${c.mine}${c.theirs}`);      // 위키 본문(HTML)은 문단째 이어 붙임
+      else if(!(c.path[0]==='cards'&&c.path[2]==='text'&&keepBothCard(c.path[1],c.theirs)))t.obj[t.key]=`${c.mine}\n\n${c.theirs}`;
     }
     S.syncConflicts=pendingConflicts().filter(x=>x.id!==c.id);
     if(!S.syncConflicts.length)delete S.syncConflicts;
@@ -129,8 +130,10 @@ function resolveConflict(c,how){
 function showSyncConflicts(){
   const list=pendingConflicts();if(!list.length)return closeModal();
   const c=list[0],t=conflictTarget(c.path),now=t?t.obj[t.key]:c.mine,isCard=c.path[0]==='cards';
-  const box=(title,text)=>h('div',{style:'flex:1;min-width:0'},h('div',{style:'font-weight:600;margin-bottom:4px'},title),
-    h('div',{style:'white-space:pre-wrap;max-height:40vh;overflow:auto;padding:10px;border-radius:8px;background:var(--acc-soft);font-size:.95em'},text||'(비어 있음)'));
+  const isHtml=c.path[0]==='wiki'&&c.path[c.path.length-1]==='body';      // 위키 본문: 태그 대신 보이는 모양 그대로
+  const box=(title,text)=>{const v=h('div',{class:isHtml?'wkpv on':'',style:'white-space:'+(isHtml?'normal':'pre-wrap')+';max-height:40vh;overflow:auto;padding:10px;border-radius:8px;background:var(--acc-soft);font-size:.95em'},isHtml?null:(text||'(비어 있음)'));
+    if(isHtml){v.innerHTML=wkClean(text)||'<p>(비어 있음)</p>';wkLinksFix(v)}
+    return h('div',{style:'flex:1;min-width:0'},h('div',{style:'font-weight:600;margin-bottom:4px'},title),v)};
   const pick=how=>{resolveConflict(c,how);showSyncConflicts()};
   openModal(mtitle('양쪽 기기에서 다르게 고친 글'),
     h('p',{class:'muted',style:'white-space:pre-line'},`${c.label}${list.length>1?` · 남은 것 ${list.length}곳`:''}\n어느 쪽을 쓸지 골라 주세요. 고르기 전까지는 이 기기 글이 들어가 있어요.`),
