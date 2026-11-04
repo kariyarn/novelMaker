@@ -24,7 +24,8 @@ function runSearch(q){
   });
   S.cards.forEach(c=>{if(has(c.text))out.push({kind:kindOf(c.kind).name,title:snippet(c.text,toks,60),sub:eff(c).map(id=>charById(id).name).join(', ')||'미분류',color:kindOf(c.kind).color,card:c,go:()=>goToCard(c.id)})});
   S.episodes.forEach((e,i)=>{if(has((e.title||'')+' '+(e.memo||'')))out.push({kind:'화',title:`${i+1}화${e.title?' · '+e.title:''}`,sub:snippet(e.memo,toks),color:'var(--acc)',go:()=>{UI.mode='tl';UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';renderAll();setTimeout(()=>{const col=document.querySelector(`[data-ep="${i}"]`);if(col){col.scrollIntoView({inline:'center',block:'start',behavior:'smooth'});flashEl(col)}},60)}})});
-  const order={'캐릭터':0,'설정':0,'화':1};
+  wikiRows().forEach(r=>{const t=wkText(r.body);if(has(r.title+' '+t))out.push({kind:'위키',title:r.title||'제목 없음',sub:wkOwnerName(rowOwner(r))+(t?' · '+snippet(t,toks):''),color:'var(--acc)',go:()=>goWikiRow(r.id)})});
+  const order={'캐릭터':0,'설정':0,'위키':1,'화':1};
   out.sort((a,b)=>((order[a.kind]??2)-(order[b.kind]??2)));
   return {out:out.slice(0,60),toks};
 }
@@ -41,7 +42,7 @@ function goToCard(id){      // 카드가 있는 보드로 가서 보여줌 (필�
 }
 function openSearch(){
   closeSearch();closePop();
-  const inp=h('input',{class:'spotin',placeholder:'카드 · 캐릭터 · 설정 · 화 검색   (↑↓ 이동 · Enter 열기 · Esc 닫기)',autofocus:true});
+  const inp=h('input',{class:'spotin',placeholder:'카드 · 캐릭터 · 설정 · 위키 · 화 검색   (↑↓ 이동 · Enter 열기 · Esc 닫기)',autofocus:true});
   const list=h('div',{class:'sres'}),box=h('div',{class:'spotbox'},inp,list),ov=h('div',{class:'spot',onmousedown:e=>{if(e.target===ov)closeSearch()}},box);
   let res=[],cur=0;
   const draw=()=>{

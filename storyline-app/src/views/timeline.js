@@ -8,6 +8,7 @@ function addEpisode(){      // 화 추가: 보고 있던 자리를 지키고, �
 }
 
 function placeCard(cardId,epId,beforeId){
+  if(!draftOnly([cardId]).length)return;
   {const c0=cardById(cardId);if(c0)ensureKindVisible(c0.kind)}
   if(!episodeOf(cardId))UI.landId=cardId;      // 새단장: 목록에서 처음 들어온 카드는 노란 종이가 하얀 카드로 바뀌며 자리를 잡음
   act(()=>{detach([cardId]);
@@ -22,6 +23,7 @@ function tlRecount(opt){      // 글을 고치고 나왔을 때 화 · 보관 �
     document.querySelectorAll(`#mid [data-sh="${sh.id}"] .tlhead .epcnt`).forEach(x=>x.textContent=cntLabel(cs.map(c=>c.id),cs.length))}
 }
 function shelfPlace(cardId,shelfId,beforeId){      // 보관 칸에 넣기 (칸 안 순서도 지정)
+  if(!draftOnly([cardId]).length)return;
   act(()=>{detach([cardId]);const sh=S.shelves.find(x=>x.id===shelfId);if(!sh)return;let i=beforeId?sh.cardIds.indexOf(beforeId):-1;if(i<0)i=sh.cardIds.length;sh.cardIds.splice(i,0,cardId)});
 }
 let TLIO=null;

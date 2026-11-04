@@ -51,7 +51,7 @@
 | `storage/sync.js` | GitHub 동기화 (GitHub API 로 올리기 `push` · 확인 `check` · 받기 `sync` · 양쪽에서 고치면 카드 단위로 합침) |
 | `note/` | 포스트잇 창 (작은 창 화면 · 다리) |
 | `build/icon.png` | Windows · 맥 앱 아이콘 (electron-builder) |
-| `test/` | 저장소 · 동기화 · 오류 기록 · 카드 무덤 규칙 테스트 (`npm test`) |
+| `test/` | 저장소 · 동기화 · 오류 기록 · 카드 무덤 · 위키 규칙 테스트 (`npm test`) |
 | `preload.js` | 화면 ↔ 저장소 연결 다리 |
 | `build.sh` | 앱 조립 스크립트 |
 

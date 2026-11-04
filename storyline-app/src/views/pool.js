@@ -6,7 +6,7 @@ const poolOwnAll=()=>{const o=poolOwn();return o.char&&o.setting&&o.none};
 const poolSort=()=>({by:UIP.psort==='updated'?'updated':'created',dir:UIP.pdir==='asc'?'asc':'desc'});
 function cardOwners(c){const ids=eff(c);if(!ids.length)return {none:true};const o={};ids.forEach(id=>{const e=charById(id);if(e)o[e.kind==='setting'?'setting':'char']=true});return o}
 function poolPass(c){
-  if(c.discarded||shelfOf(c.id))return false;      // 무덤 카드 · 보관 칸에 둔 카드는 오른쪽 목록에 안 나옴 (무덤은 맨 아래 따로)
+  if(c.discarded||shelfOf(c.id)||c.filed)return false;      // 위키에 넣은 메모(filed)도 빠짐      // 무덤 카드 · 보관 칸에 둔 카드는 오른쪽 목록에 안 나옴 (무덤은 맨 아래 따로)
   if(!poolKinds().includes(c.kind))return false;
   if(UI.pnew&&UI.pnew.has(c.id))return true;      // 방금 이 목록에서 만든 카드는 종류와 상관없이 보임
   const own=poolOwn(),o=cardOwners(c);return (own.char&&o.char)||(own.setting&&o.setting)||(own.none&&o.none)||false;
@@ -80,7 +80,8 @@ function renderPool0(){
   idxClear();
   const p=$('pool');p.innerHTML='';p.dataset.ps=UIP.ps||'m';
   p.classList.toggle('cl',poolClosed()&&UI.peek!=='pool');
-  if(poolClosed()&&UI.peek!=='pool'){p.append(h('button',{class:'ctab ctab-r',onmouseenter:()=>peekSoon('pool'),onfocus:()=>startPeek('pool',true),title:'장면 · 대사 목록 펴기',onclick:()=>togglePool()},icon('cards')));return}
+  if(poolClosed()&&UI.peek!=='pool'){p.append(h('button',{class:'ctab ctab-r',onmouseenter:()=>peekSoon('pool'),onfocus:()=>startPeek('pool',true),title:UI.mode==='wiki'?'정리할 메모 펴기':'장면 · 대사 목록 펴기',onclick:()=>togglePool()},icon('cards')));return}
+  if(UI.mode==='wiki')return renderWikiPool(p);      // 위키 탭: 아직 정리 안 한 메모만 (features/wiki.js)
   const fOn=UI.pchar||!poolOwnAll();      // 필터 팝업 안의 조건(인물 · 연결)이 걸려 있으면 점 표시
   const fb=h('button',{class:'cbtn pfbtn'+(fOn?' fon':''),'data-pop':'1',title:'필터 — 인물 · 연결',onclick:()=>
     popMenu(fb,()=>[{title:'인물'},{node:sel([['','모든 인물'],...S.characters.map(c=>[c.id,c.name])],UI.pchar,v=>{UI.pchar=v;renderPool()},'psel')},

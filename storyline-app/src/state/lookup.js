@@ -14,6 +14,20 @@ function idx(){
 const charById=id=>idx().ch.get(id);
 const cardById=id=>idx().cd.get(id);
 const kindOf=id=>S.kinds.find(k=>k.id===id)||S.kinds[0];
+const isWikiKind=id=>kindDest(kindOf(id))==='wiki';      // 위키로 가는 분류 (기본: 메모)
+/* 위키로 가는 분류는 화 · 보관 칸에 새로 넣지 않음 (이미 들어 있던 카드는 그대로 옮길 수 있음) */
+function draftOnly(ids){
+  const no=ids.map(cardById).filter(c=>c&&isWikiKind(c.kind)&&!episodeOf(c.id)&&!shelfOf(c.id));
+  if(no.length)toast(`‘${kindOf(no[0].kind).name}’ 분류는 위키로 가요 · 위쪽 ‘위키’ 탭에서 정리해요 (설정 → 글쓰기에서 바꿀 수 있어요)`);
+  return ids.filter(id=>!no.some(c=>c.id===id));
+}
+/* 위키 행 찾기 (features/wiki.js) */
+const wikiRows=()=>S.wiki||(S.wiki=[]);
+const rowById=id=>id?wikiRows().find(r=>r.id===id):null;
+const rowOwner=r=>r.owner==='work'||charById(r.owner)?r.owner:'work';      // 인물 · 설정을 지웠으면 '작품 전체' 아래에 보임 (되살리면 돌아감)
+const rowKids=(owner,parent)=>wikiRows().filter(r=>(parent?r.parent===parent:(!r.parent&&rowOwner(r)===owner)));
+function rowDesc(id){const out=[],walk=p=>wikiRows().forEach(r=>{if(r.parent===p){out.push(r);walk(r.id)}});walk(id);return out}
+function rowChain(r){const out=[];let x=r,n=0;while(x&&n++<200){out.unshift(x);x=x.parent?rowById(x.parent):null}return out}      // 맨 위 행 → 이 행
 const eff=c=>{const X=idx(),k=c.chars.join()+'|'+c.autoChars.join(),o=X.ef.get(c);if(o&&o.k===k)return o.v;
   const v=[...new Set([...c.chars,...c.autoChars])].filter(id=>X.ch.has(id));X.ef.set(c,{k,v});return v};
 const dupName=(name,exceptId)=>S.characters.find(c=>c.id!==exceptId&&nameKey(c.name)===nameKey(name));

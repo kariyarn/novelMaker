@@ -67,6 +67,8 @@ button.quiet:hover{background:var(--acc-soft)}
 #app.m-table #sheet,#app.m-table #sp1,#app.m-table #sp2,#app.m-table #pool{display:none}
 #app.m-tl{grid-template-columns:minmax(0,1fr) 1px var(--rw,330px)}
 #app.m-graph{grid-template-columns:minmax(0,1fr)}
+#app.m-wiki{grid-template-columns:minmax(0,1fr) 1px var(--rw,300px)}
+#app.m-wiki #left,#app.m-wiki #sheet,#app.m-wiki #sp1{display:none}
 #app.m-graph #left,#app.m-graph #sheet,#app.m-graph #pool,#app.m-graph #sp1,#app.m-graph #sp2{display:none}
 #app.m-graph #mid{position:relative}
 .gview{position:absolute;inset:0;display:flex;flex-direction:column}

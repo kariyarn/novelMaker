@@ -50,6 +50,7 @@ function kcard(card,mode,opt={}){
     if(card.discarded){el.classList.add('disc');el.prepend(h('i',{class:'kx','aria-hidden':'true'}))}      // 무덤 카드: 바탕에 붉은 X (글자 아래)
     else{const d=ddayEl(card);if(d){el.classList.add('wilt');el.append(d)}}      // 무덤 3일 전부터 흐려지며 모서리에 D-3 · D-2 · D-1
     if(pl)el.querySelector('.kfoot').append(h('span',{class:'placed use',title:'타임라인에 배치됨 (이미 쓴 카드)'},`${pl.i+1}화 사용`));
+    if(card.filed&&rowById(card.filed)){el.classList.add('filed');el.append(h('button',{class:'wkbadge',title:'위키에 정리한 메모 — 눌러서 그 행 열기',onclick:e=>{e.stopPropagation();goWikiRow(card.filed)}},'📖 위키에서 보기'))}      // 위키에 넣은 메모는 흐리게 남음 (features/wiki.js)
     el.append(h('div',{class:'rz',title:'좌우로 끌어서 너비 조절'}),h('div',{class:'rzb',title:'위아래로 끌어서 높이 조절 · 더블클릭하면 내용에 맞춤'}),h('div',{class:'rzc',title:'끌어서 가로·세로 조절 · 더블클릭하면 높이를 내용에 맞춤'}));
     const pinB=h('button',{class:'pin',title:card.pin?'핀 빼기 · 핀 머리를 다른 핀 쪽으로 끌면 줄로 연결 · 꾹 누르면 연결된 것만 강조':'핀 꽂기 — 꽂으면 배치(정리·랜덤 등)에서 안 움직여요 · 직접 끌어서는 옮길 수 있어요 (핀 머리를 끌면 줄로 연결)'});
     pinB.innerHTML=pinSvg(card.pinColor||S.settings.pinColor||'black');pinB.style.setProperty('--pa',(card.pinAngle||0)+'deg');
@@ -63,7 +64,9 @@ function kcard(card,mode,opt={}){
       if(e.target.closest('.pin'))return;e.preventDefault();e.stopPropagation();selectCard(card.id);
       const a=h('div',{style:`position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:1px;height:1px`});document.body.append(a);
       const cx=e.clientX,cy=e.clientY,ids=MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id];
-      popMenu(a,[{label:ids.length>1?`${ids.length}장을 다른 화로…`:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,ids);b.remove()},0)},
+      const wk=ids.filter(id=>{const c=cardById(id);return c&&isWikiKind(c.kind)&&!c.filed});
+      popMenu(a,[...(card.filed&&rowById(card.filed)?[{label:'위키에서 보기',fn:()=>goWikiRow(card.filed)},'sep']:wk.length?[{label:wk.length>1?`메모 ${wk.length}장을 위키에 넣기…`:'위키에 넣기…',fn:()=>setTimeout(()=>wkPlaceMenu({x:cx,y:cy},wk),0)},'sep']:[]),
+        {label:ids.length>1?`${ids.length}장을 다른 화로…`:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,ids);b.remove()},0)},
         'sep',card.discarded?{label:ids.length>1?`${ids.length}장 되살리기`:'되살리기',fn:()=>reviveCards(ids)}:{label:'무덤으로 보내기',fn:()=>ids.length>1?(buryCards(ids),toast(`${ids.length}장을 무덤으로 보냈어요`,{undo:true})):discardCard(card.id)}]);a.remove();
     });
   }else{

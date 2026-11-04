@@ -6,7 +6,7 @@
    - 무덤 카드는 인물 보드 · 오른쪽 목록에서 숨고, 무덤 보드(왼쪽 목록 맨 아래)와 오른쪽 목록 맨 아래 '무덤'에서만 보임 */
 const DAY=864e5,GRAVE_WARN=3;
 const graveDays=()=>{const v=S.settings.graveDays;return v===0?0:(+v||7)};      // 0 이면 끔
-const placedCard=c=>!!(episodeOf(c.id)||shelfOf(c.id));
+const placedCard=c=>!!(episodeOf(c.id)||shelfOf(c.id)||c.filed);      // 위키에 넣은 메모(filed)도 정리된 것
 const graveCards=()=>S.cards.filter(c=>c.discarded);
 /* 무덤까지 남은 날: 카운트다운 중(1~3)이면 그 수, 아니면 0 */
 function graveLeft(c){

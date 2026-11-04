@@ -20,7 +20,7 @@ function starsEl(card,set){
 function footEl(card){
   const ids=eff(card);
   const chips=ids.map(id=>{const c=charById(id),auto=!card.chars.includes(id);
-    return h('span',{class:'kchip'+(auto?' auto':''),style:`--cc:${c.color}`,title:auto?'이름이 글에 있어서 자동 연결됨':'직접 연결'},c.name,
+    return h('span',{class:'kchip'+(auto?' auto':''),style:`--cc:${c.color}`,'data-ent':id,title:auto?'이름이 글에 있어서 자동 연결됨':'직접 연결'},c.name,
       h('button',{title:'연결 해제',onclick:()=>act(()=>{stamp(card);card.chars=card.chars.filter(x=>x!==id);card.autoChars=card.autoChars.filter(x=>x!==id);if(!card.offChars.includes(id))card.offChars.push(id)})},'✕'))});
   const rest=S.characters.filter(c=>!ids.includes(c.id));
   const add=rest.length?sel([['','＋ 인물'],...rest.map(c=>[c.id,c.name])],'',v=>{if(v)act(()=>{stamp(card);if(!card.chars.includes(v))card.chars.push(v);card.offChars=card.offChars.filter(x=>x!==v)})},'kadd'):null;

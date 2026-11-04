@@ -87,7 +87,7 @@ function topMenuItems(){
 }
 function renderTop2(t){      // 위쪽 바: 작품 이름 · 밑줄 탭 · 자동 저장됨 · 검색 · 메뉴
   t.append(...[brandEl(),S.demo?h('button',{class:'demotag',title:'예시 데이터예요 — 눌러서 지우고 시작',onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지우고 빈 작품으로 시작할까요?'))clearDemo()}},'예시'):null,h('span',{class:'sp'}),
-    tabs([['all','전체'],['story','구상'],['tl','타임라인'],['graph','관계망']],UI.mode,goMode),
+    tabs([['all','전체'],['story','구상'],['tl','타임라인'],['graph','관계망'],['wiki','위키']],UI.mode,goMode),
     h('span',{class:'sp'}),
     h('span',{id:'savedInd',class:'saved','data-st':'saved',title:'작품마다 자동으로 저장돼요'},icon('check'),h('span',{},'자동 저장됨')),
     Shell&&Shell.note?h('button',{class:'cbtn topic',title:'포스트잇 모드 (⌘⌥N) — 작은 포스트잇 창만 띄우기',onclick:()=>Shell.note.show()},icon('sticky')):null,
@@ -113,7 +113,7 @@ const lineMode=()=>UI.mode==='tl'&&(UIP.tlMode||'kanban')==='line';
 const LEFTW=300;      // 왼쪽 인물 · 설정 목록 기본 폭 (인물 시트 폭과는 따로)
 const MIDMIN=460;      // 구상 보드가 이보다 좁아지지 않게 인물 시트 폭을 줄여서 보여 줌 (저장된 폭은 그대로라 창을 넓히면 돌아옴)
 /* 오른쪽 목록 폭은 화면마다 따로 기억: 구상 · 타임라인 · 등장표 · 전체 (예전 하나짜리 값은 처음 값으로) */
-function poolW(){UIP.rwm=UIP.rwm||{};return UIP.rwm[poolKey()]||UIP.rw||330}
+function poolW(){UIP.rwm=UIP.rwm||{};return UIP.rwm[poolKey()]||(poolKey()==='wiki'?300:UIP.rw||330)}
 function setPoolW(v){UIP.rwm=UIP.rwm||{};UIP.rwm[poolKey()]=v}
 function sheetW(){
   const want=UIP.sw||340;if(UI.mode!=='story')return want;
@@ -197,7 +197,7 @@ document.addEventListener('pointerdown',e=>{
 },true);
 document.addEventListener('click',e=>{if(Date.now()-ICLICK<700&&e.target.closest&&e.target.closest('.panel .ctab,.panel .peekic,.panel .ptog')){e.stopPropagation();e.preventDefault()}},true);
 /* 오른쪽 사이드바 열림/닫힘은 화면마다 따로 기억: 구상 · 타임라인(칸반/한 줄) · 등장표 · 전체. 등장표와 전체는 기본으로 닫아둠 */
-const poolKey=()=>UI.mode==='tl'?((UIP.tlMode||'kanban')==='matrix'?'mx':'tl'):(UI.mode==='all'?'all':'story');
+const poolKey=()=>UI.mode==='tl'?((UIP.tlMode||'kanban')==='matrix'?'mx':'tl'):(UI.mode==='all'?'all':UI.mode==='wiki'?'wiki':'story');
 const poolClosed=()=>{UIP.pc=UIP.pc||{};const k=poolKey(),v=UIP.pc[k];return v===undefined?(k==='mx'||k==='all'):!!v};
 const setPoolClosed=v=>{UIP.pc=UIP.pc||{};UIP.pc[poolKey()]=!!v};
 const togglePool=()=>slidePanel('pool',!poolClosed());
