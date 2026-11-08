@@ -101,10 +101,12 @@ function renderTop(){
 function renderBanner(){
   const b=$('banner');b.innerHTML='';b.classList.toggle('on',!!UI.noSave);
   if(!UI.noSave&&typeof appUpdBanner==='function'&&appUpdBanner(b)){b.classList.add('on');return}      // 새 앱 버전 알림
+  if(UI.tooNew){b.append(h('span',{},EM('⚠ ','alert'),'이 작품은 더 새 버전의 앱에서 고쳤어요. 내용을 지키려고 읽기만 해요 (고친 건 저장되지 않아요). 앱을 업데이트해 주세요.'),
+    AppUpd?h('button',{class:'quiet',onclick:async e=>{e.target.disabled=true;e.target.textContent='확인 중…';const r=await AppUpd.check();onAppUpdate(r);
+      if(r&&r.ready)askConfirm('새 버전을 받아 뒀어요. 지금 다시 시작할까요?').then(ok=>ok&&appUpdRelaunch());else if(r&&r.needInstaller)AppUpd.openReleases();else toast(r&&r.error?r.error:'아직 받을 새 버전이 없어요')}},'업데이트 확인'):null);return}
   if(UI.noSave)b.append(h('span',{},EM('⚠ ','alert'),'이 작품의 파일을 읽지 못해서 저장을 잠시 멈췄어요 (원본을 덮어쓰지 않기 위해서예요).'),
     h('button',{class:'quiet',onclick:showRestore},'백업에서 복구'),
     h('button',{class:'quiet',onclick:async()=>{if(await askConfirm('이 작품을 빈 상태로 시작할까요?\n(읽지 못한 기존 파일이 있다면 그 파일은 새 내용으로 바뀌어요)')){UI.noSave=false;saveNow();saveUIP();renderAll()}}},'빈 작품으로 시작'));
-  else if(false)b.append(h('span',{},'예시 데이터로 보고 있어요. 마음껏 만져 보세요.'),h('button',{class:'quiet',onclick:async()=>{if(await askConfirm('예시 데이터를 모두 지우고 빈 프로젝트로 시작할까요?'))clearDemo()}},'예시 지우고 시작'));
 }
 function clearDemo(){snap();const keep=S.settings,kinds=S.kinds;S=migrate({characters:[],cards:[],episodes:[],kinds,settings:keep,demo:false});UI.sel='none';commit()}
 
@@ -141,16 +143,6 @@ function peekWrap(k){
   const el=$(k),closed=k==='pool'?poolClosed():!!UIP.cl[k];
   el.classList.remove('peek');el.classList.toggle('peeking',UI.peek===k&&closed);
   if(UI.peek===k&&!closed)UI.peek=null;
-}
-function peekWrapOld(k){
-  const el=$(k);el.classList.remove('peek');
-  const closed=k==='pool'?poolClosed():!!UIP.cl[k];
-  if(UI.peek!==k)return;if(!closed){UI.peek=null;return}
-  const box=h('div',{class:'peekbox '+(k==='pool'?'pr':'pl'),style:`width:${peekW(k)}px`});
-  while(el.firstChild)box.append(el.firstChild);el.append(box);el.classList.add('peek');
-  const ic=k==='left'?(UI.mode==='tl'?'list':'people'):k==='sheet'?'sheet':'cards';
-  box.prepend(h('button',{class:'ctab peekic '+(k==='pool'?'pr':'pl')+(k==='sheet'&&UIP.cl.left?' low':''),title:'눌러서 계속 펴 두기',onclick:()=>slidePanel(k,false)},icon(ic)));      // 아이콘을 누르면 곧 고정
-  requestAnimationFrame(()=>{fitAll(box);hlLayoutAll(box)});
 }
 function endPeekCheck(){
   clearTimeout(PEEKC);if(!UI.peek)return;const el=$(UI.peek);

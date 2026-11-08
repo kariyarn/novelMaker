@@ -14,6 +14,7 @@ const {createWorks}=require('./storage/works');
 const {createBackups}=require('./storage/backups');
 const {createPrefs}=require('./storage/prefs');
 const {mergeWork}=require('./storage/merge');
+const {tooNewData,dataVersionOf}=require('./storage/dataVersion');
 
 function create(userData){
   const dirs=pickDir(userData);
@@ -85,10 +86,11 @@ function create(userData){
     return works.writeOf(w.id,w.key,text).ok;
   }
   function syncConflict(rel,text,baseText){      // 양쪽에서 고친 작품: 카드 · 인물 단위로 합침 (같은 글을 둘 다 고친 곳은 작품 안에 남겨 두고 사용자가 고름)
-    const w=workPath(rel),theirs=valid(text);if(!w||!okState(theirs))return null;
+    const w=workPath(rel),theirs=valid(text);if(!w||!okState(theirs)||tooNewData(theirs))return null;      // 더 새 앱의 글은 합치지 않음 (sync.js 가 먼저 거름)
     const curText=works.loadOf(w.id,w.key).text,mine=valid(curText);
     if(!okState(mine)){syncWrite(rel,text);return {asks:0}}
     const {merged,conflicts}=mergeWork(valid(baseText),mine,theirs,newId);
+    merged.version=Math.max(dataVersionOf(mine),dataVersionOf(theirs));      // 데이터 버전은 높은 쪽 (낮추면 옛 앱이 덮어쓸 수 있음)
     delete wrote[w.id];backups.force(w.id,curText);      // 합치기 전 이 기기 것을 백업
     works.writeOf(w.id,w.key,JSON.stringify(merged));library.touch(w.id);
     const src=library.nov(w.id);

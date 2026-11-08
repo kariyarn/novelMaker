@@ -24,7 +24,7 @@ function cloudD(w,h,r,gap,bulge){      // 둥근 사각형 둘레를 같은 간�
   return d+'Z';
 }
 function bubblePath(w,h,kind,lv){
-  const f=n=>n.toFixed(1),A=[2,3,4.6][lv],B=[2.2,3.3,4.8][lv],T=3,VC=3;      // T 꼬리 · VC 위아래로 튀어나오는 한계
+  const f=n=>n.toFixed(1),T=3,VC=3;      // T 꼬리 · VC 위아래로 튀어나오는 한계
   const rr=(r,tail)=>{      // 둥근 사각형 (아래쪽에 작은 꼬리를 낼 수 있음)
     let d=`M${f(r)} 0H${f(w-r)}Q${f(w)} 0 ${f(w)} ${f(r)}V${f(h-r)}Q${f(w)} ${f(h)} ${f(w-r)} ${f(h)}`;
     if(tail&&w>56){if(tail==='L')d+=`H${f(r+12)}L${f(r+3)} ${f(h+T)}L${f(r+5)} ${f(h)}`;else d+=`H${f(w-r-5)}L${f(w-r-3)} ${f(h+T)}L${f(w-r-12)} ${f(h)}`}

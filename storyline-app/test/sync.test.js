@@ -326,3 +326,33 @@ test('요청 수: 여러 파일도 커밋 하나로 · 바뀐 게 없으면 확�
   const B=device(gh);gh.resetCount();await B.sync.sync();      // 새 기기가 받기: 파일마다 한 번씩 · 바퀴는 한 번
   assert.equal(gh.count['GET /git/trees/{sha}'],1);
 });
+
+/* 데이터 버전: 다른 기기의 더 새 앱이 고친 작품은 받지도 합치지도 않음 (storage/dataVersion.js) */
+test('더 새 앱이 고친 작품은 받지 않고 알림 · 이 기기 글도 그대로', async()=>{
+  const {DATA_VERSION}=require('../storage/dataVersion');
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']],{version:DATA_VERSION}));await A.sync.sync();
+  const B=device(gh);await B.sync.sync();
+  const id=A.store.current(),fp=`storyline/works/${id}/storyline.json`,newer=work([['k1','새 앱이 고침']],{version:DATA_VERSION+1});
+  gh.setFile(fp,newer);      // 새 앱을 쓰는 다른 기기가 올림
+  let r=await B.sync.sync();
+  assert.equal(r.ok,true,r.error);
+  assert.deepEqual(r.needUpdate,[`works/${id}/storyline.json`]);
+  assert.deepEqual(cardsOf(B.store),[['k1','처음']]);      // 받지 않음
+  B.store.save('storyline_v1',work([['k1','B가 고침']],{version:DATA_VERSION}));      // 그사이 이 기기에서 고쳐도
+  r=await B.sync.sync();
+  assert.deepEqual(r.needUpdate,[`works/${id}/storyline.json`]);
+  assert.deepEqual(cardsOf(B.store),[['k1','B가 고침']]);      // 합치지 않고
+  assert.equal(gh.files.get(fp).text,newer);      // 저장소의 새 글을 덮어쓰지도 않음
+  r=await B.sync.push();
+  assert.equal(gh.files.get(fp).text,newer);      // 자동 올리기도 막힘
+});
+
+test('양쪽에서 고쳐 합치면 데이터 버전은 높은 쪽', async()=>{
+  const gh=fakeGitHub(),A=device(gh);A.store.save('storyline_v1',work([['k1','처음']]));await A.sync.sync();      // 버전 표시 없음(= 1)
+  const B=device(gh);await B.sync.sync();
+  A.store.save('storyline_v1',work([['k1','처음'],['k2','A']],{version:2}));await A.sync.sync();
+  B.store.save('storyline_v1',work([['k1','B']]));
+  const r=await B.sync.sync();
+  assert.equal(r.ok,true,r.error);
+  assert.equal(JSON.parse(B.store.load('storyline_v1').text).version,2);
+});

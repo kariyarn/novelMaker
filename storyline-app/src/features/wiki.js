@@ -644,7 +644,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&WKPEEK)wkPeekHide()
 /* ---------- 내보내기 (.md): 행은 머리말, 본문은 Markdown 으로 · 연결은 [[이름]] ---------- */
 function wkMd(html){
   const d=document.createElement('div');d.innerHTML=wkClean(html);wkLinksFix(d);
-  const inl=n=>[...n.childNodes].map(x=>{if(x.nodeType===3)return x.data.replace(/ /g,' ');const t=x.tagName.toLowerCase(),c=inl(x);
+  const inl=n=>[...n.childNodes].map(x=>{if(x.nodeType===3)return x.data.replace(/\u00a0/g,' ');const t=x.tagName.toLowerCase(),c=inl(x);
     return t==='b'?`**${c}**`:t==='i'?`*${c}*`:t==='s'?`~~${c}~~`:t==='mark'?`==${c}==`:t==='br'?'  \n':t==='a'?`[[${x.textContent}]]`:c}).join('');
   const out=[];
   [...d.children].forEach(b=>{const t=b.tagName.toLowerCase();

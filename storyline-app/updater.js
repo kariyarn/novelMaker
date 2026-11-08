@@ -53,7 +53,8 @@ function createUpdater({fetch,dir,bundled,running,electron,keep}){      // keep:
       const res=await fetch(a.browser_download_url,{headers:{'User-Agent':'storyline-app'}});
       if(!res.ok)throw new Error('새 버전을 받지 못했어요 ('+res.status+')');
       const buf=Buffer.from(await res.arrayBuffer());
-      if(a.digest&&/^sha256:/.test(a.digest)&&crypto.createHash('sha256').update(buf).digest('hex')!==a.digest.slice(7))throw new Error('받은 파일이 손상됐어요');
+      if(!/^sha256:[0-9a-f]{64}$/i.test(a.digest||''))throw new Error('받은 파일을 확인할 값이 없어서 쓰지 않았어요');      // 확인 값이 없으면 받은 코드를 믿지 않음
+      if(crypto.createHash('sha256').update(buf).digest('hex')!==a.digest.slice(7).toLowerCase())throw new Error('받은 파일이 손상됐어요');
       const o=readBundle(buf);
       if(!o||buildOf(o.version)!==n)throw new Error('받은 파일을 읽을 수 없어요');
       if(o.minElectron&&+String(electron).split('.')[0]<o.minElectron){st.needInstaller=true;return}      // Electron 을 올려야 하는 버전

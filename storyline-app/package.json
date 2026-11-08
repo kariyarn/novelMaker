@@ -7,6 +7,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.js",
+    "test:e2e": "node --test --test-concurrency=1 e2e/*.e2e.js",
+    "lint": "eslint .",
     "build": "electron-builder --mac --dir",
     "build:win": "electron-builder --win --x64"
   },
@@ -56,6 +58,11 @@
   },
   "devDependencies": {
     "electron": "^44.5.1",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.39.5",
+    "globals": "^17.14.0",
+    "playwright-core": "^1.63.0",
+    "postcss": "^8.5.32",
+    "postcss-selector-parser": "^7.1.7"
   }
 }

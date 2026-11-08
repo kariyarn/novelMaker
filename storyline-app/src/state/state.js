@@ -1,6 +1,13 @@
 const WORK_FIELDS=['한 줄 소개','주제','소재','장르 · 분위기','독자에게 주고 싶은 느낌','세계관 한 줄','결말 방향'];
+// 데이터 모양 바꾸기 단계: MIGRATIONS[n] 은 버전 n-1 → n 으로 한 번만 (storage/dataVersion.js 의 DATA_VERSION 과 같이 올림)
+// 아래 migrate 의 나머지는 버전과 상관없이 매번 모양을 바로잡는 코드 (빠진 칸 채우기 · 예전 이름 고치기)
+const MIGRATIONS={
+  2:()=>{},      // 버전 표시만 생김 (모양은 1과 같음)
+};
 function migrate(st){
-  st.version=1;st.settings=Object.assign({theme:'auto',font:null,family:'',showUsed:false,boardBg:'',boardPat:'dot',noteWk:'m',noteHk:'s',showStrings:true,stringStyle:'thread',stringW:'m',stringColor:'#c8412b'},st.settings||{});
+  {const from=dataVersionOf(st);
+   for(let v=from+1;v<=DATA_VERSION;v++)if(MIGRATIONS[v])MIGRATIONS[v](st);
+   st.version=Math.max(from,DATA_VERSION)}      // 더 새 앱의 데이터는 버전을 낮추지 않음 (읽기만 함)st.settings=Object.assign({theme:'auto',font:null,family:'',showUsed:false,boardBg:'',boardPat:'dot',noteWk:'m',noteHk:'s',showStrings:true,stringStyle:'thread',stringW:'m',stringColor:'#c8412b'},st.settings||{});
   if(!st.settings.hlTouched)st.settings.hlStyle='bubble';      // 기본은 말풍선 (직접 바꾼 적이 있으면 그 값을 존중)
   else if(!st.settings.hlStyle)st.settings.hlStyle='bubble';
   if(!st.settings.bubbleLv)st.settings.bubbleLv='1';
@@ -100,15 +107,16 @@ const GLOBAL_SET=['graveDays','theme','font','family','hlStyle','hlTouched','pin
 const GLOBAL_UI=['sw','rw','rwl','rwr','tlw','tll','cl','mm','ps','pc','toured','mfs','zenOp','zenFs'];
 const pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o&&o[k]!==undefined)r[k]=o[k]});return r};
 let LIB=null,PREFS_LAST='';
-const UI={goalOpen:false,mode:'story',sel:null,qkind:'scene',pkind:'',pchar:'',pused:'unused',pq:'',tlChar:'all',range:null,focusCard:null,noSave:false};
+const UI={tooNew:false,goalOpen:false,mode:'story',sel:null,qkind:'scene',pkind:'',pchar:'',pused:'unused',pq:'',tlChar:'all',range:null,focusCard:null,noSave:false};
 const refreshLib=()=>{LIB=Repo.novels?Repo.novels.list():null};
 const emptyState=()=>({characters:[],cards:[],episodes:[],kinds:defKinds(),noneBoard:{},trash:[],settings:{},demo:false,z:1});
 function readPrefs(){try{if(Repo.prefs){const t=Repo.prefs.load();if(t)return JSON.parse(t)}}catch(e){}return null}
 function initWork(opts){      // 현재 작품(저장소 기준)의 데이터를 읽어 상태를 만든다
-  opts=opts||{};let st=null,noSave=false;
+  opts=opts||{};let st=null,noSave=false,tooNew=false;
   try{
     const r=Repo.read(KEY);
     if(r.text)st=JSON.parse(r.text);
+    if(st&&tooNewData(st))noSave=tooNew=true;      // 더 새 앱에서 고친 작품: 읽기만 (옛 모양으로 덮어쓰면 새 앱이 쓴 내용이 망가질 수 있음)
     else if(Repo.native&&!opts.blank&&!r.fresh)noSave=true;      // 이미 있던 작품인데 파일을 못 읽음 → 원본을 덮어쓰지 않도록 저장을 멈춤
   }catch(e){if(Repo.native&&!opts.blank)noSave=true}
   if(!st||!st.characters)st=(opts.blank||noSave)?emptyState():seed();
@@ -120,7 +128,7 @@ function initWork(opts){      // 현재 작품(저장소 기준)의 데이터를
   if(P){Object.assign(S.settings,pick(P.settings,GLOBAL_SET));Object.assign(UIP,pick(P.ui,GLOBAL_UI))}
   PREFS_LAST=P?JSON.stringify({settings:pick(S.settings,GLOBAL_SET),ui:pick(UIP,GLOBAL_UI)}):'';
   UIP.cl=UIP.cl||{};UIP.gc=UIP.gc||{};UIP.views=UIP.views||{};UIP.fo=UIP.fo||{};UIP.tg=UIP.tg||{};
-  UI.noSave=noSave;
+  UI.noSave=noSave;UI.tooNew=tooNew;
 }
 function resetUI(){      // 작품을 바꿀 때 보기 상태를 처음으로
   Object.assign(UI,{goalOpen:false,mode:'story',sel:null,qkind:'scene',pkind:'',pchar:'',pused:'unused',pq:'',tlChar:'all',range:null,focusCard:null,folderView:null,tlScope:null,pinFocus:null,tmpLine:null,tq:'',lq:'',tsort:null,poolLimit:60,prevSel:null});

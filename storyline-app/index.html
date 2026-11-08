@@ -2,6 +2,7 @@
 <html lang="ko" spellcheck="false">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>캐릭터 스토리라인</title>
 <link rel="stylesheet" href="styles/base.css">
@@ -35,6 +36,7 @@
 <radialGradient id="pinShadow"><stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
 </defs></svg>
 
+<script src="storage/dataVersion.js"></script>
 <script src="src/ui/dialog.js"></script>
 <script src="src/core/utils.js"></script>
 <script src="src/model/data.js"></script>

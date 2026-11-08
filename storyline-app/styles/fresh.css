@@ -226,8 +226,6 @@
 
 /* ---------- 구상: 보드 머리의 인물 소개 · 포스트잇 · 인물 시트 · 왼쪽 목록 ---------- */
 .ui3 .bhead.frprof{right:110px;max-width:none;align-items:flex-start;gap:14px;padding:4px 6px 14px 0;background:linear-gradient(var(--board,var(--bg)) 70%,transparent)}
-.frav{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--c);font-size:18px;font-weight:600;box-shadow:0 0 0 3px var(--panel)}
-.frav.sq{border-radius:12px}
 .frwho{flex:1;min-width:0}
 .frnm{display:flex;align-items:baseline;gap:10px}
 .ui3 .frnm b{font:700 18px/1.3 var(--fr-story);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

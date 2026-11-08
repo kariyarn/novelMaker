@@ -26,7 +26,7 @@ function cardShape(card){const k=kindOf(card.kind),v=k&&k.shape;
   if(v==='random'){let h2=0;for(const ch of card.id)h2=(h2*31+ch.charCodeAt(0))>>>0;return SHAPE_IDS[h2%SHAPE_IDS.length]}
   return (v===undefined||v===null||v==='global')?(S.settings.noteShape||''):v}
 function kcard(card,mode,opt={}){
-  const k=kindOf(card.kind),pl=episodeOf(card.id),isB=mode==='board';
+  const pl=episodeOf(card.id),isB=mode==='board';
   const el=h('div',{class:'kcard '+mode+(pl&&mode!=='tl'?' used':'')+(SELCARD===card.id?' selc':''),'data-id':card.id,'data-stars':card.star?1:0,'data-sl':card.star?'★':'',style:`--kc0:${cardColor(card)}`});
   if(MSEL.has(card.id))el.classList.add('msel');
   const bar=h('div',{class:isB?'kbar':'khead'},isB?null:h('span',{class:'grip',title:'카드 어디든 잡고 끌어서 옮길 수 있어요'},'⠿'),kindSelect(card),starsEl(card),isB?null:brBadge(card,opt),h('span',{class:'sp'}),

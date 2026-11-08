@@ -14,6 +14,7 @@
 const fs=require('fs'),crypto=require('crypto');
 const {atomicWrite}=require('./files');
 const {logError}=require('./log');
+const {tooNewData}=require('./dataVersion');
 
 const ROOT='storyline/',LIB='library.json',PREFS='prefs.json';
 const gitSha=t=>crypto.createHash('sha1').update(`blob ${Buffer.byteLength(t,'utf8')}\0`).update(t,'utf8').digest('hex');      // git 이 파일에 붙이는 지문과 같은 계산
@@ -88,9 +89,17 @@ function createSync({store,fetch,getConfig,statePath,wait=ms=>new Promise(r=>set
     const remoteF=R.files,base=st.files,out={};
     const blob=async sha=>{if(!cache.has(sha))cache.set(sha,unb64((await api(cfg,'GET',`/git/blobs/${sha}`)).content));return cache.get(sha)};
     const look=rel=>{const L=store.syncRead(rel),Ls=L!=null?gitSha(L):null,Rs=remoteF[rel]||null,B=base[rel]||null;return {rel,L,Ls,Rs,B,localCh:Ls!==B,remoteCh:Rs!==B}};
+    const tooNew=async rel=>{      // 다른 기기의 더 새 앱이 만든 작품 글: 받지도 합치지도 않음 (이 앱이 다루면 새 내용이 망가질 수 있음)
+      if(!isWork(rel)||!remoteF[rel])return false;
+      let d;try{d=JSON.parse(await blob(remoteF[rel]))}catch(e){return false}
+      if(!tooNewData(d))return false;
+      if(!res.needUpdate.includes(rel))res.needUpdate.push(rel);
+      return true;
+    };
     async function step(d){
       const {rel,L,Ls,Rs,localCh,remoteCh}=d;
       if(Ls===Rs){if(Rs)base[rel]=Rs;return}
+      if(!pushOnly&&remoteCh&&Rs&&await tooNew(rel))return;      // 맞춘 버전(base)도 그대로: 앱을 업데이트한 뒤 받으면 됨 (그동안 이 기기 것은 올리지 않음)
       if(pushOnly){      // 올리기만: 다른 기기가 고친 파일은 받기 전까지 건드리지 않음 (덮어쓰면 그쪽 글이 사라짐) · 취향은 이 기기 것
         if(L==null||!localCh)return;
         if(remoteCh&&Rs&&rel===LIB){store.syncWrite(rel,await blob(Rs));base[rel]=Rs;out[rel]=store.syncRead(rel);return}      // 작품 목록은 합쳐도 잃는 게 없음: 막으면 새 작품이 다른 기기에 영영 안 보임
@@ -145,7 +154,7 @@ function createSync({store,fetch,getConfig,statePath,wait=ms=>new Promise(r=>set
   const NOCFG={ok:false,error:'동기화 설정이 없어요',skipped:true};
   async function run(pushOnly){      // pushOnly: 올리기만 · 아니면 받기까지 (사용자가 누를 때)
     const b=begin();if(!b)return {...NOCFG};
-    const {cfg,st}=b,res={ok:true,pulled:[],pushed:[],merged:[],conflicts:[],blocked:[]},cache=new Map();
+    const {cfg,st}=b,res={ok:true,pulled:[],pushed:[],merged:[],conflicts:[],blocked:[],needUpdate:[]},cache=new Map();
     try{
       for(let i=0;;i++){
         const R=await remote(cfg,st);

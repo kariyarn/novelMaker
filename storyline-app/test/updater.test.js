@@ -38,6 +38,12 @@ test('이미 최신이면 받지 않음 · 받아 둔 버전이 있으면 다시
   assert.equal(r.ready,6);assert.equal(g.calls.length,1);      // 릴리스 정보만 보고 끝
 });
 
+test('확인 값(sha256)이 없는 묶음은 받아도 쓰지 않음', async()=>{
+  const d=tmp();
+  const r=await mk(d,gh(7,bundle('1.0.7'),{digest:false}).fetch).check();
+  assert.match(r.error,/확인할 값/);assert.equal(r.ready,null);assert.ok(!fs.existsSync(path.join(d,'current.json')));
+});
+
 test('손상된 파일 · 다른 버전 묶음은 거부', async()=>{
   const d=tmp(),good=bundle('1.0.7');
   let {fetch}=gh(7,good);

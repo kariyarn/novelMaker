@@ -194,7 +194,6 @@ function renderTimeline(m){
     body.addEventListener('dragover',e=>{if(DRAG){e.preventDefault();body.classList.add('over');ghostByY(body,e.clientY)}});
     body.addEventListener('dragleave',e=>{if(!body.contains(e.relatedTarget)){body.classList.remove('over');ghostClearSoon()}});
     body.addEventListener('drop',e=>{e.preventDefault();body.classList.remove('over');if(DRAG){const id=DRAG.id,nb=ghostBeforeId(body);DRAG=null;placeCard(id,ep.id,nb)}});
-    const folded=!!(UIP.tef&&UIP.tef[ep.id]);
     const cnt=h('small',{class:'epcnt',title:'카드 수 · 공백 빼고 글자 수'},cntLabel(cards.map(c=>c.id),cards.length));
     return [h('div',{class:'tlhead'},h('b',{class:'frno'},String(idx+1),h('small',{},'화')),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
         ep.cardIds.length?h('button',{class:'cbtn tlcopy',title:'이 화의 글을 원고로 이어 붙여서 복사',onclick:()=>copyEpisodeText(idx)},icon('copy')):null,
