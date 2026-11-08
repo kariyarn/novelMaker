@@ -15,13 +15,18 @@ const readJson=(p,d)=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch(e)
 const logErr=where=>e=>logError(where,e);      // .catch(logErr('어디서')) 로 실패를 오류 기록에 남김
 const writeJson=(p,o)=>{try{atomicWrite(p,JSON.stringify(o,null,1))}catch(e){logError('설정 저장 '+path.basename(p),e)}};
 const run=js=>{const w=BrowserWindow.getFocusedWindow();if(w&&w===win)w.webContents.executeJavaScript(js).catch(logErr('메뉴 명령 '+js))};
+const openSafe=url=>{try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='mailto:')return shell.openExternal(u.href)}catch(e){}logError('바깥 주소 열기 막음',String(url).slice(0,200))};      // 웹 · 메일 주소만 바깥 브라우저로 (file: · 프로그램 실행 주소는 안 엶)
+// 모든 창 공통: 앱 화면이 다른 페이지로 넘어가지 않게 (파일을 창에 떨어뜨리거나 링크를 눌러도) · 새 창은 안 띄우고 웹 주소만 브라우저로
+app.on('web-contents-created',(e,wc)=>{
+  wc.on('will-navigate',ev=>ev.preventDefault());
+  wc.setWindowOpenHandler(({url})=>{openSafe(url);return {action:'deny'}});
+});
 const callMain=js=>win&&!win.isDestroyed()?win.webContents.executeJavaScript(js):Promise.resolve(null);      // 큰 창의 화면 코드에 일을 맡김
 
 function createWindow({hidden=false}={}){
   win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',show:!hidden,
-    autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
+    autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,sandbox:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
   win.loadFile(path.join(__dirname,'index.html'));
-  win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return {action:'deny'}});
   win.webContents.once('did-finish-load',()=>{setTimeout(()=>runPush().then(()=>runCheck()),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js) · 지난번에 못 올린 것 올리고 새 내용 확인
   win.on('focus',()=>{if(Date.now()-lastCheck>60*1000)runCheck()});      // 다른 컴퓨터에서 쓰다 왔을 때: 확인만 (받기는 사용자가)
   win.webContents.on('render-process-gone',(e,d)=>logError('큰 창 화면이 멈춤',d&&d.reason));
@@ -100,7 +105,7 @@ function createNote(){
   noteWin=new BrowserWindow({...b,minWidth:220,minHeight:150,frame:false,transparent:glassNote,hasShadow:false,resizable:true,
     backgroundColor:glassNote?'#00000000':nativeTheme.shouldUseDarkColors?'#161618':'#ffffff',
     skipTaskbar:!isWin,alwaysOnTop:note.onTop!==false,show:false,title:'메모',fullscreenable:false,maximizable:false,minimizable:isWin,      // Windows: Alt+Tab 에 보이게 (숨기기는 최소화)
-    webPreferences:{contextIsolation:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
+    webPreferences:{contextIsolation:true,sandbox:true,spellcheck:false,preload:path.join(__dirname,'note','preload.js')}});
   noteWin.setOpacity(note.opacity||1);
   if(isMac)noteWin.setVisibleOnAllWorkspaces(true,{visibleOnFullScreen:true});
   noteWin.loadFile(path.join(__dirname,'note','note.html'));
@@ -173,7 +178,7 @@ app.whenReady().then(()=>{
   ipcMain.on('store:savePrefs',(e,t)=>{e.returnValue=store.savePrefs(t)});
   ipcMain.handle('store:savePrefsAsync',(e,t)=>store.savePrefs(t));
   /* 동기화 */
-  ipcMain.on('sync:getConfig',e=>{const c=syncConfig(),raw=readJson(CFG(),{});e.returnValue=c?{repo:c.repo,branch:c.branch,hasToken:!!c.token,last:sync.lastSync(),secure:safeStorage.isEncryptionAvailable(),device:raw.device||'',host:os.hostname()}:null});
+  ipcMain.on('sync:getConfig',e=>{const c=syncConfig(),raw=readJson(CFG(),{});e.returnValue=c?{repo:c.repo,branch:c.branch,hasToken:!!c.token,plain:!!c.token&&!raw.enc,last:sync.lastSync(),secure:safeStorage.isEncryptionAvailable(),device:raw.device||'',host:os.hostname()}:null});
   ipcMain.on('sync:setConfig',(e,c)=>{e.returnValue=setSyncConfig(c)});
   ipcMain.handle('sync:now',()=>runSync({notify:false}));      // 받기 (+ 올리기)
   ipcMain.handle('sync:check',()=>runCheck());
@@ -185,7 +190,7 @@ app.whenReady().then(()=>{
   ipcMain.on('update:info',e=>{e.returnValue=updater.info()});
   ipcMain.handle('update:check',()=>checkUpdate({notify:false}));
   ipcMain.handle('update:relaunch',()=>{app.relaunch();app.quit()});
-  ipcMain.handle('update:openReleases',()=>shell.openExternal(updater.info().releases));
+  ipcMain.handle('update:openReleases',()=>openSafe(updater.info().releases));
   setTimeout(()=>checkUpdate(),20*1000);setInterval(()=>checkUpdate(),6*60*60*1000);      // 켜고 잠시 뒤 · 6시간마다
   /* 포스트잇 창 */
   ipcMain.handle('note:init',async()=>({...(await callMain('({kinds:noteBridge.kinds(),defaultKind:noteBridge.defaultKind(),list:noteBridge.list(100),works:noteBridge.works()})')),opacity:note.opacity||1,onTop:note.onTop!==false,fontSize:note.fontSize||15,isMac,glass:glassNote}));

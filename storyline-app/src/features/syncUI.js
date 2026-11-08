@@ -48,7 +48,7 @@ function refreshSyncRow(){const e=document.querySelector('.syncst');if(e)e.textC
 function syncStatusText(){
   const c=UI.syncCfg;if(!c||!c.repo)return '꺼짐';
   const r=UI.syncLast;if(r&&!r.ok&&!r.skipped)return '실패: '+r.error;
-  return `${c.repo} · 마지막 동기화 ${agoText(c.last)}`;
+  return `${c.repo} · 마지막 동기화 ${agoText(c.last)}`+(c.plain?' · ⚠ 토큰이 암호화되지 않았어요':'');
 }
 async function syncNow(){
   if(!Shell)return;
@@ -78,6 +78,7 @@ function showSyncSetup(){
       h('li',{},'Settings → Developer settings → ',h('b',{},'Fine-grained tokens'),' 에서 토큰을 만들어요.'),
       h('li',{},'Repository access 는 ',h('b',{},'그 저장소만'),', Permissions 는 ',h('b',{},'Contents: Read and write'),' 하나만 주면 돼요.'),
       h('li',{},'토큰은 이 컴퓨터 안에 암호화해서 보관해요. 두 컴퓨터 모두 같은 저장소 · 토큰을 넣어 주세요.')),
+    c.plain||c.secure===false?h('p',{style:'color:var(--warn)'},'⚠ 이 컴퓨터에서는 OS 열쇠고리를 쓸 수 없어서 토큰을 암호화하지 않고 앱 폴더에 저장해요. 그 저장소만 · Contents 권한만 준 토큰을 쓰고, 컴퓨터를 같이 쓴다면 연결하지 않는 걸 권해요.'):null,
     field('저장소',repo),field('브랜치',branch),field('토큰',token),field('이 기기 이름 (다른 기기 알림에 “○○에서 고친 내용”으로 나와요)',dev),msg,
     h('div',{class:'row',style:'margin-top:14px'},
       c.repo?h('button',{class:'quiet',style:'color:var(--warn)',onclick:async()=>{if(!await askConfirm('동기화를 끌까요? (이 컴퓨터의 작품은 그대로 있어요)'))return;Shell.sync.setConfig(null);closeModal();showSettings()}},'연결 끊기'):null,
