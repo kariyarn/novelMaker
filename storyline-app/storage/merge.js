@@ -60,7 +60,7 @@ const FIELD={fields:'',goals:'목표',summary:'소개',memo:'메모',name:'이�
 const snip=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>24?t.slice(0,24)+'…':t};
 function findIn(arr,k){return Array.isArray(arr)?arr.find(x=>keyOf(x)===k):arr&&arr[k]}
 function describe(state,c){
-  const [top,id]=c.path,item=findIn(state[top],id),field=c.path[c.path.length-1];
+  const [top,id]=c.path,item=findIn(state[top],id);
   if(top==='cards')return `카드 · ${snip(c.mine)||snip(c.theirs)||'(빈 카드)'}`;
   const name=item&&(item.name||item.title||item.label);
   const sub=c.path.length>2?c.path.slice(2).map(k=>{const s=String(k);return s.startsWith('label:')?s.slice(6):s}).filter(s=>!/^[a-z0-9]{8}$/.test(s)).map(s=>s in FIELD?FIELD[s]:s).filter(Boolean).join(' · '):'';

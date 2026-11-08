@@ -2,7 +2,6 @@
 let DRAG=null;
 const kdark=col=>`color-mix(in srgb,${col} 62%,#555)`;      // 흰 배경에서도 보이는 분류 점 색
 function kindSelect(card){
-  const k=kindOf(card.kind);
   const s=sel([...S.kinds.map(k=>[k.id,k.name]),['__new','＋ 분류 추가…']],card.kind,async v=>{
     if(v==='__new'){
       const name=((await askText('새 카드 분류 이름'))||'').trim();if(!name)return renderAll();

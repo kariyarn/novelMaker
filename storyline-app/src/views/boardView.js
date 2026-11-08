@@ -4,7 +4,6 @@ function renderBoard(m){
   const key=UI.sel,c=charById(key),cards=boardCards(key),hidden=usedHidden(key);
   const name=key==='all'?'전체 코르크보드':(key==='none'?'미분류':key==='grave'?'무덤':(c?c.name:''));
   const full=document.body.classList.contains('full'),uf=useMode(),asList=uf==='used'&&!UI.usedAsBoard&&key!=='grave';      // 사용 카드는 정리 목록으로 (가볍고 한눈에)
-  const trig=(label,items,title)=>{const b=h('button',{class:'menubtn','data-pop':'1',title,onclick:()=>popMenu(b,items())},label,h('span',{class:'caret'},'▾'));return b};
   const view=h('div',{class:'bview'+(cards.length>80?' lite':'')+(asList?' ulistview':'')+(UI.bdef&&!asList?' bdef':'')}),world=h('div',{class:'bworld'});
   view.append(world);m.append(view);
   // 왼쪽 위: 보드 이름 · 장수 (목표 알약도 여기에)

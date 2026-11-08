@@ -41,7 +41,7 @@ function renderFolderTable(m){
   let list=S.characters.filter(c=>ids.includes(folderOf(c)));
   const total=list.length,emptyN=list.filter(isEmptyEntry).length,q=nameKey(UI.tq||'');
   if(q)list=list.filter(c=>nameKey([c.name,c.summary,(c.aliases||[]).join(' '),c.memo].join(' ')).includes(q));
-  const st=UI.tsort,fp=c=>folderPath(folderById(folderOf(c))||f);
+  const st=UI.tsort;
   if(st){const val=c=>st.key==='cards'?cardsOf(c.id).length:(st.key==='def'?(c.summary||''):c.name);
     list=[...list].sort((a,b)=>{const x=val(a),y=val(b);return (typeof x==='number'?x-y:String(x).localeCompare(String(y),'ko'))*st.dir})}
   const find=h('input',{class:'lfind',style:'width:150px',placeholder:'이름 · 정의 찾기',value:UI.tq||'',oninput:e=>{UI.tq=e.target.value;clearTimeout(renderFolderTable.t);renderFolderTable.t=setTimeout(()=>{const pos=e.target.selectionStart;renderMid();const i=document.querySelector('#mid .lfind');if(i){i.focus();i.setSelectionRange(pos,pos)}},180)}});
