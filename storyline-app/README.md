@@ -77,6 +77,7 @@
   `order` 가 작은 것부터 `match()` 를 물어 처음 맞는 화면을 그림. 새 화면을 더할 때 `render.js` 는 고치지 않아도 됩니다.
 - **데이터를 바꿀 때**는 `act(fn)`(되돌리기 기록 + 저장 + 다시 그리기) · `edit(fn)`(글자 입력처럼 잦은 변경: 다시 그리지 않음) · `commit()`(기록 없이 저장 + 다시 그리기)을 써요.
   상태 쪽(`state/`)은 화면을 모르고 `onStateChange` · `onSaveStatus` 로 알리기만 함.
+- **데이터 모양을 바꿀 때**: 옛 앱이 읽으면 잘못 다루거나 지울 수 있는 바꿈이면 `storage/dataVersion.js` 의 `DATA_VERSION` 을 1 올리고, `state/state.js` 의 `MIGRATIONS[새 버전]` 에 바꾸는 단계를 넣어요. 이 앱보다 높은 버전의 작품은 읽기만 하고(저장 · 동기화 받기 · 합치기 안 함) 업데이트하라고 알려요.
 - **저장**은 `Repo`(`state/repository.js`)만 거쳐요. 앱(Electron)과 브라우저의 차이는 그 안에서만 다룸.
 
 ## 데이터 위치

@@ -15,7 +15,8 @@ async function restoreBackup(b){
   if(!await askConfirm(`${fmtFull(b.mtime)} 백업으로 복구할까요?\n(지금 상태는 백업으로 따로 남겨 둬요)`))return;
   const text=Repo.backups.read(b.name);let d;
   try{d=JSON.parse(text);if(!d.characters||!d.cards)throw 0}catch(e){return notice('백업 파일을 읽을 수 없어요')}
+  if(tooNewData(d))return notice('더 새 버전의 앱에서 만든 백업이라 이 앱으로는 복구할 수 없어요. 앱을 업데이트해 주세요.');
   try{Repo.backups.force(JSON.stringify(S))}catch(e){logErr('복구 전 백업',e)}
   snap();replaceWork(d,{demo:false});autoLinkAll();fixSel();
-  UI.noSave=false;saveNow();closeModal();renderAll();toast('백업으로 복구했어요');
+  UI.noSave=false;UI.tooNew=false;saveNow();closeModal();renderAll();toast('백업으로 복구했어요');
 }

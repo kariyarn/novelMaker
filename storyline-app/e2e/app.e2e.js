@@ -87,3 +87,28 @@ test('메모를 위키로 보내고 다시 메모로 되돌리기', async()=>{
     assert.deepEqual(problems,[]);
   }finally{await close(app)}
 });
+
+test('더 새 앱이 고친 작품은 읽기만: 알림 띠가 뜨고 고쳐도 파일은 그대로', async()=>{
+  const fs=require('fs'),path=require('path');
+  const {DATA_VERSION}=require('../storage/dataVersion');
+  const home=newHome();
+  let {app,win}=await launch(home),file;
+  try{
+    await win.getByRole('button',{name:'구상',exact:true}).first().click();
+    await win.keyboard.press('Control+N');await win.keyboard.type('파일을 만들기 위한 메모');await win.keyboard.press('Escape');
+    await waitSaved(win);
+    file=path.join(home,'data','main','works',await win.evaluate(()=>LIB.current),'storyline.json');
+  }finally{await close(app)}
+  const d=JSON.parse(fs.readFileSync(file,'utf8'));
+  assert.equal(d.version,DATA_VERSION,'저장할 때 지금 데이터 버전을 적어야 함');
+  d.version=DATA_VERSION+1;d.futureField={from:'새 앱'};      // 새 앱이 만든 작품인 척
+  const newer=JSON.stringify(d);fs.writeFileSync(file,newer);
+  ({app,win}=await launch(home));
+  try{
+    assert.equal(await win.evaluate(()=>UI.tooNew),true);
+    await win.locator('#banner').getByText('더 새 버전의 앱에서 고쳤어요').waitFor({timeout:5000});
+    await win.keyboard.press('Control+N');await win.keyboard.type('저장되면 안 되는 메모');await win.keyboard.press('Escape');
+    await win.waitForTimeout(1500);
+  }finally{await close(app)}
+  assert.equal(fs.readFileSync(file,'utf8'),newer,'더 새 데이터 파일은 그대로여야 함');
+});

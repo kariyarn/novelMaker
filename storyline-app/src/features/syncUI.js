@@ -16,6 +16,10 @@ function onSyncResult(r){
   }
   if(touched||r.pulled.length||(r.merged||[]).length){afterWorkChange();renderAll()}      // 받은 게 없으면 화면을 다시 그리지 않음 (쓰던 글 · 열린 칸이 닫히지 않게)
   syncBar(null);      // 받았으니 알림 띠는 닫음
+  if((r.needUpdate||[]).length){      // 다른 기기의 더 새 앱이 고친 작품: 받지 않았음
+    const names=r.needUpdate.map(p=>{const id=p.split('/')[1],n=LIB&&LIB.novels&&LIB.novels.find(x=>x.id===id);return n?`‘${n.name}’`:'작품'});
+    notice(`${[...new Set(names)].join(' · ')}은(는) 다른 기기의 더 새 버전 앱에서 고쳐서 받지 않았어요. 이 앱을 업데이트한 뒤 다시 받아 주세요. (설정 → 데이터 → 앱 업데이트)`);
+  }
   const others=r.conflicts.filter(c=>!mine(c.rel));
   if((r.merged||[]).some(mine)&&pendingConflicts().length)showSyncConflicts();
   else if(others.length)notice(`양쪽 기기에서 고친 내용을 합쳤어요. 같은 글을 양쪽에서 다르게 고친 곳은 그 작품을 열면 고를 수 있어요.\n\n${others.map(c=>`${c.name} (${c.asks}곳)`).join('\n')}`);
