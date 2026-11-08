@@ -3,6 +3,7 @@
 const {app}=require('electron');
 const fs=require('fs'),path=require('path');
 app.setName('캐릭터 스토리라인');      // main.js 와 같은 이름 (저장 폴더 위치가 바뀌지 않게 먼저)
+if(process.env.STORYLINE_USER_DATA)app.setPath('userData',process.env.STORYLINE_USER_DATA);      // 테스트용: 앱 설정 · 로컬 사본을 따로 된 폴더에 (진짜 작품을 건드리지 않게)
 const bundled=require('./package.json').version;
 const buildOf=v=>{const m=/^\d+\.\d+\.(\d+)$/.exec(String(v||''));return m?+m[1]:0};      // 1.0.<빌드 번호>
 const DIR=path.join(app.getPath('userData'),'app-update'),CUR=path.join(DIR,'current.json');

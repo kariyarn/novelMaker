@@ -19,7 +19,16 @@ jobs:
         with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
       - run: npm ci
         env: {ELECTRON_SKIP_BINARY_DOWNLOAD: 1}
+      - run: npm run lint      # 코드 검사: 없는 이름 · 오타 · 죽은 코드
       - run: npm test
+  e2e:      # 진짜 앱을 켜서 핵심 흐름 확인 (화면 없는 리눅스라 xvfb 가상 화면에서)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: storyline-app/package-lock.json}
+      - run: npm ci
+      - run: xvfb-run -a npm run test:e2e
   windows:
     needs: test
     runs-on: windows-latest
@@ -54,7 +63,7 @@ jobs:
           if-no-files-found: error
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [windows, mac]
+    needs: [windows, mac, e2e]
     runs-on: ubuntu-latest
     permissions: {contents: write}
     defaults:
