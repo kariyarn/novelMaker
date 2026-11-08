@@ -180,6 +180,7 @@ npm start      # 앱 실행
 npm test       # 저장소 · 동기화 · 카드 무덤 · 위키 규칙 테스트
 npm run lint   # 코드 검사 (없는 이름 · 오타 · 화면 코드 불러오는 순서)
 npm run test:e2e   # 진짜 앱을 켜서 핵심 흐름 확인 (리눅스는 xvfb-run -a 를 앞에)
+node e2e/style-snapshot.js before.json   # CSS 고치기 전 화면 지문 → 고친 뒤 after.json --compare before.json 로 모양이 그대로인지
 ```
 
 - Electron 앱이에요. 화면 코드는 `src/`, 저장소는 `storage/`, 포스트잇 창은 `note/`

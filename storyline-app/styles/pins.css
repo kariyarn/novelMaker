@@ -2,9 +2,6 @@
 .pinx{background:transparent;padding:0 5px;font-size:.85em;opacity:.3;filter:grayscale(1)}
 .pinx.isp{opacity:1;filter:none}
 .pinx:hover{opacity:.9;background:transparent}
-.agrp{display:inline-flex;gap:2px;background:var(--fill);border-radius:9px;padding:2px}
-.agrp button{background:transparent;padding:2px 10px;font-size:.88em}
-.agrp button:hover{background:var(--fill2)}
 /* 핀: 코르크에 꽂는 압정 느낌 */
 .pin{position:absolute;left:50%;top:-29px;width:22px;height:38px;margin-left:-11px;padding:0;background:transparent;border:0;border-radius:0;opacity:0;filter:grayscale(1);cursor:pointer;z-index:4;transform-origin:50% 98%;transform:rotate(var(--pa,0deg));transition:opacity .15s,transform .15s,filter .15s}
 .pin svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
@@ -78,46 +75,38 @@ textarea.autofit{field-sizing:content}
 .dk.hl-inset .kcard:not(.board) .kb{background:rgba(0,0,0,.3)}
 .dk.hl-inset .kcard:not(.board) .hl{text-shadow:0 -1px 0 rgba(0,0,0,.6)}
 /* 전체화면에서도 보드 설정 도구는 떠 있게 */
-
-body.full .fzone{display:none}
 .klinks{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:0 10px 9px;margin-top:-2px}
 .klabel{font-size:.72em;color:var(--sub);font-weight:600;margin-right:2px}
 .klink{font-size:.76em;border-radius:99px;padding:1px 9px;background:color-mix(in srgb,#c8412b 13%,transparent);color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .klink:hover{background:color-mix(in srgb,#c8412b 26%,transparent)}
 .kcard.flash{animation:cflash 1.7s ease-out}
-@keyframes cflash{0%,35%{box-shadow:0 0 0 3px var(--acc),0 0 22px 4px var(--acc-soft)}100%{}}
+@keyframes cflash{0%,35%{box-shadow:0 0 0 3px var(--acc),0 0 22px 4px var(--acc-soft)}}
 .rzb{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize;z-index:2}
 .rzc{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;opacity:0;transition:opacity .15s;z-index:3;background:linear-gradient(135deg,transparent 50%,rgba(0,0,0,.3) 50%,rgba(0,0,0,.3) 58%,transparent 58%,transparent 72%,rgba(0,0,0,.3) 72%,rgba(0,0,0,.3) 80%,transparent 80%)}
 .kcard.board:hover .rzc{opacity:1}
 .kcard.board.fixh .kwrap{flex:1 1 0;min-height:0}
 .kcard.board.fixh .ktext{display:block;height:100%!important;min-height:0;max-height:none;overflow:hidden}
 .kcard.board.fixh.editing .ktext{overflow:auto}
-.ltree{padding:2px 0 16px}
 /* 명함첩: 분류 판 · 폴더 판 · 이름표 */
-.lboard{margin:6px 10px 10px;padding:6px 8px 9px;border-radius:14px;background:var(--fill)}
 .lboard.dover,.lsub.dover{box-shadow:inset 0 0 0 1.5px var(--acc);background:var(--acc-soft)}
-.lbh,.lsh{display:flex;align-items:center;gap:6px;padding:3px 4px 6px;cursor:pointer;user-select:none;min-height:26px}
-.lbh b{font-size:.86em;font-weight:700;letter-spacing:.01em}
-.lbh small,.lsh small{color:var(--sub);font-size:.8em}
-.lbh .car,.lsh .car{width:10px;color:var(--sub);font-size:.8em}
+.lbh,.lsh{display:flex;align-items:center;padding:3px 4px 6px;cursor:pointer;user-select:none;min-height:26px}
+.lbh small,.lsh small{font-size:.8em}
+.lbh .car,.lsh .car{width:10px;color:var(--sub)}
 .lbh .cbtn,.lsh .cbtn{opacity:0;transition:opacity .15s;padding:1px 4px;min-width:0;min-height:0}
 .lboard:hover>.lbh .cbtn,.lsub:hover>.lsh .cbtn{opacity:1}
 /* 새 노트 · 새 폴더 아이콘은 평소에도 은은하게 보이게 */
-.lbh .cbtn.mk,.lsh .cbtn.mk{opacity:.5}
 .lboard:hover>.lbh .cbtn.mk,.lsub:hover>.lsh .cbtn.mk,.lbh .cbtn.mk:hover,.lsh .cbtn.mk:hover{opacity:1}
 .lbh .cbtn .ic svg,.lsh .cbtn .ic svg{width:15px;height:15px}
-.lsh{font-size:.86em;font-weight:600;padding:2px 2px 5px}
-.lsh .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsh .fn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lsh.tview{color:var(--acc)}
-.lsub{margin-top:7px;padding:5px 6px 7px;border-radius:11px;background:var(--fill)}
-.lchips{display:flex;flex-wrap:wrap;gap:5px}
+.lsub{margin-top:7px}
+.lchips{display:flex;flex-wrap:wrap}
 .lchips>.lchip{flex:0 1 auto;max-width:100%}
 .lchips>.lchip.fill{flex:1 1 auto;justify-content:center}      /* 줄이 거의 찬 줄만 남은 칸을 나눠 가져 가지런히 (빈 칸이 많이 남는 줄은 그대로) */
-.lchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 10px 4px 8px;border-radius:99px;background:var(--panel);box-shadow:0 0 0 .5px var(--line),0 1px 1px rgba(0,0,0,.03);font-size:.9em;cursor:pointer;line-height:1.3;transition:background .12s,box-shadow .12s}
-.lchip:hover{box-shadow:0 0 0 .5px var(--line),0 2px 6px rgba(0,0,0,.08)}
+.lchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;border-radius:99px;cursor:pointer;line-height:1.3;transition:background .12s,box-shadow .12s}
 .lchip .cn{white-space:normal;word-break:keep-all}
 .lchip .eic{display:inline-flex;font-size:.95em;line-height:1}
-.lchip .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.lchip .dot{border-radius:50%;flex:none}
 .lchip .dot.sq{border-radius:2.5px}
 .lchip small{visibility:hidden;color:var(--sub);font-size:.8em}      /* 자리는 늘 잡아 둠: 마우스를 올릴 때 폭이 변해 칩이 밀려나지 않게 */
 .lchip:hover small{visibility:visible}
@@ -126,18 +115,17 @@ body.full .fzone{display:none}
 .lboard{margin:0 10px;padding:6px 2px 8px;border-radius:0;background:transparent;border-bottom:.5px solid var(--line)}
 .lboard.dover,.lsub.dover{border-radius:10px}
 .lbh{padding:2px 2px 4px;min-height:22px;gap:5px}
-.lbh b{font-size:.78em;font-weight:700;letter-spacing:.04em;color:var(--sub)}
+.lbh b{font-weight:700;letter-spacing:.04em;color:var(--sub)}
 .lbh small{font-size:.76em}
 .lbh .cbtn.mk,.lsh .cbtn.mk{opacity:0}
 .lboard:hover>.lbh .cbtn.mk,.lsub:hover>.lsh .cbtn.mk{opacity:.6}
 .lbh .cbtn.mk:hover,.lsh .cbtn.mk:hover{opacity:1}
 .lsub{margin:2px 0 0 4px;padding:1px 0 4px 10px;border-radius:0;background:transparent;border-left:1.5px solid var(--line)}
-.lsh{font-size:.82em;font-weight:600;padding:1px 2px 3px;min-height:20px;color:var(--ink)}
+.lsh{font-weight:600;padding:1px 2px 3px;min-height:20px;color:var(--ink)}
 .lsh small{font-size:.74em}
 .lchips{gap:4px}
 .lchip{padding:2px 9px 2px 7px;font-size:.86em;background:var(--fill);box-shadow:none}
 .lchip:hover{background:var(--fill2);box-shadow:none}
-.lchip.act{box-shadow:none}
 .lchip .dot{width:8px;height:8px}
 .lboard.lwork,.lboard.lnone{padding:4px 2px}
 .lboard.lwork .lbh b,.lboard.lnone .lbh b{font-size:.86em;letter-spacing:0;color:var(--ink)}
@@ -161,7 +149,7 @@ body.full .fzone{display:none}
 .lnone.act b{color:var(--acc)}
 .ltree .fhint{font-size:.8em;color:var(--sub);padding:2px 4px}
 .crow .dot.sq{border-radius:3px}
-.fold{display:flex;align-items:center;gap:6px;margin:8px 10px 1px;padding:5px 8px;border-radius:9px;cursor:pointer;color:var(--sub);font-size:.86em;font-weight:600;user-select:none}
+.fold{display:flex;align-items:center;margin:8px 10px 1px;padding:5px 8px;border-radius:9px;cursor:pointer;font-weight:600;user-select:none}
 .fold:hover{background:var(--fill)}
 .fold .car{width:1em;font-size:.8em}
 .fold .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -195,7 +183,7 @@ body.full .fzone{display:none}
 .sr{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer}
 .sr.on{background:var(--acc-soft)}
 .sdot{width:12px;height:12px;border-radius:4px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
-.stag{font-size:.74em;color:var(--sub);border:.5px solid var(--line);border-radius:99px;padding:0 8px;flex:none;white-space:nowrap}
+.stag{color:var(--sub);border:.5px solid var(--line);border-radius:99px;padding:0 8px;flex:none;white-space:nowrap}
 .sbody{display:flex;flex-direction:column;min-width:0;flex:1}
 .stitle{font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ssub{font-size:.84em;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -210,8 +198,6 @@ body.full .fzone{display:none}
 .fic:hover{background:var(--fill2)}
 .fold{gap:4px}
 .fold .fn{color:var(--ink);font-weight:600}
-.ldrag .rootdrop{display:block}
-.rootdrop{display:none;margin:8px 12px;padding:10px;border:1.5px dashed var(--fill2);border-radius:10px;text-align:center;color:var(--sub);font-size:.84em}
 .lfwrap{padding:0 12px 6px}
 .lfind{width:100%;background:var(--fill);padding:5px 10px;font-size:.88em;border-radius:9px}
 .icgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:4px;width:300px}
@@ -236,7 +222,6 @@ body.full .fzone{display:none}
 .epkids .ep{margin-left:6px}
 .ep.act{background:var(--acc-soft);color:var(--acc);font-weight:600}
 .ep.all{margin-top:2px}
-.ep.empty .eno,.ep.empty .en{opacity:.55}
 .ep .eno{font-variant-numeric:tabular-nums;font-weight:600;min-width:2.5em}
 .ep .en{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:.92em}
 .ep.act .en{color:inherit}
@@ -263,7 +248,6 @@ body.full .fzone{display:none}
 .tlbox{background:var(--panel);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px -12px rgba(0,0,0,.14);padding:2px 14px 12px}
 .tlbox>.tlhead{position:sticky;top:-14px;z-index:3;background:var(--panel);border-radius:14px 14px 0 0;padding:10px 0 6px}
 .tlbox .epcnt{color:var(--sub);white-space:nowrap}
-.tlbox .foldb{padding:0 4px;min-width:0}
 .tlbox>.tlmemo{margin:0 0 6px}
 .tlbox>.tlbody{padding:2px 0;overflow:visible;min-height:56px}
 .tlbox.folded>.tlmemo,.tlbox.folded>.tlbody{display:none}
@@ -340,9 +324,6 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:.92em}
 .goalstrip.mini:hover{background:transparent}
 .gpill{pointer-events:auto;position:absolute;top:8px;left:12px;font-size:.82em;padding:2px 11px;border-radius:99px;background:var(--panel);color:var(--sub);box-shadow:var(--shadow);border:.5px solid var(--line)}
 .gpill:hover{color:var(--acc)}
-.goalstrip .lg{min-width:0;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;max-width:48%}
-.goalstrip .lg{font-weight:550}
-.goalstrip .lg.empty{color:var(--sub);font-weight:400}
 .goalstrip .sg{background:var(--fill);color:var(--ink);border:.5px solid var(--line);border-radius:99px;padding:0 10px;overflow:hidden;text-overflow:ellipsis;max-width:20%;flex:0 1 auto}
 .goalstrip:hover{background:var(--fill)}
 body.full .goalstrip{display:none}
@@ -355,7 +336,7 @@ table.ftab{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 .ftab thead th{position:sticky;top:-10px;z-index:3;background:var(--bg);text-align:left;font-size:.78em;font-weight:650;color:var(--sub);padding:8px 8px;border-bottom:1px solid var(--line);letter-spacing:.03em}
 .ftab thead th.sortable{cursor:pointer;user-select:none}
 .ftab thead th.sortable:hover{color:var(--ink)}
-.ftab td{padding:2px 4px;border-bottom:.5px solid var(--line);vertical-align:middle}
+.ftab td{border-bottom:.5px solid var(--line);vertical-align:middle}
 .ftab tr.trow:hover td{background:var(--fill)}
 .ftab tr.trow.act td{background:var(--acc-soft)}
 .ftab tr.emp td{opacity:.62}

@@ -12,7 +12,7 @@ button.hasic{display:inline-flex;align-items:center;justify-content:center}
 .mtools .ic svg{width:17px;height:17px}
 input,select,textarea{border-radius:var(--r-m)}
 button{border-radius:var(--r-s)}
-.rmblock,.tgen button{border-radius:var(--r-l)}
+.tgen button{border-radius:var(--r-l)}
 /* 키보드 사용: 포커스가 어디 있는지 분명하게 (마우스 클릭에는 안 보임) */
 :focus{outline:none}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:var(--r-s)}
@@ -84,7 +84,7 @@ body.resizing #app{transition:none}
 .ctab-s.low,.peekic.low{top:12px!important}
 .peekbox .ptog{display:none}
 .peekbox>.phead{padding-left:54px}
-.peekbox.pr>.phead{padding-left:14px;padding-right:54px}
+.peekbox.pr>.phead{padding-left:14px}
 .panel.cl.peek{z-index:30}
 .panel.peeking .ptog{background:var(--acc-soft);color:var(--acc)}
 .panel.peeking .ptog::after{content:'';position:absolute;inset:-3px;border-radius:12px;border:1.5px dashed var(--acc);opacity:.55}
@@ -124,7 +124,7 @@ body.slide .panel{overflow:hidden}
 :root{--t-small:.84em;--t-title:1.06em}
 .muted,.fl,.sgh,.glab,.robadge,.chip,.kchip,.placed,.ptitle,.tlab,.psum,.bhead .muted,.srow .sl .muted,.phead .muted{font-size:var(--t-small)}
 .phead b,.ssec{font-size:var(--t-small);letter-spacing:.02em}
-.bhead b,.mbar>b,.sl,.tlhead b,.rmname{font-size:var(--t-title)}
+.bhead b,.mbar>b,.sl,.tlhead b{font-size:var(--t-title)}
 /* 테두리 대신 여백과 옅은 그림자 */
 .kcard.pool,.kcard.tl{border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px -8px rgba(0,0,0,.12)}
 .kcard.pool:hover,.kcard.tl:hover{box-shadow:0 1px 2px rgba(0,0,0,.06),0 10px 24px -8px rgba(0,0,0,.18)}
@@ -139,11 +139,11 @@ body.slide .panel{overflow:hidden}
 @media (prefers-color-scheme:dark){:root:not([data-theme]){--sub:#aeaeb3;--line:rgba(255,255,255,.13)}}
 body{line-height:1.55}
 .muted{font-size:.9em}
-.phead b{font-size:.84em;color:var(--ink);opacity:.72;font-weight:650}
-.sgh{font-size:.84em;color:var(--ink);opacity:.7;letter-spacing:.02em;padding:14px 0 6px}
+.phead b{font-size:.84em;color:var(--ink);font-weight:650}
+.sgh{font-size:.84em;color:var(--ink);letter-spacing:.02em;padding:14px 0 6px}
 .sgh:hover{opacity:1}
 .fl{font-size:.88em}
-.fold{font-size:.9em;color:var(--ink);opacity:.78}
+.fold{font-size:.9em;color:var(--ink)}
 .cbtn{min-width:24px;min-height:24px;border-radius:7px}
 .phead b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .phead .cbtn{padding:0 4px;flex:none}

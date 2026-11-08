@@ -4,7 +4,7 @@
 .ui2 .brand{font-size:14px;font-weight:600;margin-right:2px;display:inline-flex;align-items:center;gap:4px}
 .ui2 .brand .ic{width:14px;height:14px;color:var(--sub)}
 .ui2 .demotag{background:transparent;color:var(--sub);border:.5px solid var(--line);border-radius:4px;font-weight:500;padding:0 5px;margin-left:2px;font-size:.74em}
-.ui2 .saved{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sub);opacity:.8;margin-right:6px;white-space:nowrap}
+.ui2 .saved{display:inline-flex;align-items:center;gap:4px;color:var(--sub);margin-right:6px;white-space:nowrap}
 .ui2 .saved .ic{width:13px;height:13px}
 .ui2 .saved[data-st=saving] .ic{opacity:.25}
 .ui2 .saved[data-st=fail]{color:var(--warn);opacity:1}

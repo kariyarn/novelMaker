@@ -6,15 +6,12 @@
 .wkcols.wkcut{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 28px);mask-image:linear-gradient(to right,transparent 0,#000 28px)}
 .wkcol{flex:none;width:212px;display:flex;flex-direction:column;min-height:0;background:var(--side);border-right:1px solid var(--line)}
 .wkcol:last-child{border-right:0}
-.wkcol.wkent{width:208px}
 .wkcol+.wkcol{background:color-mix(in srgb,var(--side) 55%,var(--panel))}
 .wkcol+.wkcol+.wkcol{background:color-mix(in srgb,var(--side) 30%,var(--panel))}
 .wkch{display:flex;align-items:center;gap:6px;padding:12px 12px 6px 14px;font-size:11.5px;font-weight:600;color:var(--sub);letter-spacing:.02em;min-height:38px}
-.wkch .tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkch .sp{flex:1}
 .wkch .wkplus{color:var(--acc);padding:0 4px}
 .wklist{flex:1;overflow-y:auto;padding:0 0 12px;min-height:40px}
-.wkgrp{font-size:11px;color:var(--sub);opacity:.8;padding:10px 14px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkrow{position:relative;display:flex;align-items:center;gap:7px;margin:1px 6px;padding:5px 8px;border-radius:7px;font-size:13px;color:var(--ink);cursor:default;user-select:none;outline:none}
 .wkrow .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkrow .t.none{color:var(--sub);font-style:italic}
