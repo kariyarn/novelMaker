@@ -41,7 +41,8 @@ const THEME_ALIAS={emerald:'forest',sky:'light',mint:'cotori',peach:'rose',sepia
   snow:'light',solarized:'cotori',moss:'cotori',plum:'midnight',olive:'forest',terminal:'forest',cyber:'midnight',hitel:'midnight'};      // 없어진 테마는 가장 비슷한 테마로 (2026-10 정리: 겹치거나 너무 튀는 테마를 뺌)
 function applySettings(){
   const s=S.settings,r=document.documentElement;
-  document.body.classList.add('ui2','ui3');      // 화면 디자인은 새단장 하나 (예전 CSS가 ui2 · ui3 아래에 있음)
+  document.body.classList.add('ui2','ui3');
+  document.body.classList.toggle('tidy',s.look!=='classic');      // 화면 다듬기 (styles/tidy.css): 글자 · 버튼 · 모서리 · 그림자를 몇 단계로 맞춤. '예전 모양'을 고르면 이 파일 전체가 꺼짐      // 화면 디자인은 새단장 하나 (예전 CSS가 ui2 · ui3 아래에 있음)
   if(THEME_ALIAS[s.theme]){s.theme=THEME_ALIAS[s.theme];save()}
   if(!s.theme||s.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',s.theme);
   if(s.noteTheme)delete s.noteTheme;      // 예전 색 테마 설정은 정리
@@ -83,6 +84,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
     h('button',{class:'kdel',disabled:S.kinds.length<2,title:'삭제 (이 분류의 카드는 다른 분류로 옮겨져요)',onclick:async()=>{if(!await askConfirm(`'${k.name}' 분류를 지울까요? 이 분류의 카드는 '${S.kinds.find(x=>x!==k).name}'(으)로 옮겨져요.`))return;const to=S.kinds.find(x=>x!==k).id;act(()=>{S.cards.forEach(c=>{if(c.kind===k.id)c.kind=to});S.kinds=S.kinds.filter(x=>x!==k)});showSettings()}},'✕')));
   const T={
     look:[
+      row('화면 다듬기','글자 · 버튼 · 간격을 가지런히 맞춘 모양',segOld([['tidy','다듬은 모양'],['classic','예전 모양']],s.look==='classic'?'classic':'tidy',k=>{setSetting('look',k);renderAll()})),
       row('이름 목록 모양','왼쪽 인물 · 설정 목록',segOld([['text','글자 (｜로 구분)'],['chip','이름표']],s.leftStyle||'text',k=>{setSetting('leftStyle',k);renderLeft()})),
       row('작게 보기','구상 보드를 줄여 글자가 이보다 작아지면 포스트잇을 모양만',segOld([['0','끄기'],['6','6px'],['8','8px'],['10','10px']],String(frDefPx()),k=>{setSetting('defPx',+k);applyView()})),
       row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0])),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),

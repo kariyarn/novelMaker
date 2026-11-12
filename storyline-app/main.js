@@ -24,7 +24,7 @@ app.on('web-contents-created',(e,wc)=>{
 const callMain=js=>win&&!win.isDestroyed()?win.webContents.executeJavaScript(js):Promise.resolve(null);      // 큰 창의 화면 코드에 일을 맡김
 
 function createWindow({hidden=false}={}){
-  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,title:'캐릭터 스토리라인',show:!hidden,
+  win=new BrowserWindow({width:1400,height:900,minWidth:1100,minHeight:600,title:'캐릭터 스토리라인',show:!hidden,
     autoHideMenuBar:!isMac,webPreferences:{contextIsolation:true,sandbox:true,spellcheck:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
   win.loadFile(path.join(__dirname,'index.html'));
   win.webContents.once('did-finish-load',()=>{setTimeout(()=>runPush().then(()=>runCheck()),1500);global.appUpdate&&global.appUpdate.ok()});      // 화면이 떴으니 새 앱 코드는 정상 (launcher.js) · 지난번에 못 올린 것 올리고 새 내용 확인
