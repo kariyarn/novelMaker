@@ -84,3 +84,5 @@ function fitDock(){      // 도구줄이 보드보다 넓으면 글자를 빼고
     v.classList.remove('compact','tiny');
     if(d.offsetWidth>v.clientWidth-24){v.classList.add('compact');if(d.offsetWidth>v.clientWidth-24)v.classList.add('tiny')}})
 }
+if(window.ResizeObserver)new ResizeObserver(()=>fitDock()).observe($('mid'));      // 패널을 펴고 접는 동안(폭이 스르르 바뀜)에도 도구줄을 보드 폭에 맞춤
+

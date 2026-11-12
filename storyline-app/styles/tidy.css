@@ -1,0 +1,101 @@
+/* ============ 화면 다듬기 ============
+   모양만 맞추는 파일 (기능 · 구조는 그대로). 전부 body.tidy 아래라서
+   설정 → 겉모습 → 화면 다듬기 → '예전 모양'을 고르면 이 파일 전체가 꺼짐.
+   앞 파일들을 덮어야 해서 !important 를 씀 (앞 파일을 고치지 않고 이 파일만 지우면 되돌아가게).
+
+   글자 5단계   --td-xs 12 · --td-sm 13 · --td-md 14 · --td-lg 16 · --td-xl 20  (설정의 글자 크기 14px 기준, 비율로 따라감)
+   높이 3단계   --td-hs 24 · --td-hm 28 · --td-hl 32
+   모서리 4단계 --td-rs 6 · --td-rm 8 · --td-rl 12 · --td-rx 16
+   그림자 3단계 --td-s1 카드 · --td-s2 떠 있는 막대 · 메뉴 · --td-s3 창 */
+body.tidy{
+  --td-xs:calc(var(--fs,14px)*.857);--td-sm:calc(var(--fs,14px)*.929);--td-md:var(--fs,14px);--td-lg:calc(var(--fs,14px)*1.143);--td-xl:calc(var(--fs,14px)*1.429);
+  --td-hs:24px;--td-hm:28px;--td-hl:32px;
+  --td-rs:6px;--td-rm:8px;--td-rl:12px;--td-rx:16px;
+  --td-s1:0 1px 2px rgba(0,0,0,.07);
+  --td-s2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.1);
+  --td-s3:0 4px 12px rgba(0,0,0,.1),0 24px 64px rgba(0,0,0,.26);
+}
+
+/* ---------- 1. 글자 크기 ---------- */
+/* 가장 작은 표시 (12): 개수 · 날짜 · 표 머리 · 단축키 · 작은 꼬리표 */
+body.tidy :is(.epcnt,.shcnt,.gcnt,.kbd,kbd,.demotag,.robadge,.ssec,.ptitle,.tlab,.wkpfoot,.wkpn,.wkkind,.frlb,.tlhint,.fhint,.fadd,.wkto,.tt,.car,.meta,.fm,.wkcf,.kchip,.frwctl,.cnt,.frbk,.frdc,.brmk,.stars),
+body.tidy :is(.tsw,.swb,.sfold,.lbh,.frno,.gh,.wkcard) small,
+body.tidy .tsw span,body.tidy .swb,
+body.tidy .tlmx :is(th,td),
+body.tidy .wkmeta .muted,body.tidy .wkstat .muted,body.tidy .bhead .muted,body.tidy .wksh .muted,body.tidy .saved span,
+body.tidy .kcard.tl.fr .khead :is(.frbk,.frdc,.stars),body.tidy .kcard.tl.fr .khead .kpill select{font-size:var(--td-xs)!important}
+/* 보조 글자 (13): 고르는 버튼 · 안내 문장 · 목록의 행 · 패널 제목 */
+body.tidy .seg:not(.tabs) button,body.tidy select.seg2,
+body.tidy :is(.muted,.pkchip,.wkcb,.wktb,.wkrdbtn,.frsht,.fradd,.frrunh,.addcol,.tlmemo,.wksum,.kshr,.zlbl,.gtl,.lfind,.gsearch,.wkmb),
+body.tidy :is(.dk-b,.frnm,.shhint,.wkstat,.frcast) span,body.tidy .wkstat button,
+body.tidy .phead>b,body.tidy .phead>button.quiet,body.tidy .lbh>b,body.tidy .wkrow,body.tidy .wkcard .s,
+body.tidy #toast{font-size:var(--td-sm)!important}
+/* 본문 (14): 버튼 · 메뉴 · 입력칸 · 이름 */
+body.tidy .mbar :is(button.quiet,.menubtn),body.tidy .pop .pi,body.tidy :is(.row,.sc,.klist,.krow,.wbhead,.gobw,.sgrp)>button,
+body.tidy .seg.tabs button,body.tidy .srow .sl,body.tidy .bhead b,body.tidy .wkcard b,body.tidy .sgh>span,
+body.tidy #top .brand{font-size:var(--td-md)!important}
+/* 작은 제목 (16) · 큰 제목 (20) */
+body.tidy .wbhead>b,body.tidy .frnm>b,body.tidy .tlcol .tlhead input{font-size:var(--td-lg)!important}
+body.tidy .mtitle,body.tidy #mbox>h3,body.tidy .wkot,body.tidy .wktitle{font-size:var(--td-xl)!important;letter-spacing:-.02em}
+/* 굵기 3단계: 400 본문 · 500 버튼 · 700 제목 (600 · 650 은 700 으로) */
+body.tidy :is(.phead>b,.lbh>b,.bhead b,.robadge,.ssec,.ptitle,.srow .sl,.wkmb,.gtl,.sc>b,.brand,.shno,.wkic){font-weight:700!important}
+body.tidy .seg:not(.tabs) button.on{font-weight:500!important}
+
+/* ---------- 2. 버튼 · 입력칸 높이와 모서리 ---------- */
+/* 막대 안의 조절 장치 (28) */
+body.tidy :is(.mbar,.gbar2,.mxbar,.wkstat,.wbhead,.fracts) :is(button:not(.cbtn):not(.ptog):not(.x):not(.seg button),select,input:not([type=range]):not([type=checkbox])),
+body.tidy :is(.wkrdbtn,.fradd,.gob,.frrunh,.lfind){height:var(--td-hm)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important;border-radius:var(--td-rm)!important}
+body.tidy :is(.mbar,.gbar2,.fracts) button.quiet,body.tidy .mbar .menubtn,body.tidy .wkrdbtn{display:inline-flex!important;align-items:center;gap:6px}
+/* 고르는 버튼 묶음: 바깥 28 · 안쪽 24 */
+body.tidy .seg:not(.tabs){border-radius:var(--td-rm)!important;padding:2px!important;gap:2px!important;align-items:center}
+body.tidy .seg:not(.tabs) button{height:var(--td-hs)!important;min-height:0!important;padding:0 10px!important;border-radius:var(--td-rs)!important}
+/* 아이콘 버튼 (24) · 위쪽 막대 아이콘 (32) */
+body.tidy .cbtn{min-width:var(--td-hs)!important;height:var(--td-hs)!important;min-height:0!important;border-radius:var(--td-rs)!important;display:inline-flex;align-items:center;justify-content:center}
+body.tidy #top .cbtn.topic,body.tidy .mtools .cbtn{min-width:var(--td-hl)!important;height:var(--td-hl)!important;border-radius:var(--td-rm)!important}
+body.tidy :is(.wktb,.wkcb,.pkchip,.wkto){height:var(--td-hs)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
+body.tidy :is(.wktb,.wkcb){border-radius:var(--td-rs)!important}
+/* 창 · 설정 · 아래 도구 막대의 버튼과 입력칸 (32) */
+body.tidy #mbox :is(.row,.sc,.klist,.krow,.sgrp)>:is(button:not(.sw):not(.tsw):not(.swb),select,input:not([type=color]):not([type=range]):not([type=file])),
+body.tidy #mbox .khk select,body.tidy .dlg :is(button,input),body.tidy .dk-b,body.tidy #top .brand{height:var(--td-hl)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important;border-radius:var(--td-rm)!important}
+body.tidy .kshr select{height:var(--td-hm)!important;border-radius:var(--td-rm)!important}
+/* 입력칸 */
+body.tidy :is(.pquick input,.snrow input,.shhead input,.shead input,.kname){border-radius:var(--td-rm)!important}
+
+/* ---------- 3. 모서리 · 그림자 ---------- */
+body.tidy :is(.pop,.bdock,.tsw,.swb,.wkcard,.spotbox,.dlgbox){border-radius:var(--td-rl)!important}
+body.tidy #modal .box{border-radius:var(--td-rx)!important;box-shadow:var(--td-s3)!important}
+body.tidy :is(.pop,.bdock,.spotbox){box-shadow:var(--td-s2),0 0 0 1px var(--line)!important}
+body.tidy .pop .pi{border-radius:var(--td-rs)!important;min-height:var(--td-hl)}
+body.tidy #toast{border-radius:var(--td-rm)!important;padding:8px 16px!important}
+body.tidy #toast .tundo{border-radius:var(--td-rs)!important;padding:2px 10px!important}
+body.tidy .kcard.tl.fr{border-radius:var(--td-rm)!important;box-shadow:var(--td-s1),0 0 0 1px var(--line)!important}
+
+/* ---------- 4. 간격: 8의 배수 ---------- */
+body.tidy .mbar{gap:8px!important;padding-top:0!important;padding-bottom:0!important;min-height:48px!important}
+body.tidy .mbar .seg.tabs{gap:16px!important}
+body.tidy #top{min-height:48px}
+body.tidy .phead{gap:8px}
+body.tidy .srow{padding-top:16px!important;padding-bottom:16px!important}
+
+/* ---------- 5. 바탕색 하나 ---------- */
+body.tidy.ui3 #app.m-tl2 #mid{background:var(--bg)}
+
+/* ---------- 6. 자잘한 마감 ---------- */
+/* 한글 꼬리표의 넓은 자간을 좁힘 */
+body.tidy.ui3 #sheet .fl,body.tidy.ui3 #left .lbh>b,body.tidy .frch .tlhead b.frno,body.tidy .frlb{letter-spacing:.02em!important;opacity:1!important}
+body.tidy.ui3 #sheet .fl{font-size:var(--td-xs)!important;font-weight:500!important;margin-top:8px}
+/* 시트의 글 칸이 '쓸 수 있는 곳'으로 보이게 */
+body.tidy #sheet :is(textarea.fval,textarea.box,input.role){background:var(--fill)!important;border-radius:var(--td-rm)!important;padding:8px 12px!important;min-height:36px}
+body.tidy #sheet :is(textarea.fval,textarea.box,input.role):focus{background:var(--panel)!important}
+body.tidy .wprog input{width:88px!important}
+/* 빈 보드: 안내 글과 원점 표시가 겹치지 않게 */
+body.tidy .bview:has(.bempty) .orig{display:none}
+/* 키보드로 옮겨 다닐 때 지금 자리가 보이게 */
+body.tidy :is(button,select,[role=button]):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* 남은 조각 맞추기 */
+body.tidy :is(.ctab,.ptog,.bfull),body.tidy .tlhead input,body.tidy #mbox :is(.row,.krow)>input{border-radius:var(--td-rm)!important}
+body.tidy .dk-zoom button{height:var(--td-hs)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important;border-radius:var(--td-rs)!important}
+body.tidy .pop .pi{height:var(--td-hl)}
+body.tidy #sheet input.role{height:var(--td-hl)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
+body.tidy :is(.sgh button.quiet,.kchip button,.shno){font-size:var(--td-xs)!important}
+body.tidy .frnm small{font-size:var(--td-sm)!important}
