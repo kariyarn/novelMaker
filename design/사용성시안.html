@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사용성 · 디자인 시안</title>
+<style>
+:root{--bg:#f4f4f6;--panel:#ffffff;--side:#ededf1;--ink:#1d1d1f;--sub:#6b6b72;--line:rgba(0,0,0,.09);--fill:rgba(0,0,0,.045);--fill2:rgba(0,0,0,.085);--acc:#0a6fdc;--onacc:#fff;--acc-soft:rgba(10,111,220,.11);--dot:rgba(0,0,0,.13);--warn:#d23f44;--ok:#23804b;--y:#ffeb9c;--g:#bfe9d3;--note:#3a3320;--shadow:0 1px 2px rgba(0,0,0,.05),0 10px 28px rgba(0,0,0,.09);--pop:0 2px 6px rgba(0,0,0,.08),0 18px 48px rgba(0,0,0,.18)}
+:root[data-theme=dark]{--bg:#1b1b1d;--panel:#262628;--side:#212123;--ink:#f2f2f4;--sub:#a0a0a8;--line:rgba(255,255,255,.1);--fill:rgba(255,255,255,.06);--fill2:rgba(255,255,255,.11);--acc:#3b93ff;--onacc:#fff;--acc-soft:rgba(59,147,255,.18);--dot:rgba(255,255,255,.1);--warn:#ff7a7f;--ok:#6fd09a;--y:#d9c779;--g:#8fc4ab;--note:#1f1b10;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);--pop:0 2px 6px rgba(0,0,0,.4),0 18px 48px rgba(0,0,0,.55)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b1b1d;--panel:#262628;--side:#212123;--ink:#f2f2f4;--sub:#a0a0a8;--line:rgba(255,255,255,.1);--fill:rgba(255,255,255,.06);--fill2:rgba(255,255,255,.11);--acc:#3b93ff;--onacc:#fff;--acc-soft:rgba(59,147,255,.18);--dot:rgba(255,255,255,.1);--warn:#ff7a7f;--ok:#6fd09a;--y:#d9c779;--g:#8fc4ab;--note:#1f1b10;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);--pop:0 2px 6px rgba(0,0,0,.4),0 18px 48px rgba(0,0,0,.55)}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none;cursor:pointer;padding:0}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding:40px 16px 96px}
+h1{font-size:1.75em;line-height:1.25;margin:0 0 8px;letter-spacing:-.03em}
+.lead{color:var(--sub);margin:0 0 24px;max-width:720px}
+h2{font-size:1.15em;margin:48px 0 8px;letter-spacing:-.02em}
+.pagebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.hint{color:var(--sub);font-size:13px}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* 버튼 3가지: 채운 것 · 테두리 · 글자만 */
+.b{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:550;white-space:nowrap}
+.b.fill{background:var(--acc);color:var(--onacc)}
+.b.line{box-shadow:inset 0 0 0 1px var(--line);background:var(--panel)}
+.b.text{color:var(--sub)}
+.b.text:hover,.b.line:hover{background:var(--fill)}
+.b.icon{width:32px;padding:0;justify-content:center;color:var(--sub)}
+.b.icon:hover{background:var(--fill);color:var(--ink)}
+.b[disabled]{opacity:.35;cursor:default}
+
+/* 앱 창 */
+.scroll{overflow-x:auto;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.win{min-width:1040px;height:680px;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.top{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:4px;margin-right:4px}
+.tabs{display:flex;gap:4px;margin:0 auto;background:var(--fill);padding:3px;border-radius:10px}
+.tabs button{height:28px;padding:0 20px;border-radius:7px;font-size:13px;font-weight:600;color:var(--sub)}
+.tabs button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.saved{font-size:12px;color:var(--sub);display:inline-flex;align-items:center;gap:4px;margin-right:4px}
+.find{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:8px;background:var(--fill);color:var(--sub);font-size:13px;min-width:180px}
+.find kbd{margin-left:auto;font:inherit;font-size:12px;opacity:.8}
+.body{flex:1;min-height:0;display:flex}
+.left{width:232px;flex:none;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px 8px;gap:2px;overflow:auto}
+.left .grp{font-size:12px;font-weight:650;color:var(--sub);padding:16px 8px 4px}
+.li{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:8px;font-size:14px;width:100%;text-align:left}
+.li:hover{background:var(--fill)}
+.li.on{background:var(--acc-soft);color:var(--acc);font-weight:650}
+.li small{margin-left:auto;font-size:12px;color:var(--sub);font-weight:500}
+.dotc{width:8px;height:8px;border-radius:50%;flex:none}
+.left .gap{flex:1}
+.mid{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.right{width:272px;flex:none;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:16px;gap:12px;overflow:auto}
+.right h3{font-size:14px;margin:0;display:flex;align-items:baseline;gap:8px}
+.right h3 small,.mh small{font-size:12px;color:var(--sub);font-weight:500}
+.quick{height:36px;border-radius:8px;border:0;background:var(--fill);padding:0 12px;font:inherit;font-size:14px;color:var(--ink);width:100%}
+.quick::placeholder{color:var(--sub)}
+.mh{display:flex;align-items:center;gap:8px;padding:16px 24px 8px;flex:none}
+.mh b{font-size:18px;letter-spacing:-.02em}
+.mh .sp{flex:1}
+.chipf{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 10px;border-radius:99px;background:var(--fill);font-size:12px;color:var(--sub)}
+.board{flex:1;min-height:0;overflow:auto;padding:16px 24px 88px;background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:24px 24px;display:flex;flex-wrap:wrap;gap:24px;align-content:flex-start}
+.dock{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:4px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:var(--shadow);border:1px solid var(--line)}
+
+/* 카드: 어디서나 같은 모양 */
+.note{position:relative;width:232px;padding:16px 16px 12px;border-radius:4px;background:var(--y);color:var(--note);font-size:14px;line-height:1.6;box-shadow:0 1px 1px rgba(0,0,0,.08),0 6px 14px rgba(0,0,0,.1);cursor:default}
+.note.memo{background:var(--g)}
+.note:nth-child(odd){transform:rotate(-.6deg)}.note:nth-child(even){transform:rotate(.5deg)}
+.note .star{position:absolute;top:8px;right:10px;color:#b47b00;font-size:13px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px 10px;font-size:14px;line-height:1.6;cursor:default}
+.card.small{font-size:13px;padding:10px 12px 8px}
+.who{display:flex;gap:4px;margin-top:8px;align-items:center}
+.av{width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.nm{border-bottom:1px dotted currentColor;cursor:pointer}
+.more{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:6px;display:none;align-items:center;justify-content:center;background:var(--panel);box-shadow:0 0 0 1px var(--line);color:var(--sub)}
+.note .more{background:rgba(255,255,255,.7);box-shadow:none;color:var(--note)}
+.card:hover .more,.note:hover .more,.more:focus-visible{display:inline-flex}
+.note:hover .star{display:none}
+
+/* 타임라인 */
+.tbar{display:flex;align-items:center;gap:8px;padding:12px 24px;flex:none;border-bottom:1px solid var(--line)}
+.seg{display:flex;background:var(--fill);padding:3px;border-radius:9px}
+.seg button{height:26px;padding:0 12px;border-radius:6px;font-size:13px;font-weight:550;color:var(--sub)}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.cols{flex:1;min-height:0;overflow:auto;display:flex;gap:16px;padding:16px 24px;align-items:flex-start}
+.col{width:256px;flex:none;display:flex;flex-direction:column;gap:8px;border-radius:12px;padding:4px;transition:background .2s}
+.col.flash{background:var(--acc-soft)}
+.eph{display:flex;align-items:center;gap:8px;padding:4px 4px 8px}
+.eph .no{font-size:13px;font-weight:700;color:var(--acc)}
+.eph b{font-size:15px}
+.eph .cnt{margin-left:auto;font-size:12px;color:var(--sub)}
+.epwho{display:flex;gap:4px;padding:0 4px 4px}
+.epwho .av{opacity:.55}.epwho .av.on,.epwho .av:hover{opacity:1;box-shadow:0 0 0 2px var(--panel),0 0 0 4px currentColor}
+.ghost{width:256px;flex:none;border:1.5px dashed var(--line);border-radius:12px;padding:20px 16px;color:var(--sub);font-size:13px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.paper{max-width:640px;margin:24px auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:40px 56px;font-size:16px;line-height:1.9}
+.paper h4{margin:0 0 16px;font-size:20px}.paper h4 small{display:block;font-size:12px;color:var(--acc);font-weight:700}
+.paper p{margin:0 0 4px;text-indent:1em}.paper hr{border:0;margin:32px 0;text-align:center}.paper hr:after{content:"· · ·";color:var(--sub)}
+table.mx{border-collapse:collapse;margin:24px;font-size:13px}
+table.mx th,table.mx td{border-bottom:1px solid var(--line);padding:8px 16px;text-align:center}
+table.mx th:first-child,table.mx td:first-child{text-align:left}
+.mxd{display:inline-block;width:18px;height:18px;border-radius:50%;cursor:pointer}
+
+/* 위키 */
+.wtree{width:216px;flex:none;border-right:1px solid var(--line);padding:12px 8px;display:flex;flex-direction:column;gap:2px;background:var(--side)}
+.doc{flex:1;min-width:0;overflow:auto;padding:32px 48px;background:var(--panel)}
+.doc h3{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+.doc .crumb{font-size:12px;color:var(--sub);margin-bottom:16px}
+.doc p{margin:0 0 12px;max-width:600px;font-size:15px;line-height:1.8}
+.doc h5{font-size:12px;color:var(--sub);margin:32px 0 8px;font-weight:650}
+.epl{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--acc-soft);color:var(--acc);font-size:12px;font-weight:650;cursor:pointer;vertical-align:1px}
+
+/* 빈 화면 · 치운 카드 */
+.empty{margin:auto;text-align:center;color:var(--sub);display:flex;flex-direction:column;gap:12px;align-items:center;max-width:320px}
+.empty b{color:var(--ink);font-size:16px}
+.lst{padding:8px 24px 24px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.lst h5{font-size:12px;color:var(--sub);margin:16px 0 0;font-weight:650}
+.row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px 10px 14px;font-size:14px}
+.row span{flex:1;min-width:0}
+
+/* 떠 있는 것: 메뉴 · 이름 카드 · 알림 · 검색 */
+.pop{position:fixed;z-index:50;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--pop);padding:6px;min-width:200px;animation:in .16s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
+@media (prefers-reduced-motion:reduce){.pop,.toast,.pal{animation:none!important}}
+.mi{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 10px;border-radius:7px;font-size:13px;text-align:left}
+.mi:hover{background:var(--fill)}.mi.warn{color:var(--warn)}.mi small{margin-left:auto;color:var(--sub);font-size:12px}
+.sepm{height:1px;background:var(--line);margin:6px 4px}
+.pc{width:272px;padding:16px}
+.pc .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}.pc .hd b{font-size:16px}.pc .hd small{color:var(--sub);font-size:12px}
+.pc p{margin:0 0 8px;font-size:13px;color:var(--sub);line-height:1.6}
+.pc .lb{font-size:12px;color:var(--sub);margin:12px 0 6px}
+.pc .eps{display:flex;gap:4px;flex-wrap:wrap}
+.vs label{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px;padding:0 10px;font-size:13px}
+.vs input[type=range]{width:120px;accent-color:var(--acc)}
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:16px;background:var(--ink);color:var(--bg);padding:8px 8px 8px 16px;border-radius:10px;font-size:13px;box-shadow:var(--pop);animation:in .18s cubic-bezier(.2,.8,.2,1)}
+.toast button{height:28px;padding:0 12px;border-radius:7px;font-weight:650;font-size:13px;background:rgba(127,127,127,.3);color:inherit}
+.ov{position:absolute;inset:0;z-index:45;background:rgba(0,0,0,.25);display:flex;justify-content:center;align-items:flex-start;padding-top:96px}
+.pal{width:520px;background:var(--panel);border-radius:14px;box-shadow:var(--pop);overflow:hidden;animation:in .16s cubic-bezier(.2,.8,.2,1)}
+.pal input{width:100%;height:52px;border:0;border-bottom:1px solid var(--line);padding:0 20px;font:inherit;font-size:16px;background:none;color:var(--ink);outline:0}
+.pal .res{padding:6px;max-height:300px;overflow:auto}
+.pal .mi{height:36px}.pal .mi.on{background:var(--acc-soft)}
+.tag{font-size:11px;font-weight:650;color:var(--sub);background:var(--fill);border-radius:5px;padding:1px 6px}
+
+/* 아래 설명 */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px}
+.nc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.nc b{display:block;margin-bottom:4px}
+.nc p{margin:0;color:var(--sub);font-size:14px}
+.nc code{font:inherit;font-size:12px;font-weight:650;color:var(--acc);background:var(--acc-soft);border-radius:5px;padding:1px 6px;margin-right:4px}
+.q{border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:0 12px 12px 0;padding:12px 16px;margin:0 0 8px}
+.q b{display:block}
+.q span{color:var(--sub);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>사용성 · 디자인 시안</h1>
+<p class="lead">요건 문서(<b>docs/사용성-개선-요건.md</b>)의 2 ~ 5단계를 한 창에 모은 시안이에요. 아래 창은 실제로 눌러 볼 수 있어요. 내용은 예시 작품 그대로예요.</p>
+<div class="pagebar">
+  <button class="b line" id="themeBtn"></button>
+  <span class="hint">눌러 볼 것: 탭 · 인물 이름에 마우스 올리기 · 카드 우클릭(또는 ⋯) → 치우기 → 되돌리기 · 위키의 “3화” · 위쪽 ← · 검색</span>
+</div>
+<div class="scroll"><div class="win" id="win"></div></div>
+
+<h2>무엇이 바뀌었나</h2>
+<div class="notes">
+  <div class="nc"><b>탭 3개</b><p><code>A1</code>전체 · 관계망은 구상 왼쪽 목록으로 옮겼어요. 기능은 그대로예요.</p></div>
+  <div class="nc"><b>타임라인 막대 4개</b><p><code>A2</code>보기 바꾸기 · 범위 · 보기 설정 · 새 화만 남기고, 분류 · 글 폭 · 글자 크기 · 보관함은 “보기 설정” 안에 넣었어요.</p></div>
+  <div class="nc"><b>빈 화 접기</b><p><code>A3</code>글이 있는 화와 “새 화” 칸만 보여요. 빈 화 9개는 한 줄로 접었어요.</p></div>
+  <div class="nc"><b>쉬운 말</b><p><code>A5</code>“3장 · 숨김 4” 대신 “안 쓴 카드 3 · 쓴 카드 4”.</p></div>
+  <div class="nc"><b>묻지 않고 되돌리기</b><p><code>B1</code>치우면 바로 사라지고, 아래 알림의 “되돌리기”로 살려요.</p></div>
+  <div class="nc"><b>같은 카드 메뉴</b><p><code>B3</code>보드 · 타임라인 · 오른쪽 목록 어디서든 우클릭이나 ⋯ 로 같은 메뉴가 떠요.</p></div>
+  <div class="nc"><b>검색 겸 명령</b><p><code>B4</code>검색창에 “3화” · “어두운” · “관계망”을 쳐 보세요.</p></div>
+  <div class="nc"><b>뒤로 가기</b><p><code>B5</code>건너뛴 뒤 위쪽 ← 로 보던 자리에 돌아와요.</p></div>
+  <div class="nc"><b>이름 카드</b><p><code>C1</code><code>C2</code>이름이나 점에 올리면 소개 · 목표 · 나온 화가 뜨고, 화 번호를 누르면 그 화로 가요.</p></div>
+  <div class="nc"><b>화 머리의 인물</b><p><code>C3</code>화 제목 아래 점을 누르면 그 인물 카드만 남아요.</p></div>
+  <div class="nc"><b>한 가지 바탕 · 한 가지 강조색</b><p><code>D1</code><code>D2</code>세 탭이 같은 바탕이고, 채운 파란 버튼은 화면마다 하나예요.</p></div>
+  <div class="nc"><b>글자 3단계 · 버튼 3가지</b><p><code>D3</code><code>D5</code>글자는 제목 · 본문 · 보조, 버튼은 채운 것 · 테두리 · 글자만.</p></div>
+</div>
+
+<h2>정해 주실 것 두 가지</h2>
+<div class="q"><b>1. 탭을 3개로 줄여도 될까요?</b><span>전체 보드와 관계망이 한 번 더 눌러야 나오는 자리(구상 왼쪽 목록)로 가요. 관계망을 자주 본다면 탭 4개(구상 · 타임라인 · 관계망 · 위키)로 두는 방법도 있어요.</span></div>
+<div class="q"><b>2. 무덤과 휴지통을 “치운 카드” 한 곳으로 합쳐도 될까요?</b><span>구상 왼쪽 아래 “치운 카드”를 눌러 보세요. 안에서는 “안 쓰기로 한 것(무덤)”과 “지운 것(휴지통)” 두 묶음으로 그대로 나뉘어요. 7일 뒤 저절로 무덤 가는 규칙은 안 바뀌어요.</span></div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a)){if(n.startsWith('on'))e.addEventListener(n.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(n,v===true?'':v)}k.flat().forEach(c=>c!=null&&c!==false&&e.append(c));return e};
+const IC={back:'M15 6l-6 6 6 6',search:'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4',more:'M5 12h.01M12 12h.01M19 12h.01',plus:'M12 5v14M5 12h14',check:'M5 12l5 5 9-10',chev:'M6 9l6 6 6-6',book:'M4 5h7a2 2 0 012 2v12H6a2 2 0 01-2-2zM20 5h-7v14h5a2 2 0 002-2z',grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',net:'M6 7a2 2 0 100-4 2 2 0 000 4zM18 9a2 2 0 100-4 2 2 0 000 4zM11 21a2 2 0 100-4 2 2 0 000 4zM8 6l8 1M7 7l3 10M17 9l-5 8',box:'M4 8h16v11H4zM3 4h18v4H3zM10 12h4',tune:'M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4',focus:'M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4',star:'M12 4l2.4 5 5.6.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.6-.8z',out:'M5 12h10M11 8l4 4-4 4M19 5v14',undo:'M9 7L4 12l5 5M4 12h10a6 6 0 010 12',sun:'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19'};
+const ic=n=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('class','i');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(s.namespaceURI,'path');p.setAttribute('d',IC[n]);s.append(p);return s};
+
+/* ---- 예시 데이터 ---- */
+const WHO={d:{name:'이도윤',short:'도',role:'주인공',color:'#2e9fd6',sum:'반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.',goal:'빚을 다 갚고 반지하를 나가기'},
+           h:{name:'서하린',short:'하',role:'상대역',color:'#a650d4',sum:'재벌가 막내. 진심으로 사과받아 본 적이 없다.',goal:'계산 없는 사람을 한 명 찾기'}};
+const EPS=[{n:1,title:'새벽의 접촉사고'},{n:2,title:'반지하'},{n:3,title:'봉투'}];
+const CARDS=[
+ {id:1,at:1,who:'dh',text:'새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.'},
+ {id:2,at:1,who:'d',text:'“저는 사과를 드릴 수 있고, 돈은 없습니다. 둘 중 하나만 고르세요.”'},
+ {id:3,at:1,who:'h',text:'“왜 죄송하다고 안 하죠? 다들 그러던데.”'},
+ {id:4,at:2,who:'dh',text:'서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.'},
+ {id:5,at:3,who:'dh',text:'하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.'},
+ {id:6,at:0,who:'dh',star:1,text:'도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.'},
+ {id:7,at:0,who:'d',text:'“배고픈 사람한테 코스요리는 고문이에요.”'},
+ {id:8,at:0,who:'d',memo:1,text:'도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.'},
+ {id:9,at:-1,gone:'drop',who:'h',text:'하린이 도윤의 헬멧을 몰래 써 본다.'}];
+/* at: 화 번호 · 0 = 아직 안 쓴 카드 · -1 = 치운 카드 */
+let st={tab:'story',sel:'d',tl:'kanban',filter:null,flash:0},hist=[];
+const go=(p)=>{hist.push({...st,flash:0});if(hist.length>30)hist.shift();Object.assign(st,{filter:null,flash:0},p);render()};
+const back=()=>{const p=hist.pop();if(p){st=p;render()}};
+const epsOf=k=>[...new Set(CARDS.filter(c=>c.at>0&&c.who.includes(k)).map(c=>c.at))].sort();
+
+/* ---- 떠 있는 것 ---- */
+let POP=null,PT=0;
+const closePop=()=>{clearTimeout(PT);if(POP){POP.remove();POP=null}};
+function place(el,x,y){document.body.append(el);const r=el.getBoundingClientRect();el.style.left=Math.max(8,Math.min(x,innerWidth-r.width-8))+'px';el.style.top=Math.max(8,Math.min(y,innerHeight-r.height-8))+'px';POP=el}
+function menu(x,y,items){closePop();place(h('div',{class:'pop',role:'menu'},items.map(it=>it==='-'?h('div',{class:'sepm'}):h('button',{class:'mi'+(it.warn?' warn':''),role:'menuitem',onclick:()=>{closePop();it.fn()}},it.label,it.hint?h('small',{},it.hint):null))),x,y)}
+function toast(msg,undo){const w=$('#win');w.querySelectorAll('.toast').forEach(t=>t.remove());const t=h('div',{class:'toast',role:'status'},msg,undo?h('button',{onclick:()=>{t.remove();undo()}},'되돌리기'):null);w.append(t);setTimeout(()=>t.remove(),5000)}
+const soon=()=>toast('시안에서는 여기까지만 보여요');
+function cardMenu(c,x,y){
+  const move=to=>{const was=c.at,wg=c.gone;c.at=to;c.gone=to<0?'drop':null;render();toast(to>0?`${to}화에 넣었어요`:to===0?'안 쓴 카드로 돌려놨어요':'카드를 치웠어요',()=>{c.at=was;c.gone=wg;render()})};
+  menu(x,y,[...(c.at>0?[{label:'화에서 빼기',fn:()=>move(0)}]:EPS.map(e=>({label:`${e.n}화에 넣기`,hint:e.title,fn:()=>move(e.n)}))),'-',
+    {label:c.star?'꼭 쓸 것에서 빼기':'꼭 쓸 것으로 ★',fn:()=>{c.star=!c.star;render()}},{label:'집중해서 쓰기',hint:'⌥Z',fn:soon},{label:'위키로 보내기',fn:soon},'-',{label:'치우기',hint:'⌘⌫',warn:1,fn:()=>move(-1)}])}
+function whoCard(k,el){closePop();const w=WHO[k],r=el.getBoundingClientRect();
+  const p=h('div',{class:'pop pc',onmouseenter:()=>clearTimeout(PT),onmouseleave:closePop},
+    h('div',{class:'hd'},h('i',{class:'dotc',style:`background:${w.color};width:10px;height:10px`}),h('b',{},w.name),h('small',{},w.role)),
+    h('p',{},w.sum),h('div',{class:'lb'},'목표'),h('p',{style:'color:var(--ink)'},w.goal),
+    h('div',{class:'lb'},'나온 화'),h('div',{class:'eps'},epsOf(k).map(n=>h('button',{class:'epl',onclick:()=>{closePop();go({tab:'tl',tl:'kanban',flash:n})}},n+'화'))),
+    h('div',{style:'margin-top:16px;display:flex;gap:8px'},h('button',{class:'b line',onclick:()=>{closePop();go({tab:'story',sel:k})}},'보드 열기')));
+  place(p,r.left,r.bottom+6)}
+document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-who]');if(!t)return;clearTimeout(PT);PT=setTimeout(()=>whoCard(t.dataset.who,t),280)});
+document.addEventListener('mouseout',e=>{const t=e.target.closest&&e.target.closest('[data-who]');if(!t)return;clearTimeout(PT);PT=setTimeout(()=>{if(POP&&POP.classList.contains('pc')&&!POP.matches(':hover'))closePop()},260)});
+document.addEventListener('mousedown',e=>{if(POP&&!POP.contains(e.target))closePop()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();const o=$('#win .ov');if(o)o.remove()}});
+
+/* ---- 조각 ---- */
+const names=t=>{const out=[];let i=0;t.replace(/이도윤|서하린|도윤|하린/g,(m,p)=>{out.push(t.slice(i,p),h('span',{class:'nm','data-who':/도윤/.test(m)?'d':'h'},m));i=p+m.length});out.push(t.slice(i));return out};
+const avs=(c,cls)=>h('div',{class:cls||'who'},[...c.who].map(k=>h('span',{class:'av',style:`background:${WHO[k].color}`,'data-who':k,onclick:()=>go({tab:'story',sel:k})},WHO[k].short)));
+const moreBtn=c=>h('button',{class:'more','aria-label':'카드 메뉴',onclick:e=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();cardMenu(c,r.left,r.bottom+4)}},ic('more'));
+const ctx=c=>e=>{e.preventDefault();cardMenu(c,e.clientX,e.clientY)};
+const note=c=>h('div',{class:'note'+(c.memo?' memo':''),oncontextmenu:ctx(c)},c.star?h('span',{class:'star','aria-label':'꼭 쓸 것'},'★'):null,moreBtn(c),names(c.text),avs(c));
+const card=(c,small)=>h('div',{class:'card'+(small?' small':''),oncontextmenu:ctx(c)},moreBtn(c),names(c.text),avs(c));
+
+/* ---- 화면 ---- */
+function topBar(){
+  return h('div',{class:'top'},
+    h('button',{class:'b icon','aria-label':'뒤로 가기',title:'뒤로 가기 (⌘[)',disabled:!hist.length,onclick:back},ic('back')),
+    h('span',{class:'brand'},'내 첫 작품',ic('chev')),
+    h('div',{class:'tabs',role:'tablist'},[['story','구상'],['tl','타임라인'],['wiki','위키']].map(([k,l])=>h('button',{role:'tab','aria-selected':st.tab===k,class:st.tab===k?'on':'',onclick:()=>st.tab!==k&&go({tab:k})},l))),
+    h('span',{class:'saved'},ic('check'),'저장됨'),
+    h('button',{class:'find',onclick:palette},ic('search'),'검색 · 명령',h('kbd',{},'⌘F')),
+    h('button',{class:'b icon','aria-label':'메뉴',onclick:e=>{const r=e.currentTarget.getBoundingClientRect();menu(r.right-200,r.bottom+4,[{label:'되돌리기',hint:'⌘Z',fn:soon},{label:'다시 하기',hint:'⌘⇧Z',fn:soon},'-',{label:'백업 · 내보내기',fn:soon},{label:'포스트잇 모드',hint:'⌘⌥N',fn:soon},'-',{label:'설정',hint:'⌘,',fn:soon},{label:'도움말',hint:'?',fn:soon}])}},ic('more')))}
+function story(){
+  const un=CARDS.filter(c=>c.at===0),gone=CARDS.filter(c=>c.at<0),s=st.sel;
+  const li=(k,label,extra,cnt)=>h('button',{class:'li'+(s===k?' on':''),onclick:()=>s!==k&&go({sel:k})},extra,label,cnt!=null?h('small',{},cnt):null);
+  const left=h('aside',{class:'left'},
+    li('work','작품 노트',ic('book')),li('all','모든 카드',ic('grid'),un.length),
+    h('div',{class:'grp'},'인물'),...Object.keys(WHO).map(k=>li(k,WHO[k].name,h('i',{class:'dotc',style:`background:${WHO[k].color}`}),un.filter(c=>c.who.includes(k)).length)),
+    h('button',{class:'li',style:'color:var(--sub)',onclick:soon},ic('plus'),'인물 · 설정 추가'),
+    h('div',{class:'gap'}),li('graph','관계망',ic('net')),li('gone','치운 카드',ic('box'),gone.length||null));
+  let mid;
+  if(s==='gone'){const g=k=>gone.filter(c=>c.gone===k),row=c=>h('div',{class:'row'},h('span',{},names(c.text)),h('button',{class:'b line',onclick:()=>{const was=c.gone;c.at=0;c.gone=null;render();toast('되살렸어요',()=>{c.at=-1;c.gone=was;render()})}},'되살리기'),c.gone==='drop'?h('button',{class:'b text',onclick:()=>{c.gone='del';render()}},'지우기'):null);
+    mid=h('section',{class:'mid'},h('div',{class:'mh'},h('b',{},'치운 카드'),h('small',{},gone.length+'장')),
+      gone.length?h('div',{class:'lst'},h('h5',{},'안 쓰기로 한 것 · 언제든 되살려요'),g('drop').length?g('drop').map(row):h('div',{class:'hint'},'없어요'),h('h5',{},'지운 것 · 비우면 사라져요'),g('del').length?g('del').map(row):h('div',{class:'hint'},'없어요'))
+      :h('div',{class:'empty'},h('b',{},'치운 카드가 없어요'),'안 쓰기로 했거나 지운 카드가 여기 모여요.',h('button',{class:'b line',onclick:()=>go({sel:'all'})},'모든 카드 보기')))}
+  else if(s==='graph'){mid=h('section',{class:'mid'},h('div',{class:'mh'},h('b',{},'관계망'),h('small',{},'함께 나온 만큼 가까이 · 선을 누르면 함께 나온 카드')),graph())}
+  else if(s==='work'){mid=h('section',{class:'mid'},h('div',{class:'mh'},h('b',{},'작품 노트')),h('div',{class:'lst'},h('div',{class:'row'},h('span',{},h('b',{},'연재 진행 '),'글이 있는 화 3 · 목표 50화'),h('span',{class:'hint',style:'flex:none'},'6%')),h('div',{class:'row'},h('span',{},h('b',{},'한 줄 소개 '),h('span',{class:'hint'},'눌러서 적기'))),h('div',{class:'row'},h('span',{},h('b',{},'주제 '),h('span',{class:'hint'},'눌러서 적기')))))}
+  else{const w=WHO[s],list=s==='all'?un:un.filter(c=>c.who.includes(s)),used=CARDS.filter(c=>c.at>0&&(s==='all'||c.who.includes(s))).length;
+    mid=h('section',{class:'mid'},h('div',{class:'mh'},h('b',{},w?w.name:'모든 카드'),w?h('small',{},w.role):null,h('span',{class:'sp'}),h('span',{class:'chipf'},`안 쓴 카드 ${list.length}`),h('button',{class:'chipf',onclick:()=>go({tab:'tl'})},`쓴 카드 ${used}`)),
+      list.length?h('div',{class:'board'},list.map(note)):h('div',{class:'empty'},h('b',{},'아직 카드가 없어요'),'떠오르는 장면이나 대사를 한 줄 적어 보세요.',h('button',{class:'b fill',onclick:soon},ic('plus'),'새 포스트잇')),
+      h('div',{class:'dock'},h('button',{class:'b fill',onclick:soon},ic('plus'),'새 포스트잇'),h('button',{class:'b text',onclick:soon},ic('focus'),'집중'),h('button',{class:'b text',onclick:soon},ic('grid'),'정리')))}
+  return [left,mid,pool()]}
+function pool(){const un=CARDS.filter(c=>c.at===0).sort((a,b)=>(b.star||0)-(a.star||0));
+  return h('aside',{class:'right'},h('h3',{},'쓰고 싶은 장면',h('small',{},un.length+'장 남음')),h('input',{class:quickCls,placeholder:'한 줄 쓰고 Enter','aria-label':'새 카드',onkeydown:e=>{if(e.key==='Enter'&&e.target.value.trim()&&!e.isComposing){CARDS.push({id:Date.now(),at:0,who:/하린/.test(e.target.value)?(/도윤/.test(e.target.value)?'dh':'h'):'d',text:e.target.value.trim()});render();setTimeout(()=>{const i=$('.quick');i&&i.focus()},0)}}}),un.map(c=>card(c,1)),un.length?null:h('div',{class:'hint'},'다 썼어요. 새로 떠오르면 위에 적어요.'))}
+const quickCls='quick';
+function graph(){const NS='http://www.w3.org/2000/svg',s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 600 400');s.style.cssText='flex:1;min-height:0;width:100%';
+  const el=(t,a,txt)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt)e.textContent=txt;return e};
+  const ln=el('line',{x1:210,y1:240,x2:390,y2:150,stroke:'currentColor','stroke-opacity':.3,'stroke-width':10,'stroke-linecap':'round',style:'cursor:pointer'});
+  ln.addEventListener('click',e=>{const both=CARDS.filter(c=>c.who==='dh'&&c.at>=0);closePop();place(h('div',{class:'pop pc',style:'width:320px'},h('div',{class:'hd'},h('b',{},'이도윤 · 서하린'),h('small',{},`함께 나온 카드 ${both.length}장`)),both.map(c=>h('p',{style:'color:var(--ink)'},c.at?h('span',{class:'epl',style:'margin-right:6px',onclick:()=>{closePop();go({tab:'tl',tl:'kanban',flash:c.at})}},c.at+'화'):h('span',{class:'tag',style:'margin-right:6px'},'안 씀'),c.text.slice(0,34)+'…'))),e.clientX,e.clientY)});
+  s.append(ln,el('text',{x:288,y:170,'text-anchor':'middle','font-size':12,fill:'currentColor',opacity:.55,style:'pointer-events:none'},'함께 '+CARDS.filter(c=>c.who==='dh'&&c.at>=0).length+'장'));
+  [['d',210,240],['h',390,150]].forEach(([k,x,y])=>{const g=el('g',{style:'cursor:pointer','data-who':k});g.append(el('circle',{cx:x,cy:y,r:22,fill:WHO[k].color}),el('text',{x,y:y+44,'text-anchor':'middle','font-size':13,'font-weight':600,fill:'currentColor'},WHO[k].name));g.addEventListener('click',()=>go({sel:k}));s.append(g)});return s}
+function tl(){
+  const f=st.filter,inEp=n=>CARDS.filter(c=>c.at===n&&(!f||c.who.includes(f)));
+  const bar=h('div',{class:'tbar'},h('div',{class:'seg'},[['kanban','칸반'],['paper','원고'],['mx','등장표']].map(([k,l])=>h('button',{class:st.tl===k?'on':'',onclick:()=>{st.tl=k;render()}},l))),
+    f?h('button',{class:'chipf',onclick:()=>{st.filter=null;render()}},WHO[f].name+'만 보는 중 ✕'):null,h('span',{style:'flex:1'}),
+    h('button',{class:'b text',onclick:soon},'전체 3화',ic('chev')),
+    h('button',{class:'b text',onclick:e=>{const r=e.currentTarget.getBoundingClientRect();closePop();place(h('div',{class:'pop vs',style:'width:260px'},h('label',{},'분류로 걸러 보기',h('span',{class:'hint'},'전체')),h('label',{},'칸 · 글 폭',h('input',{type:'range','aria-label':'폭'})),h('label',{},'글자 크기',h('input',{type:'range','aria-label':'글자 크기'})),h('div',{class:'sepm'}),h('button',{class:'mi',onclick:soon},'보관함 열기'),h('button',{class:'mi',onclick:soon},'갈래 보기'),h('button',{class:'mi',onclick:soon},'원고 내보내기 (.txt)')),r.right-260,r.bottom+4)}},ic('tune'),'보기 설정'),
+    h('button',{class:'b fill',onclick:soon},ic('plus'),'새 화'));
+  let body;
+  if(st.tl==='paper')body=h('div',{style:'flex:1;overflow:auto'},h('div',{class:'paper'},EPS.flatMap((e,i)=>[i?h('hr'):null,h('h4',{},h('small',{},e.n+'화'),e.title),...inEp(e.n).map(c=>h('p',{oncontextmenu:ctx(c)},names(c.text)))])));
+  else if(st.tl==='mx')body=h('div',{style:'flex:1;overflow:auto'},h('table',{class:'mx'},h('tr',{},h('th',{},'인물'),EPS.map(e=>h('th',{},e.n+'화'))),Object.keys(WHO).map(k=>h('tr',{},h('td',{},h('span',{class:'nm','data-who':k},WHO[k].name)),EPS.map(e=>h('td',{},epsOf(k).includes(e.n)?h('span',{class:'mxd',style:`background:${WHO[k].color}`,title:`${e.n}화로 가기`,onclick:()=>go({tab:'tl',tl:'kanban',filter:k,flash:e.n})}):null))))));
+  else body=h('div',{class:'cols'},EPS.map(e=>{const cs=inEp(e.n),all=CARDS.filter(c=>c.at===e.n),ks=[...new Set(all.flatMap(c=>[...c.who]))];
+      return h('div',{class:'col'+(st.flash===e.n?' flash':''),'data-ep':e.n},h('div',{class:'eph'},h('span',{class:'no'},e.n+'화'),h('b',{},e.title),h('span',{class:'cnt'},all.length+'장')),
+        h('div',{class:'epwho'},ks.map(k=>h('span',{class:'av'+(f===k?' on':''),style:`background:${WHO[k].color};color:${WHO[k].color}`,title:WHO[k].name+'만 보기',onclick:()=>{st.filter=f===k?null:k;render()}},h('span',{style:'color:#fff'},WHO[k].short)))),
+        cs.map(c=>card(c)),cs.length?null:h('div',{class:'hint',style:'padding:8px 4px'},f?'이 화에는 안 나와요':'오른쪽 카드를 끌어다 놓아요'))}),
+    h('div',{class:'ghost'},h('b',{style:'color:var(--ink)'},'4화'),'카드를 여기 놓으면 새 화가 돼요.',h('button',{class:'b text',style:'margin-left:-12px',onclick:soon},'빈 화 9개 펼치기')));
+  return [h('section',{class:'mid'},bar,body),pool()]}
+function wiki(){
+  const li=(l,on,ind,dot)=>h('button',{class:'li'+(on?' on':''),style:`padding-left:${8+ind*16}px`,onclick:on?null:soon},dot?h('i',{class:'dotc',style:`background:${dot}`}):null,l);
+  const ep=n=>h('span',{class:'epl',role:'link',tabindex:0,onclick:()=>go({tab:'tl',tl:'kanban',flash:n})},n+'화');
+  return [h('aside',{class:'wtree'},li('내 첫 작품',0,0),li('인물',0,1),li('이도윤',1,2,WHO.d.color),li('서하린',0,2,WHO.h.color),li('세계관',0,1),h('button',{class:'li',style:'color:var(--sub);padding-left:24px',onclick:soon},ic('plus'),'새 문서')),
+    h('section',{class:'doc'},h('div',{class:'crumb'},'내 첫 작품 › 인물'),h('h3',{},'이도윤'),h('div',{class:'hint'},'주인공 · 나온 화 ',ep(1),' ',ep(2),' ',ep(3)),
+      h('p',{style:'margin-top:24px'},names('반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다. 서하린과는 새벽 접촉사고로 처음 만난다 '),ep(1),'.'),
+      h('p',{},names('돈 이야기를 피하지 않는다. 하린의 아버지가 봉투를 내밀었을 때도 화내지 않고 두께만 본다 '),ep(3),'.'),
+      h('h5',{},'이 문서를 가리키는 곳'),h('p',{},names('서하린'),' · 세계관 › 아비투스'),
+      h('h5',{},'정리할 메모'),card(CARDS[7],1)),pool()]}
+function palette(){closePop();const w=$('#win');const cmds=[
+   {t:'이동',l:'3화로 가기',fn:()=>go({tab:'tl',tl:'kanban',flash:3})},{t:'이동',l:'이도윤 보드 열기',fn:()=>go({tab:'story',sel:'d'})},{t:'이동',l:'서하린 보드 열기',fn:()=>go({tab:'story',sel:'h'})},{t:'이동',l:'관계망 보기',fn:()=>go({tab:'story',sel:'graph'})},{t:'이동',l:'치운 카드 보기',fn:()=>go({tab:'story',sel:'gone'})},
+   {t:'실행',l:'어두운 · 밝은 테마 바꾸기',fn:flip},{t:'실행',l:'새 인물 만들기',fn:soon},{t:'실행',l:'원고 내보내기',fn:soon},
+   ...CARDS.filter(c=>c.at>=0).map(c=>({t:'카드',l:c.text,fn:()=>c.at?go({tab:'tl',tl:'kanban',flash:c.at}):go({tab:'story',sel:'all'})}))];
+  let cur=0,res=[];const list=h('div',{class:'res'}),inp=h('input',{placeholder:'찾을 말이나 할 일을 적어요','aria-label':'검색 · 명령'}),ov=h('div',{class:'ov',onmousedown:e=>{if(e.target===ov)ov.remove()}},h('div',{class:'pal'},inp,list));
+  const draw=()=>{const q=inp.value.trim();res=cmds.filter(c=>!q?c.t!=='카드':c.l.includes(q)).slice(0,8);cur=Math.min(cur,Math.max(0,res.length-1));list.textContent='';
+    res.length?res.forEach((c,i)=>list.append(h('button',{class:'mi'+(i===cur?' on':''),onclick:()=>{ov.remove();c.fn()}},h('span',{class:'tag'},c.t),c.l.length>44?c.l.slice(0,44)+'…':c.l))):list.append(h('div',{class:'hint',style:'padding:12px'},'찾는 것이 없어요'))};
+  inp.addEventListener('input',()=>{cur=0;draw()});
+  inp.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='ArrowDown'){e.preventDefault();cur=Math.min(res.length-1,cur+1);draw()}else if(e.key==='ArrowUp'){e.preventDefault();cur=Math.max(0,cur-1);draw()}else if(e.key==='Enter'&&res[cur]){ov.remove();res[cur].fn()}});
+  w.append(ov);draw();inp.focus({preventScroll:true})}
+function render(){closePop();const w=$('#win'),t=w.querySelector('.toast');w.textContent='';w.append(topBar(),h('div',{class:'body'},st.tab==='story'?story():st.tab==='tl'?tl():wiki()));if(t){t.style.animation='none';w.append(t)}
+  if(st.flash){const c=w.querySelector(`[data-ep="${st.flash}"]`);if(c){c.scrollIntoView({block:'nearest',inline:'nearest'});setTimeout(()=>c.classList.remove('flash'),1400)}}}
+/* ---- 테마 ---- */
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==='dark':matchMedia('(prefers-color-scheme:dark)').matches};
+function flip(){document.documentElement.dataset.theme=isDark()?'light':'dark';themeLabel()}
+function themeLabel(){const b=$('#themeBtn');b.textContent='';b.append(ic('sun'),isDark()?'밝은 테마로 보기':'어두운 테마로 보기')}
+$('#themeBtn').addEventListener('click',flip);themeLabel();render();
+</script>
+</body>
+</html>
