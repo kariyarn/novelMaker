@@ -97,9 +97,10 @@ function renderFolderTable(m){
 }
 
 /* 설정 노트: 아비투스 없이 간단히 */
-const workProgText=w=>{const n=S.episodes.length,t=+w.total||0;return t?`${n}/${t}화`:(n?`${n}화`:'')};
+const writtenEps=()=>S.episodes.filter(e=>e.cardIds.length).length;      // 글(카드)이 있는 화만 '작성'으로 셈 — 빈 화는 빼고
+const workProgText=w=>{const n=writtenEps(),t=+w.total||0;return t?`${n}/${t}화`:(n?`${n}화`:'')};
 function renderWorkSheet(p,c){
-  const n=S.episodes.length,t=+c.total||0,pct=t?Math.min(100,Math.round(n/t*100)):0;
+  const n=writtenEps(),t=+c.total||0,pct=t?Math.min(100,Math.round(n/t*100)):0;
   p.append(h('div',{class:'shead'},
     h('div',{class:'nm',style:'font-weight:700;font-size:1.5em;padding:6px 0'},EM('📖 ','book'),'작품 노트'),
     h('div',{class:'muted',style:'margin-bottom:6px'},'소설 전체의 컨셉과 목표를 모아두는 곳이에요. 여기 적은 건 카드 목록 · 전체 보기와 섞이지 않아요.')));

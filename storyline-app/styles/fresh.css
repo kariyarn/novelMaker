@@ -23,10 +23,11 @@
 .ui3 .tlhead .tlcopy{right:52px}.ui3 .tlhead .epmenu{right:24px}
 .ui3 :is(.tlcol,.frch):hover .tlhead :is(.tlcopy,.epmenu,.x){opacity:.85;pointer-events:auto}
 .frch .tlhead :is(.tlcopy,.epmenu,.x){background:var(--card)}
+.ui3 :is(.tlcol,.frch):hover .tlhead .epcnt{visibility:hidden}      /* 올리면 나오는 버튼과 카드 수 글자가 겹치지 않게 */
 .ui3 .tlcol .tlmemo{margin:4px 2px 8px;padding:2px 4px;font-size:12px;min-height:0}
 .ui3 .tlcol .tlmemo:placeholder-shown:not(:focus){opacity:0}
 .ui3 .tlcol:hover .tlmemo:placeholder-shown{opacity:.6}
-.ui3 .tlcol .tlbody{padding:4px 2px 8px}
+.ui3 .tlcol .tlbody{padding:14px 2px 8px}      /* 첫 카드 위로 뜨는 도구 막대(.khead top:-12px)가 잘리지 않게 */
 .ui3 .tlhint{border:1.5px dashed var(--line);border-radius:10px;padding:26px 0;font-size:12px}
 .ui3 .tlcols .addcol{flex-basis:110px;border-color:var(--line);font-size:.86em}
 
