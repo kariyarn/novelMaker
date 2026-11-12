@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>책상 하나 시안</title>
+<style>
+:root{--bg:#f1eee8;--desk:#ebe7df;--panel:#fffdf9;--ink:#24211c;--sub:#7b746a;--line:rgba(50,40,20,.12);--fill:rgba(50,40,20,.055);--fill2:rgba(50,40,20,.1);--acc:#3a56d4;--onacc:#fff;--acc-soft:rgba(58,86,212,.12);--dot:rgba(50,40,20,.14);--warn:#c8443c;--y:#ffe88c;--g:#bfe5cd;--note:#37301c;--shadow:0 1px 2px rgba(40,30,10,.06),0 10px 28px rgba(40,30,10,.1);--pop:0 2px 6px rgba(40,30,10,.1),0 20px 50px rgba(40,30,10,.22)}
+:root[data-theme=dark]{--bg:#171615;--desk:#1d1c1a;--panel:#272523;--ink:#f0ece5;--sub:#a59e93;--line:rgba(255,240,220,.11);--fill:rgba(255,240,220,.06);--fill2:rgba(255,240,220,.11);--acc:#93a5ff;--onacc:#14162a;--acc-soft:rgba(147,165,255,.17);--dot:rgba(255,240,220,.09);--warn:#ff8a80;--y:#d6c373;--g:#8dbfa4;--note:#1e1a0e;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);--pop:0 2px 6px rgba(0,0,0,.4),0 20px 50px rgba(0,0,0,.6)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#171615;--desk:#1d1c1a;--panel:#272523;--ink:#f0ece5;--sub:#a59e93;--line:rgba(255,240,220,.11);--fill:rgba(255,240,220,.06);--fill2:rgba(255,240,220,.11);--acc:#93a5ff;--onacc:#14162a;--acc-soft:rgba(147,165,255,.17);--dot:rgba(255,240,220,.09);--warn:#ff8a80;--y:#d6c373;--g:#8dbfa4;--note:#1e1a0e;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);--pop:0 2px 6px rgba(0,0,0,.4),0 20px 50px rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding:40px 16px 96px}
+h1{font-size:1.75em;line-height:1.25;margin:0 0 8px;letter-spacing:-.03em}
+.lead{color:var(--sub);margin:0 0 24px;max-width:720px}
+h2{font-size:1.15em;margin:48px 0 8px;letter-spacing:-.02em}
+.pagebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.hint{color:var(--sub);font-size:13px}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.b{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:550;white-space:nowrap}
+.b.fill{background:var(--acc);color:var(--onacc)}
+.b.line{box-shadow:inset 0 0 0 1px var(--line);background:var(--panel)}
+.b.text{color:var(--sub)}
+.b.text:hover,.b.line:hover{background:var(--fill)}
+.b.icon{width:32px;padding:0;justify-content:center;color:var(--sub)}
+.b.icon:hover{background:var(--fill);color:var(--ink)}
+
+.scroll{overflow-x:auto;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.win{min-width:1040px;height:720px;display:flex;flex-direction:column;background:var(--desk);position:relative;overflow:hidden}
+.top{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;background:var(--panel);border-bottom:1px solid var(--line);z-index:3}
+.brand{font-weight:700;font-size:15px}
+.crumb{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--sub);margin-left:12px}
+.crumb button{height:28px;padding:0 8px;border-radius:7px}
+.crumb button:hover{background:var(--fill)}
+.crumb b{color:var(--ink);padding:0 8px}
+.top .sp{flex:1}
+.saved{font-size:12px;color:var(--sub);display:inline-flex;align-items:center;gap:4px}
+
+/* 책상 */
+.stage{flex:1;min-height:0;position:relative;overflow:hidden;cursor:grab;background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:24px 24px}
+.stage.pan{cursor:grabbing}
+.world{position:absolute;left:0;top:0;width:2000px;height:1300px;transform-origin:0 0;transition:transform .55s cubic-bezier(.22,.8,.2,1);--s:1}
+.stage.pan .world,.world.now{transition:none}
+@media (prefers-reduced-motion:reduce){.world,.sheet,.flip .inner{transition:none!important}.pop,.toast,.today{animation:none!important}}
+.world svg{position:absolute;left:0;top:0;overflow:visible}
+.keep{transform:scale(calc(1/var(--s)));transition:transform .55s cubic-bezier(.22,.8,.2,1)}
+.isl{position:absolute;width:0;height:0}
+.disk{position:absolute;left:-48px;top:-48px;width:96px;height:96px;border-radius:50%;color:#fff;font-size:34px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 -6px 12px rgba(0,0,0,.12);transition:box-shadow .2s}
+.disk:hover{box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 -6px 12px rgba(0,0,0,.12),0 0 0 6px var(--acc-soft)}
+.under{position:absolute;left:-120px;top:58px;width:240px;text-align:center;transform-origin:top center;pointer-events:none}
+.under b{display:block;font-size:15px}
+.under small{font-size:12px;color:var(--sub)}
+.whisper{display:none;margin-top:6px;pointer-events:auto}
+.far .whisper{display:flex;width:max-content;margin:6px auto 0;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;background:var(--panel);box-shadow:var(--shadow);font-size:12px;color:var(--ink);cursor:pointer}
+.whisper i{width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.linelb{position:absolute;left:880px;top:614px;width:240px;text-align:center;font-size:12px;color:var(--sub);transform-origin:top center;pointer-events:none}
+.tip{display:block;margin-top:4px;color:var(--acc)!important}
+.far .tip{display:none}
+.note{position:absolute;width:220px;padding:16px 16px 12px;border-radius:4px;background:var(--y);color:var(--note);font-size:14px;line-height:1.6;box-shadow:0 1px 1px rgba(0,0,0,.08),0 6px 14px rgba(0,0,0,.12);cursor:grab;transition:box-shadow .2s,filter .2s}
+.note.memo{background:var(--g)}
+.note:hover{box-shadow:0 2px 2px rgba(0,0,0,.08),0 12px 24px rgba(0,0,0,.18);z-index:2}
+.note.old{filter:saturate(.4) brightness(.96);border-bottom-right-radius:22px 18px}
+.note.old::before{content:"";position:absolute;right:0;bottom:0;width:22px;height:18px;border-top-left-radius:6px;background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(0,0,0,.12));box-shadow:-2px -2px 4px rgba(0,0,0,.1)}
+.note .left{display:block;margin-top:6px;font-size:12px;opacity:.7}
+.note .star{position:absolute;top:8px;right:10px;color:#a56f00;font-size:13px}
+.note.flash{animation:fl 1.4s ease-out}
+@keyframes fl{0%,60%{box-shadow:0 0 0 6px var(--acc)}}
+.far .note{color:transparent;cursor:pointer}
+.far .note>*{visibility:hidden}
+.far .note::after{content:"";position:absolute;left:16px;right:40px;top:18px;height:46px;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.28) 0 7px,transparent 7px 19px);border-radius:3px}
+.who{display:flex;gap:4px;margin-top:8px}
+.av{width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.nm{border-bottom:1px dotted currentColor;cursor:pointer}
+
+/* 책상 위에 뜬 것 */
+.today{position:absolute;left:50%;top:20px;transform:translateX(-50%);width:400px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 20px;z-index:4;animation:drop .5s cubic-bezier(.2,.8,.2,1);cursor:default}
+@keyframes drop{from{opacity:0;transform:translate(-50%,-12px)}}
+.today small{font-size:12px;font-weight:650;color:var(--acc)}
+.today p{margin:6px 0 12px;font-size:15px;line-height:1.65}
+.today div{display:flex;gap:8px}
+.cap{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:440px;z-index:4}
+.cap input{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);padding:0 16px;font:inherit;font-size:14px;color:var(--ink)}
+.cap input::placeholder{color:var(--sub)}
+.nav{position:absolute;right:16px;bottom:16px;z-index:4;display:flex;flex-direction:column;gap:6px;align-items:flex-end;cursor:default}
+.mm{width:136px;height:72px;border-radius:10px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;display:block}
+.mm i{position:absolute;width:8px;height:8px;border-radius:50%;margin:-4px}
+.mm u{position:absolute;border:1.5px solid var(--acc);border-radius:3px;background:var(--acc-soft);transition:all .55s cubic-bezier(.22,.8,.2,1)}
+.zz{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:2px}
+
+/* 아래 띠: 화 */
+.rail{height:104px;flex:none;display:flex;align-items:stretch;gap:8px;padding:12px 16px;background:var(--panel);border-top:1px solid var(--line);z-index:7;overflow-x:auto}
+.ep{width:172px;flex:none;border-radius:10px;background:var(--fill);padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;transition:background .15s,box-shadow .15s,transform .15s}
+.ep:hover{background:var(--fill2)}
+.ep.on{background:var(--acc-soft);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.ep .no{font-size:12px;font-weight:700;color:var(--acc)}
+.ep b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep .ft{margin-top:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--sub)}
+.ep .ft .av{width:14px;height:14px;font-size:0}
+.ep.new{background:none;border:1.5px dashed var(--line);color:var(--sub);justify-content:center;align-items:center;font-size:13px;width:120px}
+.dragging .ep{box-shadow:inset 0 0 0 1.5px var(--acc-soft)}
+.ep.over{background:var(--acc-soft);box-shadow:inset 0 0 0 2px var(--acc);transform:translateY(-4px)}
+.rail .gap{flex:1;min-width:8px}
+.drawer{align-self:center}
+
+/* 펼친 원고 */
+.sheet{position:absolute;left:0;right:0;top:48px;bottom:104px;z-index:5;background:var(--desk);transform:translateY(100%);visibility:hidden;transition:transform .45s cubic-bezier(.22,.8,.2,1),visibility 0s .45s;overflow:auto;padding:24px 16px 40px}
+.sheet.on{transform:none;visibility:visible;transition-delay:0s}
+.paper{max-width:640px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:40px 56px 48px;font-size:16px;line-height:1.95;box-shadow:var(--shadow);position:relative}
+.paper .x{position:absolute;right:12px;top:12px}
+.paper h4{margin:0 0 20px;font-size:22px;letter-spacing:-.02em}
+.paper h4 small{display:block;font-size:12px;color:var(--acc);font-weight:700}
+.paper p{margin:0 0 4px;text-indent:1em;border-radius:6px;position:relative}
+.paper p:hover{background:var(--fill)}
+.paper p button{display:none;position:absolute;right:-44px;top:4px;text-indent:0}
+.paper p:hover button{display:inline-flex}
+.paper .nx{display:flex;justify-content:space-between;margin-top:32px}
+
+/* 인물 카드 (앞 · 뒤) */
+.ov{position:absolute;left:0;right:0;top:48px;bottom:104px;z-index:6;background:rgba(20,15,5,.28);display:flex;align-items:center;justify-content:center;cursor:default}
+.flip{width:380px;height:440px;perspective:1400px}
+.flip .inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.2,1)}
+.flip.back .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--panel);border-radius:18px;box-shadow:var(--pop);padding:28px;display:flex;flex-direction:column;overflow:hidden}
+.face.bk{transform:rotateY(180deg)}
+.face .band{height:6px;margin:-28px -28px 24px}
+.face h3{margin:0;font-size:24px;letter-spacing:-.02em}
+.face h3 small{font-size:13px;color:var(--sub);font-weight:500;margin-left:8px}
+.face p{margin:12px 0 0;font-size:14px;line-height:1.75}
+.face .lb{font-size:12px;color:var(--sub);font-weight:650;margin-top:20px}
+.face .ft{margin-top:auto;display:flex;gap:8px;justify-content:space-between}
+.epl{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--acc-soft);color:var(--acc);font-size:12px;font-weight:650;cursor:pointer;vertical-align:1px;margin-right:4px}
+
+.pop{position:fixed;z-index:50;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--pop);padding:6px;min-width:200px;animation:in .16s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
+.mi{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 10px;border-radius:7px;font-size:13px;text-align:left}
+.mi:hover{background:var(--fill)}.mi.warn{color:var(--warn)}.mi small{margin-left:auto;color:var(--sub);font-size:12px}
+.sepm{height:1px;background:var(--line);margin:6px 4px}
+.drow{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 12px;font-size:13px;max-width:340px}
+.drow span{flex:1}
+.toast{position:absolute;left:50%;bottom:178px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:16px;background:var(--ink);color:var(--bg);padding:8px 8px 8px 16px;border-radius:10px;font-size:13px;box-shadow:var(--pop);white-space:nowrap}
+.toast button{height:28px;padding:0 12px;border-radius:7px;font-weight:650;font-size:13px;background:rgba(127,127,127,.3);color:inherit}
+
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px}
+.nc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.nc b{display:block;margin-bottom:4px}
+.nc p{margin:0;color:var(--sub);font-size:14px}
+.q{border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:0 12px 12px 0;padding:12px 16px;margin:0 0 8px}
+.q b{display:block}.q span{color:var(--sub);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>책상 하나 시안</h1>
+<p class="lead">탭이 없어요. 같은 책상을 멀리서 보면 관계망, 다가가면 인물의 보드, 아래 띠가 화, 인물 카드 뒷면이 위키예요. 아래 창은 실제로 눌러 볼 수 있어요.</p>
+<div class="pagebar">
+  <button class="b line" id="themeBtn"></button>
+  <span class="hint">순서대로: 인물 동그라미 누르기 → 한 번 더 눌러 뒤집기 → 카드를 아래 띠로 끌기 → 띠의 화 누르기 → Esc</span>
+</div>
+<div class="scroll"><div class="win" id="win"></div></div>
+
+<h2>지난 시안과 다른 점</h2>
+<div class="notes">
+  <div class="nc"><b>화면을 바꾸지 않고 다가가요</b><p>인물을 누르면 그쪽으로 다가가고, Esc나 오른쪽 아래 지도로 물러나요. 두 사람 사이의 선을 누르면 함께 나온 카드가 있는 곳으로 가요.</p></div>
+  <div class="nc"><b>둘이 나온 카드는 둘 사이에</b><p>카드가 놓인 자리가 곧 관계예요. 관계망을 따로 읽지 않아도 누구와 누구의 장면이 많은지 보여요.</p></div>
+  <div class="nc"><b>화는 늘 아래에</b><p>어디를 보고 있든 카드를 끌어 내리면 그 화에 들어가요. 화를 누르면 원고 한 장이 올라와요.</p></div>
+  <div class="nc"><b>위키는 뒷면</b><p>인물 카드를 뒤집으면 그 사람의 설정 문서예요. 찾아갈 곳이 하나 줄어요.</p></div>
+  <div class="nc"><b>오늘의 한 장</b><p>켜면 별 붙인 카드 한 장이 먼저 올라와요. 빈 화면에서 시작하지 않아요.</p></div>
+  <div class="nc"><b>인물이 말을 걸어요</b><p>멀리서 볼 때 “4화에 안 나왔어요”처럼 필요한 것만 이름 아래에 떠요. 등장표를 대신해요.</p></div>
+  <div class="nc"><b>카드가 시들어요</b><p>곧 서랍으로 갈 카드는 색이 바래고 모서리가 말려요. 무덤 · 휴지통은 띠 오른쪽 “서랍” 하나예요.</p></div>
+  <div class="nc"><b>한 줄 입력은 늘 같은 자리</b><p>지금 보고 있는 인물에게 붙어요. 글에 이름이 있으면 그 인물에게, 둘 다 있으면 둘 사이에 붙어요.</p></div>
+</div>
+
+<h2>약점과 정해 주실 것</h2>
+<div class="q"><b>인물이 많아지면?</b><span>이 시안은 2명이에요. 30명쯤 되면 섬이 빽빽해져서 묶음별로 접는 장치가 필요하고, 그건 아직 그려 보지 않았어요.</span></div>
+<div class="q"><b>셋 이상이 나온 카드는?</b><span>“둘 사이”에 둘 수 없어요. 가장 많이 얽힌 두 사람 사이에 두고 나머지는 점으로 표시하는 방법을 생각하고 있어요.</span></div>
+<div class="q"><b>어느 쪽으로 갈까요?</b><span>지난 시안(탭 3개로 정리)은 지금 앱을 다듬는 길이고, 이 시안은 가운데 화면을 새로 만드는 길이에요. 저장된 작품은 어느 쪽이든 그대로 써요.</span></div>
+</main>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a)){if(n.startsWith('on'))e.addEventListener(n.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(n,v===true?'':v)}k.flat().forEach(c=>c!=null&&c!==false&&e.append(c));return e};
+const NS='http://www.w3.org/2000/svg';
+const sv=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+const IC={check:'M5 12l5 5 9-10',plus:'M12 5v14M5 12h14',minus:'M5 12h14',x:'M6 6l12 12M18 6L6 18',box:'M4 8h16v11H4zM3 4h18v4H3zM10 12h4',turn:'M4 12a8 8 0 0114-5l2 2M20 5v4h-4M20 12a8 8 0 01-14 5l-2-2M4 19v-4h4',home:'M4 11l8-7 8 7M6 10v9h12v-9',sun:'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19',up:'M12 19V5M6 11l6-6 6 6'};
+const ic=n=>{const s=sv('svg',{class:'i',viewBox:'0 0 24 24','aria-hidden':'true'});s.append(sv('path',{d:IC[n]}));return s};
+
+/* ---- 예시 데이터 ---- */
+const WHO={d:{name:'이도윤',short:'도',role:'주인공',color:'#2e9fd6',x:640,y:600,sum:'반지하에서 자란 배달 라이더. 말수가 적고 계산이 빠르다.',goal:'빚을 다 갚고 반지하를 나가기',wiki:['돈 이야기를 피하지 않는다. 사과와 돈을 따로 계산한다.','포크 순서 같은 예절은 모르지만 모르는 티를 내지 않는다.']},
+           h:{name:'서하린',short:'하',role:'상대역',color:'#a650d4',x:1360,y:600,sum:'재벌가 막내. 진심으로 사과받아 본 적이 없다.',goal:'계산 없는 사람을 한 명 찾기',wiki:['사람들이 먼저 사과하는 데 익숙하다. 그래서 사과하지 않는 사람이 궁금하다.','버리는 법을 배운 적이 없어서 영수증까지 모은다.']}};
+const ZONE={d:{cx:600,cy:640,s:1},h:{cx:1400,cy:640,s:1},dh:{cx:1000,cy:640,s:.95}};
+const SLOT={d:[[700,400],[130,580],[700,770],[150,380]],h:[[1540,580],[1200,800],[1650,400]],dh:[[890,300],[900,880],[1010,960]],'':[[880,170],[1120,170],[640,170]]};
+let EPS=[{n:1,title:'새벽의 접촉사고'},{n:2,title:'반지하'},{n:3,title:'봉투'},{n:4,title:'빈 봉투'}];
+const CARDS=[
+ {id:1,at:1,who:'dh',text:'새벽 배달 중 이도윤이 서하린의 차를 긁는다. 사과보다 먼저 보험부터 묻는 그를 서하린이 흥미롭게 바라본다.'},
+ {id:2,at:1,who:'d',text:'“저는 사과를 드릴 수 있고, 돈은 없습니다. 둘 중 하나만 고르세요.”'},
+ {id:3,at:1,who:'h',text:'“왜 죄송하다고 안 하죠? 다들 그러던데.”'},
+ {id:4,at:2,who:'dh',text:'서하린이 이도윤의 반지하 방문 앞에 서 있다. 비가 새는 천장 아래 양동이 소리.'},
+ {id:5,at:3,who:'dh',text:'하린의 아버지가 도윤에게 봉투를 내민다. 도윤은 받지 않고 봉투의 두께만 본다.'},
+ {id:13,at:4,who:'d',text:'도윤이 배달 가방에서 구겨진 봉투를 꺼내 본다. 빈 봉투다.'},
+ {id:6,at:0,who:'dh',star:1,x:890,y:440,text:'도윤이 처음으로 하린 앞에서 웃는다. 하린은 그 웃음에 계산이 없다는 걸 알아차린다.'},
+ {id:12,at:0,who:'dh',x:900,y:690,text:'“그쪽은 왜 저한테 화를 안 내요?” “화내면 뭐가 싸지나요.”'},
+ {id:7,at:0,who:'d',x:380,y:420,text:'“배고픈 사람한테 코스요리는 고문이에요.”'},
+ {id:8,at:0,who:'d',memo:1,old:2,x:230,y:720,text:'도윤은 식당에서 포크 순서를 몰라 당황하지만 끝까지 태연한 척한다.'},
+ {id:10,at:0,who:'h',x:1440,y:400,text:'하린은 영수증을 모은다. 버리는 법을 배운 적이 없어서.'},
+ {id:11,at:0,who:'h',memo:1,x:1590,y:720,text:'하린의 방에는 시계가 없다.'},
+ {id:9,at:-1,who:'h',text:'하린이 도윤의 헬멧을 몰래 써 본다.'}];
+/* at: 화 번호 · 0 = 책상 위 · -1 = 서랍 */
+const desk=()=>CARDS.filter(c=>c.at===0);
+const epsOf=k=>[...new Set(CARDS.filter(c=>c.at>0&&c.who.includes(k)).map(c=>c.at))].sort();
+const zoneOf=c=>c.who==='dh'?'dh':c.who||'far';
+
+/* ---- 뼈대 ---- */
+const win=$('#win');
+const crumb=h('div',{class:'crumb'});
+const world=h('div',{class:'world'});
+const stage=h('div',{class:'stage'},world);
+const rail=h('div',{class:'rail'});
+const sheet=h('div',{class:'sheet'});
+const capIn=h('input',{'aria-label':'새 카드'});
+const mmU=h('u'),mm=h('button',{class:'mm','aria-label':'책상 전체 보기',title:'책상 전체 보기',onclick:()=>zoomTo('far')},Object.keys(WHO).map(k=>h('i',{style:`background:${WHO[k].color};left:${(WHO[k].x-200)/1600*100}%;top:${(WHO[k].y-250)/750*100}%`})),mmU);
+win.append(h('div',{class:'top'},h('span',{class:'brand'},'내 첫 작품'),crumb,h('span',{class:'sp'}),h('span',{class:'saved'},ic('check'),'저장됨')),stage,rail,sheet);
+stage.append(h('div',{class:'cap'},capIn),h('div',{class:'nav'},h('div',{class:'zz'},h('button',{class:'b icon','aria-label':'물러나기',onclick:()=>zoomTo('far')},ic('minus')),h('button',{class:'b icon','aria-label':'다가가기',onclick:()=>zoomTo(view.key==='far'?'d':view.key)},ic('plus'))),mm));
+
+/* ---- 보는 자리 ---- */
+let view={key:'far',cx:1000,cy:620,s:.6};
+function farView(){const W=stage.clientWidth,H=stage.clientHeight;return {cx:1000,cy:640,s:Math.min(W/1750,H/820,.8)}}
+function zoomTo(k,now){closePop();view={key:k,...(k==='far'?farView():ZONE[k])};apply(now)}
+function apply(now){const W=stage.clientWidth,H=stage.clientHeight,{cx,cy,s}=view;
+  world.classList.toggle('now',!!now);world.style.setProperty('--s',s);world.style.transform=`translate(${W/2-cx*s}px,${H/2-cy*s}px) scale(${s})`;
+  stage.classList.toggle('far',s<.78);
+  const far=view.key==='far';crumb.textContent='';
+  if(far)crumb.append(h('b',{},'책상 전체'));else crumb.append(h('button',{onclick:()=>zoomTo('far')},'책상 전체'),'›',h('b',{},view.key==='dh'?'이도윤 · 서하린 사이':WHO[view.key].name));
+  capIn.placeholder='한 줄 쓰고 Enter · '+(far?'이름이 들어가면 그 인물에게 붙어요':view.key==='dh'?'두 사람 사이에 붙어요':WHO[view.key].name+'에게 붙어요');
+  const vw=W/s,vh=H/s;Object.assign(mmU.style,{left:(cx-vw/2-200)/1600*100+'%',top:(cy-vh/2-250)/750*100+'%',width:vw/1600*100+'%',height:vh/750*100+'%'});
+  if(now)requestAnimationFrame(()=>world.classList.remove('now'))}
+/* 빈 곳을 잡고 끌어 옮기기 · 두 손가락 벌리기(Ctrl+휠)로 다가가기 */
+let PAN=null;
+stage.addEventListener('pointerdown',e=>{if(e.target!==stage&&e.target!==world&&e.target.tagName!=='svg')return;PAN={x:e.clientX,y:e.clientY,cx:view.cx,cy:view.cy};stage.setPointerCapture(e.pointerId);stage.classList.add('pan')});
+stage.addEventListener('pointermove',e=>{if(!PAN)return;view.cx=PAN.cx-(e.clientX-PAN.x)/view.s;view.cy=PAN.cy-(e.clientY-PAN.y)/view.s;apply()});
+const panEnd=()=>{PAN=null;stage.classList.remove('pan')};stage.addEventListener('pointerup',panEnd);stage.addEventListener('pointercancel',panEnd);
+stage.addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const f=farView().s;view.s=Math.max(f,Math.min(1.2,view.s*Math.exp(-e.deltaY*.01)));if(view.s<=f+.01)view.key='far';else if(view.key==='far')view.key=view.cx<820?'d':view.cx>1180?'h':'dh';apply(true)},{passive:false});
+addEventListener('resize',()=>{if(view.key==='far')view={key:'far',...farView()};apply(true)});
+
+/* ---- 떠 있는 것 ---- */
+let POP=null;
+const closePop=()=>{if(POP){POP.remove();POP=null}};
+function place(el,x,y){closePop();document.body.append(el);const r=el.getBoundingClientRect();el.style.left=Math.max(8,Math.min(x,innerWidth-r.width-8))+'px';el.style.top=Math.max(8,Math.min(y,innerHeight-r.height-8))+'px';POP=el}
+const menu=(x,y,items)=>place(h('div',{class:'pop',role:'menu'},items.map(it=>it==='-'?h('div',{class:'sepm'}):h('button',{class:'mi'+(it.warn?' warn':''),role:'menuitem',onclick:()=>{closePop();it.fn()}},it.label,it.hint?h('small',{},it.hint):null))),x,y);
+function toast(msg,undo){win.querySelectorAll('.toast').forEach(t=>t.remove());const t=h('div',{class:'toast',role:'status'},msg,undo?h('button',{onclick:()=>{t.remove();undo()}},'되돌리기'):null);win.append(t);setTimeout(()=>t.remove(),5000)}
+const soon=()=>toast('시안에서는 여기까지만 보여요');
+document.addEventListener('mousedown',e=>{if(POP&&!POP.contains(e.target))closePop()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(POP)return closePop();const o=win.querySelector('.ov');if(o)return o.remove();if(sheet.classList.contains('on'))return closeSheet();if(document.activeElement===capIn)capIn.blur();zoomTo('far')});
+
+/* ---- 카드 옮기기 ---- */
+function slot(z){const used=desk();return (SLOT[z]||SLOT['']).find(([x,y])=>!used.some(c=>Math.abs(c.x-x)<200&&Math.abs(c.y-y)<110))||[ZONE[z]?ZONE[z].cx-110+Math.random()*80:960,260+Math.random()*60]}
+function move(c,to,quiet){const was={at:c.at,x:c.x,y:c.y};
+  if(to===0&&c.x==null)[c.x,c.y]=slot(c.who==='dh'?'dh':c.who);c.at=to;
+  if(to>EPS.length)EPS.push({n:to,title:''});draw();
+  if(!quiet)toast(to>0?`${to}화에 넣었어요`:to===0?'책상으로 돌려놨어요':'서랍에 넣었어요',()=>{Object.assign(c,was);if(!CARDS.some(x=>x.at===EPS.length)&&EPS.length>4)EPS.pop();draw()})}
+function cardMenu(c,x,y){menu(x,y,[...EPS.map(e=>({label:`${e.n}화에 넣기`,hint:e.title,fn:()=>move(c,e.n)})),'-',{label:c.star?'꼭 쓸 것에서 빼기':'꼭 쓸 것으로 ★',fn:()=>{c.star=!c.star;draw()}},{label:'집중해서 쓰기',fn:soon},'-',{label:'서랍에 넣기',warn:1,fn:()=>move(c,-1)}])}
+
+/* ---- 책상 그리기 ---- */
+const names=(t,fn)=>{const out=[];let i=0;t.replace(/이도윤|서하린|도윤|하린/g,(m,p)=>{const k=/도윤/.test(m)?'d':'h';out.push(t.slice(i,p),h('span',{class:'nm',onclick:()=>fn(k)},m));i=p+m.length});out.push(t.slice(i));return out};
+function whisper(k){const last=EPS.length,mine=epsOf(k),old=desk().filter(c=>c.who.includes(k)&&c.old).length;
+  if(mine.length&&mine[mine.length-1]<last)return `${last}화에 안 나왔어요`;if(old)return `곧 서랍으로 갈 카드 ${old}장`;return null}
+function drawWorld(){world.textContent='';
+  const both=desk().filter(c=>c.who==='dh').length,svg=sv('svg',{width:2000,height:1300});
+  svg.append(sv('line',{x1:WHO.d.x,y1:WHO.d.y,x2:WHO.h.x,y2:WHO.h.y,stroke:'currentColor','stroke-opacity':.16,'stroke-width':6+both*5,'stroke-linecap':'round'}));
+  const hit=sv('line',{x1:WHO.d.x+60,y1:WHO.d.y,x2:WHO.h.x-60,y2:WHO.h.y,stroke:'transparent','stroke-width':60,style:'cursor:pointer'});hit.addEventListener('click',()=>zoomTo('dh'));svg.append(hit);
+  world.append(svg,h('div',{class:'linelb keep'},`함께 ${both}장 · 눌러서 둘 사이로`));
+  for(const k in WHO){const w=WHO[k],ws=whisper(k);
+    world.append(h('div',{class:'isl',style:`left:${w.x}px;top:${w.y}px`},
+      h('button',{class:'disk',style:`background:${w.color}`,'aria-label':w.name,title:view.key===k?'인물 카드 열기':w.name+'에게 다가가기',onclick:()=>view.key===k?person(k):zoomTo(k)},w.short),
+      h('div',{class:'under keep'},h('b',{},w.name),h('small',{},w.role+' · 책상 위 '+desk().filter(c=>c.who.includes(k)).length+'장'),h('small',{class:'tip'},'한 번 더 누르면 인물 카드'),ws?h('span',{class:'whisper',onclick:()=>zoomTo(k)},h('i'),ws):null)))}
+  desk().forEach(c=>{const n=h('div',{class:'note'+(c.memo?' memo':'')+(c.old?' old':''),'data-id':c.id,draggable:'true',style:`left:${c.x}px;top:${c.y}px;transform:rotate(${(c.id%5-2)*.5}deg)`,
+      title:c.old?`${c.old}일 뒤 서랍으로 가요`:null,
+      onclick:()=>{if(stage.classList.contains('far'))zoomTo(zoneOf(c))},
+      oncontextmenu:e=>{e.preventDefault();cardMenu(c,e.clientX,e.clientY)},
+      ondragstart:e=>{e.dataTransfer.setData('text/plain',String(c.id));e.dataTransfer.effectAllowed='move';DRAG=c;win.classList.add('dragging')},
+      ondragend:()=>{DRAG=null;win.classList.remove('dragging')}},
+    c.star?h('span',{class:'star','aria-label':'꼭 쓸 것'},'★'):null,names(c.text,zoomTo),c.old?h('span',{class:'left'},`${c.old}일 뒤 서랍으로`):null,
+    h('div',{class:'who'},[...c.who].map(k=>h('span',{class:'av',style:`background:${WHO[k].color}`},WHO[k].short))));world.append(n)})}
+let DRAG=null;
+function drawRail(){rail.textContent='';
+  const tile=(n,inner,cls)=>h('button',{class:'ep '+(cls||'')+(OPEN===n?' on':''),'data-ep':n,onclick:()=>n<=EPS.length?openSheet(n):soon(),
+    ondragover:e=>{if(DRAG){e.preventDefault();e.currentTarget.classList.add('over')}},ondragleave:e=>e.currentTarget.classList.remove('over'),
+    ondrop:e=>{e.preventDefault();e.currentTarget.classList.remove('over');if(DRAG){const c=DRAG;DRAG=null;win.classList.remove('dragging');move(c,n)}}},inner);
+  EPS.forEach(e=>{const cs=CARDS.filter(c=>c.at===e.n),ks=[...new Set(cs.flatMap(c=>[...c.who]))];
+    rail.append(tile(e.n,[h('span',{class:'no'},e.n+'화'),h('b',{},e.title||'제목 없음'),h('span',{class:'ft'},ks.map(k=>h('span',{class:'av',style:`background:${WHO[k].color}`})),cs.length+'장')]))});
+  const gone=CARDS.filter(c=>c.at<0);
+  rail.append(tile(EPS.length+1,[ic('plus'),'새 화'],'new'),h('span',{class:'gap'}),
+    h('button',{class:'b text drawer',onclick:e=>{const r=e.currentTarget.getBoundingClientRect();place(h('div',{class:'pop'},gone.length?gone.map(c=>h('div',{class:'drow'},h('span',{},c.text),h('button',{class:'b line',onclick:()=>{closePop();move(c,0)}},'되살리기'))):h('div',{class:'drow hint'},'서랍이 비었어요')),r.right-340,r.top-12-56*Math.max(1,gone.length))}},ic('box'),'서랍'+(gone.length?' '+gone.length:'')))}
+function draw(){drawWorld();drawRail();if(OPEN)fillSheet()}
+
+/* ---- 펼친 원고 ---- */
+let OPEN=0;
+function fillSheet(){const e=EPS[OPEN-1],cs=CARDS.filter(c=>c.at===OPEN);sheet.textContent='';
+  sheet.append(h('div',{class:'paper'},h('button',{class:'b icon x','aria-label':'원고 접기',onclick:closeSheet},ic('x')),
+    h('h4',{},h('small',{},OPEN+'화'),e.title||'제목 없음'),
+    cs.length?cs.map(c=>h('p',{oncontextmenu:ev=>{ev.preventDefault();menu(ev.clientX,ev.clientY,[{label:'책상으로 돌려놓기',fn:()=>move(c,0)},{label:'서랍에 넣기',warn:1,fn:()=>move(c,-1)}])}},names(c.text,k=>{closeSheet();zoomTo(k)}),h('button',{class:'b icon','aria-label':'책상으로 돌려놓기',title:'책상으로 돌려놓기',onclick:()=>move(c,0)},ic('up')))):h('p',{class:'hint',style:'text-indent:0'},'아직 비어 있어요. 책상의 카드를 아래 띠의 이 화로 끌어다 놓아요.'),
+    h('div',{class:'nx'},OPEN>1?h('button',{class:'b text',onclick:()=>openSheet(OPEN-1)},'← '+(OPEN-1)+'화'):h('span'),OPEN<EPS.length?h('button',{class:'b text',onclick:()=>openSheet(OPEN+1)},(OPEN+1)+'화 →'):h('span'))))}
+function openSheet(n){closePop();const t=win.querySelector('.today');if(t)t.remove();OPEN=n;fillSheet();sheet.scrollTop=0;sheet.classList.add('on');drawRail()}
+function closeSheet(){OPEN=0;sheet.classList.remove('on');drawRail()}
+
+/* ---- 인물 카드: 앞면 소개 · 뒷면 위키 ---- */
+function person(k){const w=WHO[k];let f;
+  const turn=l=>h('button',{class:'b line',onclick:()=>f.classList.toggle('back')},ic('turn'),l);
+  const ep=n=>h('span',{class:'epl',role:'link',tabindex:0,onclick:()=>{ov.remove();openSheet(n)}},n+'화');
+  f=h('div',{class:'flip'},h('div',{class:'inner'},
+    h('div',{class:'face'},h('div',{class:'band',style:`background:${w.color}`}),h('h3',{},w.name,h('small',{},w.role)),h('p',{},w.sum),h('div',{class:'lb'},'목표'),h('p',{style:'margin-top:4px'},w.goal),h('div',{class:'lb'},'나온 화'),h('p',{style:'margin-top:6px'},epsOf(k).map(ep)),h('div',{class:'ft'},turn('뒤집어서 설정 보기'),h('button',{class:'b text',onclick:()=>ov.remove()},'닫기'))),
+    h('div',{class:'face bk'},h('div',{class:'band',style:`background:${w.color}`}),h('h3',{},w.name,h('small',{},'설정 문서')),w.wiki.map(t=>h('p',{},t)),h('div',{class:'lb'},'이 문서를 가리키는 곳'),h('p',{style:'margin-top:4px'},WHO[k==='d'?'h':'d'].name+' · 세계관 › 아비투스'),h('div',{class:'ft'},turn('앞면으로'),h('button',{class:'b text',onclick:soon},'이어서 쓰기')))));
+  const ov=h('div',{class:'ov',onmousedown:e=>{if(e.target===ov)ov.remove()}},f);win.append(ov)}
+
+/* ---- 오늘의 한 장 · 한 줄 입력 ---- */
+function today(){const c=desk().find(c=>c.star)||desk()[0];if(!c)return;
+  const t=h('div',{class:'today'},h('small',{},'오늘의 한 장'),h('p',{},c.text),h('div',{},h('button',{class:'b fill',onclick:()=>{t.remove();zoomTo(zoneOf(c));setTimeout(()=>{const n=world.querySelector(`[data-id="${c.id}"]`);if(n)n.classList.add('flash')},500)}},'이 장면부터'),h('button',{class:'b text',onclick:()=>t.remove()},'나중에')));stage.append(t)}
+capIn.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing||!capIn.value.trim())return;const t=capIn.value.trim(),d=/도윤/.test(t),hh=/하린/.test(t);
+  const who=d&&hh?'dh':d?'d':hh?'h':view.key==='far'?'':view.key,[x,y]=slot(who),c={id:Date.now(),at:0,who,x,y,text:t};CARDS.push(c);capIn.value='';draw();
+  const n=world.querySelector(`[data-id="${c.id}"]`);if(n)n.classList.add('flash')});
+
+/* ---- 테마 ---- */
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==='dark':matchMedia('(prefers-color-scheme:dark)').matches};
+const themeLabel=()=>{const b=$('#themeBtn');b.textContent='';b.append(ic('sun'),isDark()?'밝은 테마로 보기':'어두운 테마로 보기')};
+$('#themeBtn').addEventListener('click',()=>{document.documentElement.dataset.theme=isDark()?'light':'dark';themeLabel()});
+themeLabel();draw();zoomTo('far',true);today();
+})();
+</script>
+</body>
+</html>
