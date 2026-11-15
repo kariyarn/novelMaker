@@ -14,6 +14,7 @@ function markNodes(text,toks){
   hits.forEach(([a,b])=>{if(a<i)return;if(a>i)frag.append(text.slice(i,a));frag.append(h('mark',{},text.slice(a,b)));i=b});
   if(i<text.length)frag.append(text.slice(i));return frag;
 }
+const cardWhere=c=>{const e=episodeOf(c.id);return e?`${e.i+1}화`:shelfOf(c.id)?'보관':c.discarded?'무덤':c.filed?'위키':'미사용'};      // 검색 결과 줄 끝에: 이 카드가 지금 어디 있는지
 function runSearch(q){
   const toks=normQ(q).split(/\s+/).filter(Boolean),out=[];if(!toks.length)return {out,toks};
   const has=hay=>{const lo=normQ(hay);return toks.every(k=>lo.includes(k))};
@@ -22,7 +23,7 @@ function runSearch(q){
     if(has(base))out.push({kind:c.kind==='setting'?'설정':'인물',title:c.name,sub:snippet([c.role,c.summary,c.memo,c.longGoal?'장기 목표 '+c.longGoal:'',(c.goals||[]).map(g=>g.text).join(' ')].filter(Boolean).join(' · '),toks),color:c.color,go:()=>{UI.mode='story';setSel(c.id)}});
     else (c.fields||[]).some(f=>{if(has(f.label+' '+f.value)){out.push({kind:c.kind==='setting'?'설정':'인물',title:c.name+' · '+f.label,sub:snippet(f.value,toks),color:c.color,go:()=>{UI.mode='story';UIP.cl.sheet=false;setSel(c.id);UIP.cl.sheet=false;renderAll()}});return true}});
   });
-  S.cards.forEach(c=>{if(has(c.text))out.push({kind:kindOf(c.kind).name,title:snippet(c.text,toks,60),sub:eff(c).map(id=>charById(id).name).join(', ')||'미분류',color:kindOf(c.kind).color,card:c,go:()=>goToCard(c.id)})});
+  S.cards.forEach(c=>{if(has(c.text))out.push({kind:kindOf(c.kind).name,title:snippet(c.text,toks,60),sub:eff(c).map(id=>charById(id).name).join(', ')||'미분류',color:kindOf(c.kind).color,card:c,where:cardWhere(c),go:()=>goToCard(c.id)})});
   S.episodes.forEach((e,i)=>{if(has((e.title||'')+' '+(e.memo||'')))out.push({kind:'화',title:`${i+1}화${e.title?' · '+e.title:''}`,sub:snippet(e.memo,toks),color:'var(--acc)',go:()=>{UI.mode='tl';UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';renderAll();setTimeout(()=>{const col=document.querySelector(`[data-ep="${i}"]`);if(col){col.scrollIntoView({inline:'center',block:'start',behavior:'smooth'});flashEl(col)}},60)}})});
   wikiRows().forEach(r=>{const t=wkText(r.body),tt=rowTitle(r);if(has(tt+' '+t))out.push({kind:'위키',title:tt,sub:rowChain(r).slice(0,-1).map(rowTitle).join(' › ')+(t?' · '+snippet(t,toks):''),color:'var(--acc)',go:()=>goWikiRow(r.id)})});
   const order={'인물':0,'설정':0,'위키':1,'화':1};
@@ -54,7 +55,7 @@ function openSearch(){
     res.forEach((r,i)=>{
       const row=h('div',{class:'sr'+(i===cur?' on':''),onmouseenter:()=>{cur=i;[...list.children].forEach((x,j)=>x.classList.toggle('on',j===i))},onclick:()=>{closeSearch();r.go()}},
         h('i',{class:'sdot',style:`background:${r.color}`}),h('span',{class:'stag'},r.kind),
-        h('span',{class:'sbody'},h('span',{class:'stitle'},markNodes(r.title,toks)),r.sub?h('span',{class:'ssub'},markNodes(r.sub,toks)):null));
+        h('span',{class:'sbody'},h('span',{class:'stitle'},markNodes(r.title,toks)),r.sub?h('span',{class:'ssub'},markNodes(r.sub,toks)):null),r.where?h('span',{class:'swhere'+(r.where==='미사용'?' no':'')},r.where):null);
       list.append(row);
     });
   };

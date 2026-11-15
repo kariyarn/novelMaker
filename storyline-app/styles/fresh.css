@@ -123,9 +123,6 @@
 .frsheet:hover>.freg,.freg.on{opacity:1}
 .frwctl{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:.86em}
 .frwctl input{width:100px;padding:0;background:transparent;border:0;accent-color:var(--acc)}
-.frfsz{display:inline-flex;align-items:baseline;gap:0}
-.frfsz button{font-family:var(--fr-story);padding:0 6px;color:var(--sub);min-height:0}
-.frfsz button.big{font-size:1.25em}
 
 /* ---------- 집중: 문단 한 장만 크게 ---------- */
 .frfocus{position:fixed;inset:0;z-index:95;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:frin .22s ease-out}
@@ -308,7 +305,6 @@
 .ui3 .frsheet.scbox .kcard.tl.fr.scst{margin-top:22px}
 .ui3 .frsheet.scbox .frsep{top:-22px;height:22px}
 .ui3 .frsheet.scbox .frsep i{display:none}
-.frscm button{font-size:12px}
 
 /* 한 화 · 한 묶음씩 볼 때 원고 끝 이전 · 다음 */
 .frpager{display:flex;justify-content:space-between;gap:16px;margin:8px 0 28px;padding-top:18px;border-top:1px solid var(--line)}
@@ -345,3 +341,15 @@ body.ui3 #app.m-story:has(#left.cl):has(#sheet.cl) .bhead.frprof{left:58px}
 .ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo{background:var(--fill);box-shadow:none;outline:1px dashed var(--line);margin:0 0 10px}
 .ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo .ktext,.ui3 .frsheet.sccard .frch .kcard.tl.fr.frmemo .kmir{text-indent:2.8em}
 .ui3 .frsheet.sccard .frch .kcard.tl.fr.scst{margin-top:22px}
+
+/* 한 줄 보기 '보기 설정' 안의 글 폭 · 글자 크기 줄 */
+.pop .frvrow{display:flex;align-items:center;gap:8px;padding:2px 12px 8px}
+.pop .frvrow input[type=range]{flex:1;min-width:160px;padding:0;background:transparent;border:0;accent-color:var(--acc)}
+.pop .frvrow .frvfs{flex:1;text-align:center;color:var(--sub);font-variant-numeric:tabular-nums}
+/* 작은 포스트잇 아이콘도 보드의 포스트잇처럼 테마 톤을 섞음 (어두운 테마에서 혼자 밝지 않게) */
+.frico{--bg:color-mix(in oklab,var(--kc0) var(--pm,100%),var(--pt,#fff))}
+/* 검색 결과 줄 끝: 카드가 지금 있는 곳 */
+.swhere{flex:none;align-self:center;margin-left:10px;font-size:12px;color:var(--acc);white-space:nowrap}
+.swhere.no{color:var(--sub)}
+/* 설정 화면 색: 자동을 라이트 줄 앞에 */
+.tlab.tlab2{margin-left:14px}

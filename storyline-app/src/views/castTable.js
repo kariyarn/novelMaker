@@ -15,6 +15,9 @@ function renderMatrix(m,lo,hi){
   const groups=tlGroups(),grouped=gs>0&&!sc&&groups.length>0,cols=[];
   if(grouped)groups.forEach(([a,b],gi)=>{if(UIP.tg[gi])cols.push({g:gi,a,b});else for(let i=a;i<b;i++)cols.push({idx:i,ep:E[i],g:gi,first:i===a})});
   else for(let i=lo;i<hi;i++)cols.push({idx:i,ep:E[i]});
+  // 맨 뒤의 빈 화는 열로 그리지 않음 (표가 빈 칸으로 길어지지 않게) · 몇 개 접었는지는 아래 안내에
+  const tailN=cols.filter(c=>(c.ep?c.idx:c.a)>lastAny).reduce((x,c)=>x+(c.ep?1:c.b-c.a),0);
+  if(tailN)cols.splice(0,cols.length,...cols.filter(c=>(c.ep?c.idx:c.a)<=lastAny));
   const colN=(c,id)=>c.ep?cnt(c.ep,id):E.slice(c.a,c.b).reduce((x,ep)=>x+cnt(ep,id),0);
   // 행: 이 범위에서 한 번이라도 등장한 인물만, 많이 나온 순
   let rows0=[...pool.map(c=>({id:c.id,name:c.name,color:c.color,icon:c.icon,sq:c.kind==='setting'})),{id:null,name:withSet?'연결 없음':'인물 없음',color:'var(--sub)',none:true}].map(r=>{
@@ -37,5 +40,5 @@ function renderMatrix(m,lo,hi){
       cut?h('span',{class:'muted'},`등장한 ${named.length}명 중 ${cut}명은 숨겨져 있어요`):h('span',{class:'muted'},`이 범위에 등장한 ${named.length}명`),
       cut?h('button',{class:'quiet',onclick:()=>{UIP.mxN=0;saveUIP();renderMid()}},'모두 보기'):null),
     rows.length?h('table',{class:'mx'},h('thead',{},...trs),h('tbody',{},...body,foot)):h('div',{class:'empty'},'이 범위에는 등장한 인물이 없어요.'),
-    h('div',{class:'muted',style:'padding:10px 2px'},'점을 누르면 그 인물의 그 화로 이동해요 · 점 속 숫자는 그 화에서 등장한 횟수예요'+(grouped?' · 위의 묶음 이름을 누르면 접고 펴요':'')+(withSet?' · 네모 표시는 설정 노트예요':''))));
+    h('div',{class:'muted',style:'padding:10px 2px'},'점을 누르면 그 인물의 그 화로 이동해요 · 점 속 숫자는 그 화에서 등장한 횟수예요'+(grouped?' · 위의 묶음 이름을 누르면 접고 펴요':'')+(withSet?' · 네모 표시는 설정 노트예요':'')+(tailN?` · 뒤쪽 빈 화 ${tailN}개는 접어 뒀어요`:''))));
 }
