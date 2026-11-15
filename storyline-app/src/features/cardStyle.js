@@ -3,7 +3,7 @@ async function discardCard(id){
   const c=cardById(id);if(!c)return;const used=episodeOf(id);
   if(used&&!await askConfirm(`${used.i+1}화에 쓴 카드예요. 무덤으로 보내면 타임라인에서도 빠져요. 보낼까요?`,{ok:'무덤으로'}))return;
   buryCards([id]);
-  toast('무덤으로 보냈어요 — 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true});
+  buryToast();
 }
 const restoreCard=id=>reviveCards([id]);
 function trashCard(id){

@@ -152,7 +152,13 @@ function epMenu(btn,idx){
     {label:'몇 화 자리로…',fn:async()=>{const v=parseInt(await askText(`몇 화 자리로 옮길까요? (1~${E.length})`,String(idx+1)),10);if(v>=1)moveEpisode(idx,v-1)}},
     'sep',{title:'합치기'},
     ...(idx>0?[{label:`${idx}화 뒤에 이어 붙이기`,fn:()=>mergeEpisode(idx-1,idx)}]:[]),
-    ...(idx<E.length-1?[{label:`${idx+2}화를 이 화 뒤에 이어 붙이기`,fn:()=>mergeEpisode(idx,idx+1)}]:[])]);
+    ...(idx<E.length-1?[{label:`${idx+2}화를 이 화 뒤에 이어 붙이기`,fn:()=>mergeEpisode(idx,idx+1)}]:[]),
+    'sep',{label:'이 화 지우기',fn:()=>delEpisode(idx)}]);
+}
+function delEpisode(idx){      // 묻지 않고 바로 지우고, 알림의 되돌리기로 살림 (카드는 오른쪽 목록으로)
+  const ep=S.episodes[idx];if(!ep)return;const n=ep.cardIds.filter(cardById).length;
+  act(()=>{S.episodes=S.episodes.filter(x=>x!==ep);if(!S.episodes.length)S.episodes.push(newEp());UI.tlScope=null});
+  toast(n?`${idx+1}화를 지웠어요 · 카드 ${n}장은 오른쪽 목록으로 돌아갔어요`:`${idx+1}화를 지웠어요`,{undo:true});
 }
 function renderTimeline(m){
   const E=S.episodes,mode=UIP.tlMode||'kanban',[lo,hi]=tlRange(),sc=UI.tlScope;
@@ -172,7 +178,7 @@ function renderTimeline(m){
     ...(mode==='matrix'?[h('span',{class:'muted'},'표시'),seg([['c','인물만'],['cs','인물 + 설정']],UIP.mxSet?'cs':'c',k=>{UIP.mxSet=k==='cs';saveUIP();renderAll()})]:(()=>{const tc=UI.tlChar!=='all'&&charById(UI.tlChar);if(UI.tlChar!=='all'&&!tc)UI.tlChar='all';return tc?[chip('인물: '+tc.name+'  ✕',true,()=>{UI.tlChar='all';renderAll()},tc.color)]:[]})()),
     tlRangeSel(),
     mode==='kanban'?h('label',{class:'frwctl',title:'화 칸 너비'},'칸 폭',h('input',{type:'range',min:200,max:480,step:10,value:UIP.tlw||250,oninput:e=>{UIP.tlw=+e.target.value;applyLayout()},onchange:saveUIP})):null,
-    h('button',{class:'quiet',title:'원고 .txt로 내보내기 (전체 · 몇 화부터 몇 화까지)',onclick:()=>showManuscriptExport()},icon('download'),'원고'),
+    h('button',{class:'quiet',title:'원고 .txt로 내보내기 (전체 · 몇 화부터 몇 화까지)',onclick:()=>showManuscriptExport()},icon('download'),'내보내기'),
     h('button',{class:'quiet',onclick:()=>addEpisode()},icon('plus'),'화')));
   if(mode==='matrix')return renderMatrix(m,lo,hi);
   if(mode==='shelf')return renderShelf(m);
@@ -197,8 +203,7 @@ function renderTimeline(m){
     const cnt=h('small',{class:'epcnt',title:'카드 수 · 공백 빼고 글자 수'},cntLabel(cards.map(c=>c.id),cards.length));
     return [h('div',{class:'tlhead'},h('b',{class:'frno'},String(idx+1),h('small',{},'화')),h('input',{value:ep.title,placeholder:'제목',oninput:e=>edit(()=>ep.title=e.target.value)}),cnt,
         ep.cardIds.length?h('button',{class:'cbtn tlcopy',title:'이 화의 글을 원고로 이어 붙여서 복사',onclick:()=>copyEpisodeText(idx)},icon('copy')):null,
-        (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기 · 원고 내보내기',onclick:()=>epMenu(b,idx)},icon('more'));return b})(),
-        h('button',{class:'x',title:'화 삭제 (카드는 목록으로 돌아가요)',onclick:async()=>{if(ep.cardIds.length&&!await askConfirm(`${idx+1}화를 지울까요? 카드 ${ep.cardIds.length}장은 미배치로 돌아가요.`))return;act(()=>{S.episodes=S.episodes.filter(x=>x!==ep);if(!S.episodes.length)S.episodes.push(newEp());UI.tlScope=null})}},'✕')),
+        (()=>{const b=h('button',{class:'cbtn epmenu','data-pop':'1',title:'화 순서 옮기기 · 합치기 · 카드 모두 보내기 · 원고 내보내기 · 화 지우기',onclick:()=>epMenu(b,idx)},icon('more'));return b})()),
       h('textarea',{class:'tlmemo autofit',rows:1,placeholder:'한 줄 메모',oninput:e=>{edit(()=>ep.memo=e.target.value);fitOne(e.target)}},ep.memo),body];
   };
   if(mode==='line')return frRenderLine(m,E,lo,hi,build);      // 원고 한 장 (features/fresh.js)

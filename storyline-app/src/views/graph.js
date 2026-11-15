@@ -298,11 +298,11 @@ function renderGraph(m){
       list.length>6?h('div',{class:'muted',style:'font-size:.8em'},`외 ${list.length-6}`):null,
       h('div',{class:'row',style:'margin-top:8px;gap:6px;flex-wrap:wrap'},
         h('button',{class:'quiet',title:'인물 시트와 코르크보드',onclick:()=>{UI.mode='story';setSel(n.id)}},'구상에서 열기'),
-        h('button',{class:'quiet',title:'타임라인에서 이 노드가 나오는 카드만',onclick:()=>{UI.tlChar=n.id;UIP.tlScope=null;goMode('tl')}},'타임라인에서 보기'),
-        !local?h('button',{class:'quiet',title:'이 노드를 가운데 두고 이웃만 보기',onclick:()=>{UIP.gscope='local';UIP.gcenter=n.id;saveUIP();renderMid()}},'로컬로 보기'):null)].filter(Boolean))}
+        h('button',{class:'quiet',title:'타임라인에서 여기가 나오는 카드만',onclick:()=>{UI.tlChar=n.id;UIP.tlScope=null;goMode('tl')}},'타임라인에서 보기'),
+        !local?h('button',{class:'quiet',title:'여기를 가운데 두고 이웃만 보기',onclick:()=>{UIP.gscope='local';UIP.gcenter=n.id;saveUIP();renderMid()}},'로컬로 보기'):null)].filter(Boolean))}
   /* ---- 위 막대 ---- */
-  const searchIn=h('input',{class:'gsearch',placeholder:'노드 찾기',oninput:e=>{search=e.target.value.trim();kick()},onkeydown:e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const q=search.toLowerCase(),n=nodes.find(x=>x.e.name.toLowerCase().includes(q)||(x.e.aliases||[]).some(a=>a.toLowerCase().includes(q)));
-      if(!q||!n)return toast(q?'그런 노드가 없어요':'찾을 이름을 적어 주세요');
+  const searchIn=h('input',{class:'gsearch',placeholder:'이름으로 찾기',oninput:e=>{search=e.target.value.trim();kick()},onkeydown:e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const q=search.toLowerCase(),n=nodes.find(x=>x.e.name.toLowerCase().includes(q)||(x.e.aliases||[]).some(a=>a.toLowerCase().includes(q)));
+      if(!q||!n)return toast(q?'그런 이름이 없어요':'찾을 이름을 적어 주세요');
       if(local){UIP.gcenter=n.id;saveUIP();renderMid();return}sel1=n.id;UIP.gsel=n.id;auto=false;view.tc=[n.x,n.y];view.tk=Math.max(view.k,.9);showInfo();kick()}}});
   minIn.addEventListener('input',e=>{UIP.gmin=+e.target.value;strLab.textContent=`${+e.target.value}회 이상`;cancelAnimationFrame(rebuild.r);rebuild.r=requestAnimationFrame(()=>{saveUIPNow();rebuild()})});
   tIn.addEventListener('input',e=>{tpos=+e.target.value;UIP.gtime=tpos;cancelAnimationFrame(rebuild.r);rebuild.r=requestAnimationFrame(rebuild)});

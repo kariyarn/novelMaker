@@ -99,3 +99,10 @@ body.tidy .pop .pi{height:var(--td-hl)}
 body.tidy #sheet input.role{height:var(--td-hl)!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
 body.tidy :is(.sgh button.quiet,.kchip button,.shno){font-size:var(--td-xs)!important}
 body.tidy .frnm small{font-size:var(--td-sm)!important}
+
+/* ---------- 7. 남은 작은 글자 (12 아래로 안 내려가게) · 좁은 창 ---------- */
+body.tidy :is(.frgoal span,.frch .tlhead b.frno,.stag,.ssub){font-size:var(--td-xs)!important}
+/* 인물 점 안의 한 글자도 조금 키움 (점 크기는 그대로) */
+body.tidy .frcast i{font-size:11.5px}
+/* 작품 노트의 아이디어 머리: 좁아지면 버튼이 잘리지 않고 아랫줄로 내려감 */
+body.tidy .wbhead{flex-wrap:wrap;row-gap:8px}

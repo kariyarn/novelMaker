@@ -7,7 +7,7 @@ function showRestore(){
     !list.length?h('p',{class:'muted'},'아직 자동 백업이 없어요. 글을 고치면 10분마다 하나씩 쌓여요.'):null,
     ...list.map((b,i)=>h('div',{class:'mrow'},
       h('span',{class:'l'},h('b',{},fmtFull(b.mtime)),i===0?h('span',{class:'placed',style:'margin-left:8px'},'가장 최근'):null,
-        h('div',{class:'muted'},b.ok?`캐릭터·설정 ${b.chars} · 카드 ${b.cards} · ${b.eps}화 · ${Math.max(1,Math.round(b.size/1024))}KB`:'읽을 수 없는 백업')),
+        h('div',{class:'muted'},b.ok?`인물·설정 ${b.chars} · 카드 ${b.cards} · ${b.eps}화 · ${Math.max(1,Math.round(b.size/1024))}KB`:'읽을 수 없는 백업')),
       h('button',{disabled:!b.ok,onclick:()=>restoreBackup(b)},'이 시점으로 복구'))),
     closeRow(h('button',{onclick:()=>Repo.openFolder('backups')},'백업 폴더 열기')));
 }

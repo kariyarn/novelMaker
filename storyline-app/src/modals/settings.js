@@ -128,11 +128,11 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
 }
 function showTrash(){
   openModal(mtitle(`휴지통 (${S.trash.length})`),
-    h('p',{class:'muted'},'삭제한 카드와 캐릭터가 여기에 모여요. 복구하면 원래 목록으로 돌아가요.'),
+    h('p',{class:'muted'},'삭제한 카드와 인물가 여기에 모여요. 복구하면 원래 목록으로 돌아가요.'),
     !S.trash.length?h('p',{class:'muted'},'비어 있어요.'):null,
     ...[...S.trash].reverse().map(t=>h('div',{class:'mrow'},
-      h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:t.type==='wiki'?`위키 · ${((t.data.rows||[])[0]||{}).title||'제목 없음'}${(t.data.rows||[]).length>1?` 외 ${t.data.rows.length-1}개`:''}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
-      h('button',{onclick:()=>{act(()=>{if(t.type==='wiki')wkRestore(t);else if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
+      h('span',{class:'l'},t.type==='char'?`인물 · ${t.data.name}`:t.type==='wiki'?`위키 · ${((t.data.rows||[])[0]||{}).title||'제목 없음'}${(t.data.rows||[]).length>1?` 외 ${t.data.rows.length-1}개`:''}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
+      h('button',{onclick:()=>{act(()=>{if(t.type==='wiki')wkRestore(t);else if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 인물가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
       h('button',{onclick:async()=>{if(await askConfirm('완전히 삭제할까요? 되돌릴 수 없어요.')){S.trash=S.trash.filter(x=>x!==t);save();renderTop();showTrash()}}},'✕'))),
     closeRow(S.trash.length?h('button',{style:'color:var(--warn)',onclick:async()=>{if(await askConfirm('휴지통을 모두 비울까요?')){S.trash=[];save();renderTop();showTrash()}}},'휴지통 비우기'):null));
 }

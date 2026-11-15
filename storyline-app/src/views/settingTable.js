@@ -73,7 +73,7 @@ function renderFolderTable(m){
     ic.addEventListener('click',e=>{e.stopPropagation();pickIcon(ic,c.icon,v=>setEntIcon(c,v))});
     const mb=h('button',{class:'cbtn emenu','data-pop':'1',title:'보드 열기 · 폴더 이동 · 삭제',onclick:e=>{e.stopPropagation();popMenu(mb,[
       {label:'보드 열기 (이 항목의 카드 모음)',fn:()=>setSel(c.id)},{label:'아이콘 바꾸기…',fn:()=>setTimeout(()=>pickIcon(ic,c.icon,v=>setEntIcon(c,v)),30)},'sep',{title:'폴더로 이동'},
-      ...folderChoices(x=>folderOf(c)===x.id,x=>act(()=>{c.folder=x.id})),'sep',{label:'휴지통으로',fn:async()=>{if(await askConfirm(`'${c.name}' ${c.kind==='setting'?'설정 노트':'캐릭터'}를 휴지통으로 보낼까요? (카드는 남고, 휴지통에서 복구할 수 있어요)`,{ok:'휴지통으로',danger:true}))act(()=>trashEntity(c))}}])}},'⋯');
+      ...folderChoices(x=>folderOf(c)===x.id,x=>act(()=>{c.folder=x.id})),'sep',{label:'휴지통으로',fn:async()=>{if(await askConfirm(`'${c.name}' ${c.kind==='setting'?'설정 노트':'인물'}를 휴지통으로 보낼까요? (카드는 남고, 휴지통에서 복구할 수 있어요)`,{ok:'휴지통으로',danger:true}))act(()=>trashEntity(c))}}])}},'⋯');
     const tr=h('tr',{class:'trow'+(UI.sel===c.id?' act':'')+(emp?' emp':''),'data-tid':c.id,ondblclick:e=>{if(!e.target.closest('input,button'))setSel(c.id)}},
       h('td',{class:'tn'},h('div',{class:'tnin'},ic,h('input',{class:'tin nm',value:c.name,onchange:e=>rename(c,e)}),emp?h('span',{class:'etag'},'빈 항목'):null)),
       h('td',{},h('input',{class:'tin',value:c.summary||'',placeholder:'한 줄 정의',oninput:e=>edit(()=>c.summary=e.target.value)})),

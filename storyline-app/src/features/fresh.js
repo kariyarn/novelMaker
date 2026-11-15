@@ -31,7 +31,7 @@ function frCard(el,card,bar){
 function frDiscard(id){
   const c=cardById(id);if(!c)return;
   const el=document.querySelector(`#mid .kcard[data-id="${id}"]`);
-  const go=()=>{buryCards([id]);toast('무덤으로 보냈어요 · 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true})};
+  const go=()=>{buryCards([id]);buryToast()};
   if(el&&!matchMedia('(prefers-reduced-motion: reduce)').matches){el.classList.add('frout');setTimeout(go,380)}else go();      // 붉은 X가 그어지며 작아져 사라짐
 }
 
@@ -45,8 +45,8 @@ function frLineBar(){
     h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox')),
     h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
     h('span',{class:'frfsz',title:'글자 크기'},
-      h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>{UIP.frfs=Math.max(14,frFs()-1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'),
-      h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'))];
+      h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>{UIP.frfs=Math.max(14,frFs()-1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가−'),
+      h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가+'))];
 }
 function frRenderLine(m,E,lo,hi,build){
   const sheet=h('div',{class:'frsheet'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});

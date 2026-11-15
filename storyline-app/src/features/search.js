@@ -19,13 +19,13 @@ function runSearch(q){
   const has=hay=>{const lo=normQ(hay);return toks.every(k=>lo.includes(k))};
   S.characters.forEach(c=>{
     const base=[c.name,(c.aliases||[]).join(' '),c.role,c.summary,c.memo,c.longGoal,(c.goals||[]).map(g=>g.text).join(' ')].join(' ');
-    if(has(base))out.push({kind:c.kind==='setting'?'설정':'캐릭터',title:c.name,sub:snippet([c.role,c.summary,c.memo,c.longGoal?'장기 목표 '+c.longGoal:'',(c.goals||[]).map(g=>g.text).join(' ')].filter(Boolean).join(' · '),toks),color:c.color,go:()=>{UI.mode='story';setSel(c.id)}});
-    else (c.fields||[]).some(f=>{if(has(f.label+' '+f.value)){out.push({kind:c.kind==='setting'?'설정':'캐릭터',title:c.name+' · '+f.label,sub:snippet(f.value,toks),color:c.color,go:()=>{UI.mode='story';UIP.cl.sheet=false;setSel(c.id);UIP.cl.sheet=false;renderAll()}});return true}});
+    if(has(base))out.push({kind:c.kind==='setting'?'설정':'인물',title:c.name,sub:snippet([c.role,c.summary,c.memo,c.longGoal?'장기 목표 '+c.longGoal:'',(c.goals||[]).map(g=>g.text).join(' ')].filter(Boolean).join(' · '),toks),color:c.color,go:()=>{UI.mode='story';setSel(c.id)}});
+    else (c.fields||[]).some(f=>{if(has(f.label+' '+f.value)){out.push({kind:c.kind==='setting'?'설정':'인물',title:c.name+' · '+f.label,sub:snippet(f.value,toks),color:c.color,go:()=>{UI.mode='story';UIP.cl.sheet=false;setSel(c.id);UIP.cl.sheet=false;renderAll()}});return true}});
   });
   S.cards.forEach(c=>{if(has(c.text))out.push({kind:kindOf(c.kind).name,title:snippet(c.text,toks,60),sub:eff(c).map(id=>charById(id).name).join(', ')||'미분류',color:kindOf(c.kind).color,card:c,go:()=>goToCard(c.id)})});
   S.episodes.forEach((e,i)=>{if(has((e.title||'')+' '+(e.memo||'')))out.push({kind:'화',title:`${i+1}화${e.title?' · '+e.title:''}`,sub:snippet(e.memo,toks),color:'var(--acc)',go:()=>{UI.mode='tl';UI.tlScope=null;if((UIP.tlMode||'kanban')==='matrix')UIP.tlMode='kanban';renderAll();setTimeout(()=>{const col=document.querySelector(`[data-ep="${i}"]`);if(col){col.scrollIntoView({inline:'center',block:'start',behavior:'smooth'});flashEl(col)}},60)}})});
   wikiRows().forEach(r=>{const t=wkText(r.body),tt=rowTitle(r);if(has(tt+' '+t))out.push({kind:'위키',title:tt,sub:rowChain(r).slice(0,-1).map(rowTitle).join(' › ')+(t?' · '+snippet(t,toks):''),color:'var(--acc)',go:()=>goWikiRow(r.id)})});
-  const order={'캐릭터':0,'설정':0,'위키':1,'화':1};
+  const order={'인물':0,'설정':0,'위키':1,'화':1};
   out.sort((a,b)=>((order[a.kind]??2)-(order[b.kind]??2)));
   return {out:out.slice(0,60),toks};
 }
@@ -43,13 +43,13 @@ function goToCard(id){      // 카드가 있는 보드로 가서 보여줌 (필�
 }
 function openSearch(){
   closeSearch();closePop();
-  const inp=h('input',{class:'spotin',placeholder:'카드 · 캐릭터 · 설정 · 위키 · 화 검색   (↑↓ 이동 · Enter 열기 · Esc 닫기)',autofocus:true});
+  const inp=h('input',{class:'spotin',placeholder:'카드 · 인물 · 설정 · 위키 · 화 검색   (↑↓ 이동 · Enter 열기 · Esc 닫기)',autofocus:true});
   const list=h('div',{class:'sres'}),box=h('div',{class:'spotbox'},inp,list),ov=h('div',{class:'spot',onmousedown:e=>{if(e.target===ov)closeSearch()}},box);
   let res=[],cur=0;
   const draw=()=>{
     list.textContent='';
     const {out,toks}=runSearch(inp.value);res=out;cur=Math.min(cur,Math.max(0,res.length-1));
-    if(!inp.value.trim()){list.append(h('div',{class:'sempty'},'찾고 싶은 말을 입력하세요. 카드 글, 캐릭터 시트, 설정 메모, 화 제목까지 한 번에 찾아요.'));return}
+    if(!inp.value.trim()){list.append(h('div',{class:'sempty'},'찾고 싶은 말을 입력하세요. 카드 글, 인물 시트, 설정 메모, 화 제목까지 한 번에 찾아요.'));return}
     if(!res.length){list.append(h('div',{class:'sempty'},'결과가 없어요.'));return}
     res.forEach((r,i)=>{
       const row=h('div',{class:'sr'+(i===cur?' on':''),onmouseenter:()=>{cur=i;[...list.children].forEach((x,j)=>x.classList.toggle('on',j===i))},onclick:()=>{closeSearch();r.go()}},

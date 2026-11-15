@@ -1,4 +1,4 @@
-/* ---------- 왼쪽: 캐릭터 · 설정 · 폴더 (폴더 안 폴더, 아이콘, 끌어서 이동) ---------- */
+/* ---------- 왼쪽: 인물 · 설정 · 폴더 (폴더 안 폴더, 아이콘, 끌어서 이동) ---------- */
 const folderById=id=>S.folders.find(f=>f.id===id);
 const folderOf=c=>{const f=c.folder&&folderById(c.folder);return f?f.id:(c.kind==='setting'?'f_setting':null)};
 const parentOf=f=>{const p=f.parent&&folderById(f.parent);return p&&p!==f?p.id:null};
@@ -43,7 +43,7 @@ function entMenu(e,c){
   popMenu(a,entItems(c));a.remove();
 }
 async function renameEntity(c){
-  const v=((await askText(c.kind==='setting'?'설정 노트 이름':'캐릭터 이름',c.name))||'').trim();if(!v||v===c.name)return;
+  const v=((await askText(c.kind==='setting'?'설정 노트 이름':'인물 이름',c.name))||'').trim();if(!v||v===c.name)return;
   const d=dupName(v,c.id);if(d)return toast(`'${d.name}'은(는) 이미 있는 이름이에요`);
   act(()=>{c.name=v;autoLinkAll()});
 }
@@ -51,7 +51,7 @@ const folderSel=c=>h('div',{class:'row'},h('span',{class:'muted'},'폴더'),
   sel([['',c.kind==='setting'?'(기본: 설정)':'(폴더 없음)'],...S.folders.map(f=>[f.id,folderPath(f)])],c.folder||'',v=>act(()=>{if(v)c.folder=v;else delete c.folder})),
   (()=>{const b=h('button',{class:'quiet','data-pop':'1',title:'아이콘 바꾸기',style:'padding:0 8px',onclick:()=>pickIcon(b,c.icon,v=>setEntIcon(c,v))},c.icon||'아이콘 ＋');return b})());
 async function addEntity(kind,folder){
-  const name=((await askText(kind==='setting'?'새 설정 노트 이름 (예: 반지하, 세계관)':'새 캐릭터 이름'))||'').trim();if(!name)return;
+  const name=((await askText(kind==='setting'?'새 설정 노트 이름 (예: 반지하, 세계관)':'새 인물 이름'))||'').trim();if(!name)return;
   const d=dupName(name);if(d){setSel(d.id);return toast(`'${d.name}'은(는) 이미 있는 이름이에요`)}
   let id;
   act(()=>{const c=kind==='setting'?newSetting(name):newChar(name,PAL[S.characters.length%PAL.length]);if(folder){c.folder=folder;UIP.fo[folder]=false}S.characters.push(c);id=c.id;autoLinkAll()});
@@ -145,7 +145,7 @@ function renderLeft0(){
   if(UIP.cl.left&&UI.peek!=='left'){p.append(h('button',{class:'ctab ctab-l',onmouseenter:()=>peekSoon('left'),onfocus:()=>startPeek('left',true),title:UI.mode==='tl'?'화 목록 펴기':'인물 · 설정 목록 펴기',onclick:()=>toggleCl('left')},icon(UI.mode==='tl'?'list':'sheet')));return}
   if(UI.mode==='tl')return renderEpisodeList(p);
   const addBtn=h('button',{class:'cbtn','data-pop':'1',title:'더 보기',onclick:()=>popMenu(addBtn,[{label:'설정 표로 보기',fn:()=>openFolderTable()},'sep',{label:'모든 폴더 펴기',fn:()=>{S.folders.forEach(f=>{UIP.fo[f.id]=false});saveUIP();renderLeft()}},{label:'모든 폴더 접기',fn:()=>{S.folders.forEach(f=>{UIP.fo[f.id]=true});saveUIP();renderLeft()}}])},'⋯');
-  p.append(h('div',{class:'phead'},h('b',{title:'캐릭터 · 설정'},'인물·설정'),h('span',{class:'sp'}),h('button',{class:'cbtn',title:'설정 표로 한눈에 보기',onclick:()=>openFolderTable()},'▦'),addBtn,ptog('left')));
+  p.append(h('div',{class:'phead'},h('b',{title:'인물 · 설정'},'인물·설정'),h('span',{class:'sp'}),h('button',{class:'cbtn',title:'설정 표로 한눈에 보기',onclick:()=>openFolderTable()},'▦'),addBtn,ptog('left')));
   const q=nameKey(UI.lq||'');
   const find=h('input',{class:'lfind',placeholder:'이름으로 찾기',value:UI.lq||'',oninput:e=>{UI.lq=e.target.value;clearTimeout(renderLeft.t);renderLeft.t=setTimeout(()=>{const pos=e.target.selectionStart;renderLeft();const i=document.querySelector('#left .lfind');if(i){i.focus();i.setSelectionRange(pos,pos)}},180)}});
   p.append(h('div',{class:'lfwrap'},find));
@@ -168,10 +168,10 @@ function renderLeft0(){
     el.addEventListener('dragleave',ev=>{if(!el.contains(ev.relatedTarget))el.classList.remove('dover')});
     el.addEventListener('drop',ev=>{ev.preventDefault();ev.stopPropagation();el.classList.remove('dover');fn()});
   };
-  const isSetF=f=>inside(f.id,'f_setting');      // 설정 아래 폴더면 설정 노트, 인물 쪽 폴더면 캐릭터 노트 (고르게 하지 않음)
+  const isSetF=f=>inside(f.id,'f_setting');      // 설정 아래 폴더면 설정 노트, 인물 쪽 폴더면 인물 노트 (고르게 하지 않음)
   const folderMenu=(f,mb)=>popMenu(mb,[
       {label:'표로 보기',fn:()=>openFolderTable(f.id)},'sep',
-      isSetF(f)?{label:'새 설정 노트',fn:()=>addEntity('setting',f.id)}:{label:'새 캐릭터',fn:()=>addEntity('char',f.id)},{label:'하위 폴더 추가',fn:()=>addFolder(f.id)},
+      isSetF(f)?{label:'새 설정 노트',fn:()=>addEntity('setting',f.id)}:{label:'새 인물',fn:()=>addEntity('char',f.id)},{label:'하위 폴더 추가',fn:()=>addFolder(f.id)},
       'sep',{label:'아이콘 바꾸기…',fn:()=>setTimeout(()=>{const a=document.querySelector(`#left [data-fid="${f.id}"] .fic`);if(a)pickIcon(a,f.icon,v=>setFolderIcon(f,v))},30)},
       ...(f.builtin?[]:[{label:'이름 바꾸기',fn:()=>renameFolder(f)},'sep',{title:'폴더 이동'},{label:'최상위로',on:!f.parent,fn:()=>moveFolder(f.id,null)},...folderChoices(x=>f.parent===x.id,x=>moveFolder(f.id,x.id),f.id),'sep',{label:'폴더 삭제',fn:()=>deleteFolder(f)}])]);
   // 판(분류) 또는 폴더 판: 제목 줄 + 이름표들 + 안쪽 폴더 판
@@ -182,7 +182,7 @@ function renderLeft0(){
     const mb=h('button',{class:'cbtn fmenu','data-pop':'1',title:'폴더 메뉴',onclick:ev=>{ev.stopPropagation();folderMenu(f,mb)}},'⋯');
     const head=h('div',{class:'lsh'+(UI.folderView===f.id?' tview':''),'data-fid':f.id,draggable:!f.builtin,title:open?'눌러서 접기':'눌러서 펴기'},
       h('span',{class:'car'},open?'▾':'▸'),fic,h('span',{class:'fn'},f.name),h('small',{},folderCount(f.id)),h('span',{class:'sp'}),
-      h('button',{class:'cbtn mk',title:isSetF(f)?'이 폴더에 새 설정 노트':'이 폴더에 새 캐릭터',onclick:ev=>{ev.stopPropagation();addEntity(isSetF(f)?'setting':'char',f.id)}},icon('noteplus')),
+      h('button',{class:'cbtn mk',title:isSetF(f)?'이 폴더에 새 설정 노트':'이 폴더에 새 인물',onclick:ev=>{ev.stopPropagation();addEntity(isSetF(f)?'setting':'char',f.id)}},icon('noteplus')),
       h('button',{class:'cbtn mk',title:'이 폴더 안에 새 폴더',onclick:ev=>{ev.stopPropagation();addFolder(f.id)}},icon('folderplus')),
       h('button',{class:'cbtn ftb',title:'표로 보기',onclick:ev=>{ev.stopPropagation();openFolderTable(f.id)}},'▦'),mb);
     head.addEventListener('click',()=>{if(q)return;UIP.fo[f.id]=open;saveUIP();renderLeft()});
@@ -208,17 +208,17 @@ function renderLeft0(){
   };
   const stop=fn=>e=>{e.stopPropagation();fn(e)};
   const wrap=h('div',{class:'ltree'+((S.settings.leftStyle||'text')==='text'?' ltext':'')});      // 이름 목록 모양: 기본은 글자 (설정에서 이름표로)
-  // 인물: 폴더 밖의 캐릭터 + 최상위 폴더들
+  // 인물: 폴더 밖의 인물 + 최상위 폴더들
   const rootChars=entsIn(null),rootFolders=childFolders(null).filter(f=>!f.builtin).filter(hasMatch);
   const nChars=S.characters.filter(c=>c.kind!=='setting').length;
   if(!q||rootChars.length||rootFolders.length)wrap.append(board('__chars','인물',nChars,[
-      h('button',{class:'cbtn mk add',title:'새 캐릭터',onclick:stop(()=>addEntity('char'))},icon('noteplus')),
+      h('button',{class:'cbtn mk add',title:'새 인물',onclick:stop(()=>addEntity('char'))},icon('noteplus')),
       h('button',{class:'cbtn mk',title:'새 폴더',onclick:stop(()=>addFolder())},icon('folderplus')),
       h('span',{class:'cslot'}),      // 표 보기 자리 (아이콘 열 맞춤)
       (()=>{const mb=h('button',{class:'cbtn','data-pop':'1',title:'인물 메뉴',onclick:stop(()=>popMenu(mb,[
-        {label:'새 캐릭터',fn:()=>addEntity('char')},{label:'새 폴더',fn:()=>addFolder()},'sep',
+        {label:'새 인물',fn:()=>addEntity('char')},{label:'새 폴더',fn:()=>addFolder()},'sep',
         {label:'인물 폴더 모두 펴기',fn:()=>setFoldersOpen(childFolders(null).filter(f=>!f.builtin),true)},{label:'인물 폴더 모두 접기',fn:()=>setFoldersOpen(childFolders(null).filter(f=>!f.builtin),false)}]))},'⋯');return mb})()],
-    ()=>[rootChars.length?h('div',{class:'lchips'},...rootChars.map(chip)):(!rootFolders.length?h('div',{class:'fhint'},'아직 캐릭터가 없어요 · ',h('button',{class:'fadd',onclick:stop(()=>addEntity('char'))},'＋ 새 캐릭터')):null),...rootFolders.map(f=>sub(f,1))].filter(Boolean),
+    ()=>[rootChars.length?h('div',{class:'lchips'},...rootChars.map(chip)):(!rootFolders.length?h('div',{class:'fhint'},'아직 인물가 없어요 · ',h('button',{class:'fadd',onclick:stop(()=>addEntity('char'))},'＋ 새 인물')):null),...rootFolders.map(f=>sub(f,1))].filter(Boolean),
     ()=>{if(DRAGE){const c=charById(DRAGE);DRAGE=null;dragOn(false);if(c)act(()=>{delete c.folder})}else if(DRAGF){const id=DRAGF;DRAGF=null;dragOn(false);moveFolder(id,null)}}));
   // 설정: 기본 설정 폴더(그 안의 폴더는 더 작은 판)
   const sf=folderById('f_setting');
