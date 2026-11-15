@@ -31,7 +31,7 @@ function frCard(el,card,bar){
 function frDiscard(id){
   const c=cardById(id);if(!c)return;
   const el=document.querySelector(`#mid .kcard[data-id="${id}"]`);
-  const go=()=>{buryCards([id]);toast('무덤으로 보냈어요 · 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true})};
+  const go=()=>{buryCards([id]);buryToast()};
   if(el&&!matchMedia('(prefers-reduced-motion: reduce)').matches){el.classList.add('frout');setTimeout(go,380)}else go();      // 붉은 X가 그어지며 작아져 사라짐
 }
 
@@ -40,13 +40,16 @@ const frW=()=>UIP.frw||720,frFs=()=>UIP.frfs||16.5;
 const frSc=()=>['line','box'].includes(UIP.frsc)?UIP.frsc:'card';      // 한 줄 보기 모양: 원고(문단으로 이어짐) · 묶음(장면별 상자) · 카드(한 장씩 구분, 기본)
 const frScCls=()=>({box:' scbox',card:' sccard'})[frSc()]||'';
 function frSetW(w){UIP.frw=Math.max(520,Math.min(1100,Math.round(w/10)*10));const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frw',UIP.frw+'px');const r=document.querySelector('#frwr');if(r)r.value=UIP.frw}
-function frLineBar(){
-  return [h('span',{class:'frscm',title:'한 줄 보기 모양 — 원고: 문단으로 이어 읽기 · 묶음: 장면별 상자 · 카드: 한 장씩 구분'},segOld([['line','원고'],['box','묶음'],['card','카드']],frSc(),k=>{UIP.frsc=k;saveUIP();renderMid()})),
-    h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox')),
-    h('label',{class:'frwctl',title:'글 폭 — 원고 양옆을 끌어도 돼요'},'글 폭',h('input',{id:'frwr',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP})),
-    h('span',{class:'frfsz',title:'글자 크기'},
-      h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>{UIP.frfs=Math.max(14,frFs()-1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'),
-      h('button',{class:'quiet big','aria-label':'글자 크게',onclick:()=>{UIP.frfs=Math.min(22,frFs()+1);saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px')}},'가'))];
+function frLineBar(){      // 한 줄 보기 막대: 모양 · 글 폭 · 글자 크기는 '보기 설정' 하나 안에, 보관함만 밖에
+  const fs=d=>{UIP.frfs=Math.max(14,Math.min(22,frFs()+d));saveUIP();const s=document.querySelector('.frsheet');if(s)s.style.setProperty('--frfs',UIP.frfs+'px');const o=document.querySelector('.frvfs');if(o)o.textContent=UIP.frfs+'px'};
+  const vb=h('button',{class:'quiet frvbtn','data-pop':'1',title:'보기 설정 — 원고 모양 · 글 폭 · 글자 크기',onclick:()=>{
+    if(POP&&POP._frv){closePop();return}
+    popMenu(vb,()=>[{title:'원고 모양'},...[['line','원고 · 문단으로 이어 읽기'],['box','묶음 · 장면별 상자'],['card','카드 · 한 장씩 구분']].map(([k,n])=>({label:n,on:frSc()===k,keep:true,fn:()=>{UIP.frsc=k;saveUIP();renderMid()}})),
+      'sep',{title:'글 폭 (원고 양옆을 끌어도 돼요)'},{node:h('div',{class:'frvrow'},h('input',{id:'frwr','aria-label':'글 폭',type:'range',min:520,max:1100,step:10,value:frW(),oninput:e=>frSetW(+e.target.value),onchange:saveUIP}))},
+      {title:'글자 크기'},{node:h('div',{class:'frvrow'},h('button',{class:'quiet','aria-label':'글자 작게',onclick:()=>fs(-1)},'가−'),h('span',{class:'frvfs'},frFs()+'px'),h('button',{class:'quiet','aria-label':'글자 크게',onclick:()=>fs(1)},'가+'))}]);
+    if(POP)POP._frv=true}},icon('sliders'),'보기 설정');
+  return [vb,
+    h('button',{class:'cbtn frshtg'+(UIP.frshs?' on':''),title:UIP.frshs?'보관함 닫기':'보관함 열기 — 원고 옆에 나란히 두고 끌어 옮겨요',onclick:()=>{UIP.frshs=!UIP.frshs;saveUIP();renderMid()}},icon('shelfbox'))];
 }
 function frRenderLine(m,E,lo,hi,build){
   const sheet=h('div',{class:'frsheet'+frScCls(),style:`--frw:${frW()}px;--frfs:${frFs()}px`});
@@ -159,7 +162,7 @@ function frProfile(c,n,hidden){
   return h('div',{class:'bhead frprof'},
     h('div',{class:'frwho'},
       h('div',{class:'frnm'},h('b',{},c.name||'(이름 없음)'),c.role?h('small',{},c.role):null,
-        h('span',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 숨김 ${hidden}`:''}`),
+        h('span',{class:'fracts'},h('span',{class:'cnt'},`${n}장${hidden?` · 화에 쓴 ${hidden}장 숨김`:''}`),
           h('button',{class:'quiet frsht'+(open?' on':''),title:open?'인물 시트 접기':'인물 시트 펼치기 — 별칭 · 소개 · 목표 · 칸 묶음',onclick:()=>toggleCl('sheet')},open?'시트 접기':'시트 펼치기'))),
       open||!c.summary?null:h('p',{class:'frsum'},c.summary),
       open||isSet?null:h('p',{class:'frgoal',title:'눌러서 시트에서 목표 고치기',onclick:()=>slidePanel('sheet',false)},h('span',{},'목표'),goal||h('em',{},'아직 없어요 · 눌러서 적기'))));
@@ -340,7 +343,7 @@ function frZoomTo(card){      // 두 번 누르면: 그 포스트잇이 화면 �
 const frIcons=()=>UIP.pico!==false;
 function frIcon(card){
   const used=episodeOf(card.id),dd=graveLeft(card);
-  const el=h('div',{class:'frico'+(used?' used':'')+(dd?' wilt':'')+(card.discarded?' gone':''),'data-id':card.id,'data-dd':dd?'D-'+dd:'',draggable:true,tabindex:0,style:`--bg:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:dd?`${dd}일 뒤 무덤으로 — 화나 보관 칸에 넣거나 별을 붙이면 안 가요`:card.discarded?'무덤 — 눌러서 되살리기':''},
+  const el=h('div',{class:'frico'+(used?' used':'')+(dd?' wilt':'')+(card.discarded?' gone':''),'data-id':card.id,'data-dd':dd?'D-'+dd:'',draggable:true,tabindex:0,style:`--kc0:${cardColor(card)};--r:${frRot(card.id)}deg`,'aria-label':(card.text||'빈 포스트잇').slice(0,60)+(used?` · ${used.i+1}화 사용`:''),title:used?`${used.i+1}화 사용`:dd?`${dd}일 뒤 무덤으로 — 화나 보관 칸에 넣거나 별을 붙이면 안 가요`:card.discarded?'무덤 — 눌러서 되살리기':''},
     ...Array.from({length:Math.min(3,frBars(card.text))},()=>h('i')),
     h('span',{class:'dd'},...eff(card).map(charById).filter(Boolean).slice(0,4).map(c=>h('b',{style:`--c:${c.color}`}))));
   el.addEventListener('mouseenter',()=>{if(!DRAG)frPeek(card,el.getBoundingClientRect(),'left')});

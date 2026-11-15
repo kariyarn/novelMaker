@@ -33,6 +33,12 @@ function graveTick(){
   if(moved)setTimeout(()=>toast(`${moved}장이 무덤으로 갔어요 · 왼쪽 목록 맨 아래 ‘무덤’에서 되살릴 수 있어요`),0);
   return changed;
 }
+/* 무덤으로 보낸 뒤 알림: 무덤이 어디 있는지는 처음 한 번만 알려 주고, 그다음부터는 짧게 */
+function buryToast(){
+  if(UIP.graveTold)return toast('무덤으로 보냈어요',{undo:true});
+  UIP.graveTold=true;saveUIP();
+  toast('무덤으로 보냈어요 · 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true});
+}
 function buryCards(ids){      // 무덤으로 보내기 (폐기)
   act(()=>ids.map(cardById).filter(Boolean).forEach(c=>{stamp(c);c.discarded=true;c.graveAt=Date.now();delete c.clock;detach([c.id])}));
 }

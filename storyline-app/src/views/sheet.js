@@ -20,7 +20,7 @@ function renderSheet0(){
     allKeys.length?h('button',{class:'quiet',style:'padding:0 8px;font-size:.84em',title:'목표 · 칸 묶음을 모두 접거나 펴요',onclick:()=>{allKeys.forEach(k=>{UIP.gc[k]=!allClosed});saveUIP();renderSheet();fitAll($('sheet'))}},allClosed?'모두 펴기':'모두 접기'):null,
     ptog('sheet')));
   if(UI.sel==='work'&&S.work)return renderWorkSheet(p,S.work);
-  if(!c){p.append(h('div',{class:'empty'},UI.sel==='none'?'미분류 보드예요. 왼쪽에서 캐릭터를 고르면 시트가 열려요.':UI.sel==='grave'?'무덤이에요. 화나 보관 칸에 안 넣고 기한이 지난 카드 · 폐기한 카드가 모여요.':'아직 캐릭터가 없어요.',h('br'),h('button',{class:'on',style:'margin-top:12px',onclick:()=>addEntity('char')},'＋ 캐릭터 만들기')));return}
+  if(!c){p.append(h('div',{class:'empty'},UI.sel==='none'?'미분류 보드예요. 왼쪽에서 인물를 고르면 시트가 열려요.':UI.sel==='grave'?'무덤이에요. 화나 보관 칸에 안 넣고 기한이 지난 카드 · 폐기한 카드가 모여요.':'아직 인물가 없어요.',h('br'),h('button',{class:'on',style:'margin-top:12px',onclick:()=>addEntity('char')},'＋ 인물 만들기')));return}
   if(isSet)return renderSettingSheet(p,c);
   const head=h('div',{class:'shead'},
     h('input',{class:'nm',value:c.name,placeholder:'이름',onchange:e=>{
@@ -50,5 +50,5 @@ function renderSheet0(){
     p.append(box);
   });
   p.append(h('div',{class:'sgrp'},h('button',{class:'quiet',onclick:async()=>{const g=((await askText('새 묶음 이름 (예: 능력, 비밀)'))||'').trim();if(!g)return;const l=((await askText('첫 칸 이름'))||'').trim();if(l)act(()=>c.fields.push({id:uid(),group:g,label:l,hint:'',value:''}))}},'＋ 묶음 추가')));
-  p.append(h('div',{class:'sgrp',style:'padding:10px 20px 30px'},h('button',{class:'quiet',style:'color:var(--warn)',onclick:async()=>{if(await askConfirm(`'${c.name}' 캐릭터를 휴지통으로 보낼까요? (카드는 남아요)`)){act(()=>{S.trash.push({id:uid(),type:'char',data:c,at:Date.now()});S.characters=S.characters.filter(x=>x!==c);UI.sel=firstEntity()});toast('휴지통으로 보냈어요',{undo:true})}}},'이 캐릭터 삭제')));
+  p.append(h('div',{class:'sgrp',style:'padding:10px 20px 30px'},h('button',{class:'quiet',style:'color:var(--warn)',onclick:async()=>{if(await askConfirm(`'${c.name}' 인물를 휴지통으로 보낼까요? (카드는 남아요)`)){act(()=>{S.trash.push({id:uid(),type:'char',data:c,at:Date.now()});S.characters=S.characters.filter(x=>x!==c);UI.sel=firstEntity()});toast('휴지통으로 보냈어요',{undo:true})}}},'이 인물 삭제')));
 }

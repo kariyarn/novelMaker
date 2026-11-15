@@ -8,7 +8,7 @@ function renderBoard(m){
   view.append(world);m.append(view);
   // 왼쪽 위: 보드 이름 · 장수 (목표 알약도 여기에)
   const RO=UI.mode==='all',GR=key==='grave',on=kindsOn();      // GR: 무덤 보드 (새로 만들지 않음)
-  const bhead=UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null,
+  const bhead=UI.mode==='story'&&c?frProfile(c,cards.length,hidden):h('div',{class:'bhead'},h('b',{},name),h('span',{class:'muted'},`${cards.length}장${hidden?` · 화에 쓴 ${hidden}장 숨김`:''}`),RO?h('span',{class:'robadge',title:'전체 보기는 모아 보기 전용이에요. 만들기 · 고치기는 인물 보드에서 해요 (포스트잇 두 번 누르면 이동)'},'보기 전용'):null,
     GR&&cards.length?h('button',{class:'quiet gvall',title:'무덤 카드를 모두 오른쪽 목록으로 (타이머는 처음부터)',onclick:()=>reviveCards(cards.map(x=>x.id))},'모두 되살리기'):null);
   view.append(bhead);
   { const gs=m.querySelector('.goalstrip.mini');if(gs)bhead.append(gs); }

@@ -73,7 +73,7 @@ function renderFolderTable(m){
     ic.addEventListener('click',e=>{e.stopPropagation();pickIcon(ic,c.icon,v=>setEntIcon(c,v))});
     const mb=h('button',{class:'cbtn emenu','data-pop':'1',title:'보드 열기 · 폴더 이동 · 삭제',onclick:e=>{e.stopPropagation();popMenu(mb,[
       {label:'보드 열기 (이 항목의 카드 모음)',fn:()=>setSel(c.id)},{label:'아이콘 바꾸기…',fn:()=>setTimeout(()=>pickIcon(ic,c.icon,v=>setEntIcon(c,v)),30)},'sep',{title:'폴더로 이동'},
-      ...folderChoices(x=>folderOf(c)===x.id,x=>act(()=>{c.folder=x.id})),'sep',{label:'휴지통으로',fn:async()=>{if(await askConfirm(`'${c.name}' ${c.kind==='setting'?'설정 노트':'캐릭터'}를 휴지통으로 보낼까요? (카드는 남고, 휴지통에서 복구할 수 있어요)`,{ok:'휴지통으로',danger:true}))act(()=>trashEntity(c))}}])}},'⋯');
+      ...folderChoices(x=>folderOf(c)===x.id,x=>act(()=>{c.folder=x.id})),'sep',{label:'휴지통으로',fn:async()=>{if(await askConfirm(`'${c.name}' ${c.kind==='setting'?'설정 노트':'인물'}를 휴지통으로 보낼까요? (카드는 남고, 휴지통에서 복구할 수 있어요)`,{ok:'휴지통으로',danger:true}))act(()=>trashEntity(c))}}])}},'⋯');
     const tr=h('tr',{class:'trow'+(UI.sel===c.id?' act':'')+(emp?' emp':''),'data-tid':c.id,ondblclick:e=>{if(!e.target.closest('input,button'))setSel(c.id)}},
       h('td',{class:'tn'},h('div',{class:'tnin'},ic,h('input',{class:'tin nm',value:c.name,onchange:e=>rename(c,e)}),emp?h('span',{class:'etag'},'빈 항목'):null)),
       h('td',{},h('input',{class:'tin',value:c.summary||'',placeholder:'한 줄 정의',oninput:e=>edit(()=>c.summary=e.target.value)})),
@@ -114,9 +114,10 @@ function renderWorkSheet(p,c){
   p.append(goalSection(c));
   const open=UIP.gc['work:컨셉']!==false;
   const box=h('div',{class:'sgrp'},h('div',{class:'gh',style:'cursor:pointer;user-select:none',onclick:()=>{UIP.gc['work:컨셉']=!open;saveUIP();renderSheet();fitAll($('sheet'))}},(open?'▾ ':'▸ ')+'컨셉'));
+  const HINT={'한 줄 소개':'예: 반지하 배달 라이더와 재벌 3세가 접촉사고로 얽힌다','주제':'예: 돈으로 살 수 없는 것','소재':'예: 배달 · 계급 · 식탁 예절','장르 · 분위기':'예: 로맨스 · 담백하고 건조하게','독자에게 주고 싶은 느낌':'예: 읽고 나서 조금 따뜻해지는','세계관 한 줄':'예: 지금의 서울, 조금 더 차가운','결말 방향':'예: 둘 다 변하지만 함께하지는 않는다'};      // 빈 칸에 흐리게 보이는 예시 (저장되지 않음)
   const ord=l=>{const i=WORK_FIELDS.indexOf(l);return i<0?99:i};      // 항목 순서는 항상 정해진 순서로 (나중에 추가된 항목도 제자리에)
   if(open)c.fields.slice().sort((a,b)=>ord(a.label)-ord(b.label)).forEach(f=>box.append(h('label',{class:'fl'},f.label),
-    h('textarea',{class:'ghost box autofit',rows:1,style:'resize:none;overflow:hidden;width:100%;box-sizing:border-box;display:block',oninput:e=>{edit(()=>f.value=e.target.value);fitOne(e.target)}},f.value)));
+    h('textarea',{class:'ghost box autofit',rows:1,placeholder:HINT[f.label]||'',style:'resize:none;overflow:hidden;width:100%;box-sizing:border-box;display:block',oninput:e=>{edit(()=>f.value=e.target.value);fitOne(e.target)}},f.value)));
   p.append(box);
 }
 

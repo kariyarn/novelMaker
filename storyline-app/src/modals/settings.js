@@ -87,7 +87,7 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
       row('화면 다듬기','글자 · 버튼 · 간격을 가지런히 맞춘 모양',segOld([['tidy','다듬은 모양'],['classic','예전 모양']],s.look==='classic'?'classic':'tidy',k=>{setSetting('look',k);renderAll()})),
       row('이름 목록 모양','왼쪽 인물 · 설정 목록',segOld([['text','글자 (｜로 구분)'],['chip','이름표']],s.leftStyle||'text',k=>{setSetting('leftStyle',k);renderLeft()})),
       row('작게 보기','구상 보드를 줄여 글자가 이보다 작아지면 포스트잇을 모양만',segOld([['0','끄기'],['6','6px'],['8','8px'],['10','10px']],String(frDefPx()),k=>{setSetting('defPx',+k);applyView()})),
-      row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0])),h('div',{class:'tdots'},h('span',{class:'tlab'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
+      row('화면 색',cur[1],h('div',{class:'tdots'},h('span',{class:'tlab'},'자동'),dot(TH[0]),h('span',{class:'tlab tlab2'},'라이트'),...TH.filter(t=>t[0]!=='auto'&&!DARK.has(t[0])).map(dot)),h('div',{class:'tdots'},h('span',{class:'tlab'},'다크'),...TH.filter(t=>DARK.has(t[0])).map(dot))),
       row('포스트잇 모양','기본',h('div',{class:'swgrid'},...SHAPES.map(([k,n])=>h('button',{class:'swb'+((s.noteShape||'')===k?' on':''),onclick:()=>setSetting('noteShape',k)},h('span',{class:'shp '+k},h('b'),k==='tape'||k==='bubble'?h('i'):null),n))),
         h('div',{class:'kshape'},h('span',{class:'muted'},'분류별로 다르게'),...S.kinds.map(k=>h('label',{class:'kshr'},h('i',{style:`background:${k.colorMode==='random'?RANDOM_BG:k.color}`}),k.name,
           sel([['global','기본 모양'],...SHAPES,['random','랜덤']],k.shape===undefined||k.shape===null?'global':k.shape,v=>{act(()=>{if(v==='global')delete k.shape;else k.shape=v});showSettings()}))))),
@@ -128,11 +128,11 @@ function showSettings(){      // 설정: 겉모습 / 글쓰기 / 데이터 — �
 }
 function showTrash(){
   openModal(mtitle(`휴지통 (${S.trash.length})`),
-    h('p',{class:'muted'},'삭제한 카드와 캐릭터가 여기에 모여요. 복구하면 원래 목록으로 돌아가요.'),
+    h('p',{class:'muted'},'삭제한 카드와 인물가 여기에 모여요. 복구하면 원래 목록으로 돌아가요.'),
     !S.trash.length?h('p',{class:'muted'},'비어 있어요.'):null,
     ...[...S.trash].reverse().map(t=>h('div',{class:'mrow'},
-      h('span',{class:'l'},t.type==='char'?`캐릭터 · ${t.data.name}`:t.type==='wiki'?`위키 · ${((t.data.rows||[])[0]||{}).title||'제목 없음'}${(t.data.rows||[]).length>1?` 외 ${t.data.rows.length-1}개`:''}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
-      h('button',{onclick:()=>{act(()=>{if(t.type==='wiki')wkRestore(t);else if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 캐릭터가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
+      h('span',{class:'l'},t.type==='char'?`인물 · ${t.data.name}`:t.type==='wiki'?`위키 · ${((t.data.rows||[])[0]||{}).title||'제목 없음'}${(t.data.rows||[]).length>1?` 외 ${t.data.rows.length-1}개`:''}`:`카드 · ${(t.data.text||'(빈 카드)').slice(0,30)}`),h('span',{class:'muted'},fmtTime(t.at)),
+      h('button',{onclick:()=>{act(()=>{if(t.type==='wiki')wkRestore(t);else if(t.type==='char'){if(dupName(t.data.name))return toast('같은 이름의 인물가 이미 있어요');S.characters.push(t.data)}else{const c=t.data;delete c.discarded;delete c.graveAt;c.clock=Date.now();S.cards.unshift(c)}S.trash=S.trash.filter(x=>x!==t);autoLinkAll()});showTrash()}},'복구'),
       h('button',{onclick:async()=>{if(await askConfirm('완전히 삭제할까요? 되돌릴 수 없어요.')){S.trash=S.trash.filter(x=>x!==t);save();renderTop();showTrash()}}},'✕'))),
     closeRow(S.trash.length?h('button',{style:'color:var(--warn)',onclick:async()=>{if(await askConfirm('휴지통을 모두 비울까요?')){S.trash=[];save();renderTop();showTrash()}}},'휴지통 비우기'):null));
 }

@@ -3,7 +3,7 @@ async function discardCard(id){
   const c=cardById(id);if(!c)return;const used=episodeOf(id);
   if(used&&!await askConfirm(`${used.i+1}화에 쓴 카드예요. 무덤으로 보내면 타임라인에서도 빠져요. 보낼까요?`,{ok:'무덤으로'}))return;
   buryCards([id]);
-  toast('무덤으로 보냈어요 — 왼쪽 목록 맨 아래 ‘무덤’(⌥4)에서 되살릴 수 있어요',{undo:true});
+  buryToast();
 }
 const restoreCard=id=>reviveCards([id]);
 function trashCard(id){
@@ -65,7 +65,8 @@ function kcard(card,mode,opt={}){
       const cx=e.clientX,cy=e.clientY,ids=MSEL.has(card.id)&&MSEL.size>1?[...MSEL]:[card.id];
       const wk=ids.filter(id=>{const c=cardById(id);return c&&isWikiKind(c.kind)&&!c.filed});
       popMenu(a,[...(wk.length?[{label:wk.length>1?`메모 ${wk.length}장을 위키에 넣기…`:'위키에 넣기…',fn:()=>setTimeout(()=>wkPlaceMenu({x:cx,y:cy},wk),0)},'sep']:[]),
-        {label:ids.length>1?`${ids.length}장을 다른 화로…`:'다른 화로 옮기기…',fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,ids);b.remove()},0)},
+        ...(ids.length===1&&!card.discarded?[card.star?{label:'별 떼기',fn:()=>act(()=>{stamp(card);delete card.star})}:{label:'별 붙이기 (무덤에 안 가요)',fn:()=>act(()=>{stamp(card);card.star=true})}]:[]),
+        {label:ids.some(episodeOf)?(ids.length>1?`${ids.length}장을 다른 화로…`:'다른 화로 옮기기…'):(ids.length>1?`${ids.length}장을 화에 넣기…`:'화에 넣기…'),fn:()=>setTimeout(()=>{const b=h('div',{style:`position:fixed;left:${cx}px;top:${cy}px;width:1px;height:1px`});document.body.append(b);msMenu(b,ids);b.remove()},0)},
         'sep',card.discarded?{label:ids.length>1?`${ids.length}장 되살리기`:'되살리기',fn:()=>reviveCards(ids)}:{label:'무덤으로 보내기',fn:()=>ids.length>1?(buryCards(ids),toast(`${ids.length}장을 무덤으로 보냈어요`,{undo:true})):discardCard(card.id)}]);a.remove();
     });
   }else{
